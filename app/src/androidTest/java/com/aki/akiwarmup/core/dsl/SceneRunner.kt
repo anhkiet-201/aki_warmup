@@ -23,6 +23,16 @@ class SceneRunner(
     private val detector = ScreenDetector(device, scene.screens)
     private val loopManager = ActionLoop(device, scene, detector, humanEngine, logger, runConfig)
 
+    init {
+        // Tối ưu hóa UI Automator cho các ứng dụng video (không đợi idle quá lâu)
+        androidx.test.uiautomator.Configurator.getInstance().apply {
+            waitForIdleTimeout = 200L
+            actionAcknowledgmentTimeout = 200L
+            scrollAcknowledgmentTimeout = 200L
+            waitForSelectorTimeout = 1000L
+        }
+    }
+
     /**
      * Khởi chạy ứng dụng mục tiêu của Scene bằng lệnh monkey.
      */

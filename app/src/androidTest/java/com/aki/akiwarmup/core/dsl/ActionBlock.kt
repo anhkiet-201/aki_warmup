@@ -1,6 +1,7 @@
 package com.aki.akiwarmup.core.dsl
 
 import android.graphics.Point
+import android.util.Log
 import androidx.test.uiautomator.UiObject2
 import kotlinx.coroutines.delay
 import java.util.Random
@@ -17,6 +18,7 @@ class ActionBlock(private val context: ActionExecutionContext) {
     private val random = Random()
 
     suspend fun wait(ms: Long) {
+        Log.w("ScreenDetector", "Wait for $ms")
         delay(ms)
     }
 

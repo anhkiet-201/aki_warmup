@@ -14,8 +14,7 @@ interface Selector {
     fun findAll(device: UiDevice): List<UiObject2>
     fun find(parent: UiObject2): UiObject2?
     fun findAll(parent: UiObject2): List<UiObject2>
-    
-    fun exists(device: UiDevice): Boolean = find(device) != null
+    fun exists(device: UiDevice): Boolean
 }
 
 /**
@@ -33,7 +32,7 @@ class SimpleSelector : Selector {
     var clickable: Boolean? = null
     var enabled: Boolean? = null
     var depth: Int? = null
-    
+
     // Lưu các con/cháu bắt buộc
     var descendant: Selector? = null
 
@@ -41,7 +40,7 @@ class SimpleSelector : Selector {
         // Khởi tạo một selector cơ bản. UI Automator yêu cầu ít nhất 1 tiêu chí.
         // Chúng ta dùng package name hiện tại làm mặc định nếu không có gì khác.
         val s = By.pkg(Pattern.compile(".*"))
-        
+
         resourceId?.let { s.res(it) }
         text?.let { s.text(it) }
         textContains?.let { s.textContains(it) }
@@ -53,13 +52,13 @@ class SimpleSelector : Selector {
         clickable?.let { s.clickable(it) }
         enabled?.let { s.enabled(it) }
         depth?.let { s.depth(it) }
-        
-        descendant?.let { 
+
+        descendant?.let {
             if (it is SimpleSelector) {
                 s.hasDescendant(it.toBySelector())
             }
         }
-        
+
         return s
     }
 
@@ -67,6 +66,7 @@ class SimpleSelector : Selector {
     override fun findAll(device: UiDevice): List<UiObject2> = device.findObjects(toBySelector())
     override fun find(parent: UiObject2): UiObject2? = parent.findObject(toBySelector())
     override fun findAll(parent: UiObject2): List<UiObject2> = parent.findObjects(toBySelector())
+    override fun exists(device: UiDevice): Boolean = device.hasObject(toBySelector())
 
     // Fluent API
     fun id(id: String) = apply { resourceId = id }
@@ -79,7 +79,7 @@ class SimpleSelector : Selector {
     fun pkg(v: String) = apply { pkg = v }
     fun clickable(v: Boolean) = apply { clickable = v }
     fun enabled(v: Boolean) = apply { enabled = v }
-    
+
     fun contains(child: Selector) = apply { descendant = child }
 
     infix fun and(other: Selector): Selector {
@@ -110,9 +110,14 @@ class SimpleSelector : Selector {
  */
 class OrSelector(val left: Selector, val right: Selector) : Selector {
     override fun find(device: UiDevice): UiObject2? = left.find(device) ?: right.find(device)
-    override fun findAll(device: UiDevice): List<UiObject2> = (left.findAll(device) + right.findAll(device)).distinct()
+    override fun findAll(device: UiDevice): List<UiObject2> =
+        (left.findAll(device) + right.findAll(device)).distinct()
+
     override fun find(parent: UiObject2): UiObject2? = left.find(parent) ?: right.find(parent)
-    override fun findAll(parent: UiObject2): List<UiObject2> = (left.findAll(parent) + right.findAll(parent)).distinct()
+    override fun findAll(parent: UiObject2): List<UiObject2> =
+        (left.findAll(parent) + right.findAll(parent)).distinct()
+
+    override fun exists(device: UiDevice): Boolean = left.exists(device) || right.exists(device)
 }
 
 /**
@@ -141,6 +146,8 @@ class AndSelector(val left: Selector, val right: Selector) : Selector {
         val rightResults = right.findAll(parent)
         return leftResults.filter { l -> rightResults.any { r -> l == r } }
     }
+
+    override fun exists(device: UiDevice): Boolean = left.exists(device) && right.exists(device)
 }
 
 /**
@@ -164,6 +171,9 @@ class NestedSelector(val parentSelector: Selector, val childSelector: Selector) 
     override fun findAll(parent: UiObject2): List<UiObject2> {
         return parentSelector.findAll(parent).flatMap { childSelector.findAll(it) }.distinct()
     }
+
+    override fun exists(device: UiDevice): Boolean =
+        parentSelector.exists(device) && parentSelector.child(childSelector).exists(device)
 }
 
 // --- DSL Functions ---

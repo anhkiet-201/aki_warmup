@@ -18,16 +18,16 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
     screen("Home") {
         detect {
             all(
-                text("For You"),
-                text("Home")
-            ) or all(
-                text("Dành cho bạn")
+               id("android:id/text1"),
+                id("com.ss.android.ugc.trill:id/user_avatar")
             )
         }
 
         actions {
             action("lo", weight = 50) {
                 swipeUp()
+                val watchTime = (2..30).random().toLong() * 1000
+                wait(watchTime)
             }
         }
     }

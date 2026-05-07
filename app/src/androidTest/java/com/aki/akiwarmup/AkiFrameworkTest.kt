@@ -12,10 +12,10 @@ class AkiFrameworkTest {
     @Test
     fun warmUp() = runScene(TikTokWarmupScene) { scene ->
         // Khởi chạy ứng dụng (tự động lấy package từ scene)
-//        launchApp()
+        launchApp()
 
-        scene.run {
-            // Thực hiện sau bước chạy
+        scene.loop(3) {
+
         }
     }
 }
