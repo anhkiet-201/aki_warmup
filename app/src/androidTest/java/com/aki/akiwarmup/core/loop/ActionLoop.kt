@@ -21,12 +21,19 @@ class ActionLoop(
     private val runConfig: RunConfig
 ) {
     private val random = Random()
+    private var isStopped = false
 
-    suspend fun run() {
-        val endTime = System.currentTimeMillis() + runConfig.durationMs
+    fun stop() {
+        isStopped = true
+    }
+
+    suspend fun run(iterations: Int = -1, onIterationComplete: suspend () -> Unit = {}) {
+        isStopped = false
+        val endTime = if (runConfig.durationMs > 0) System.currentTimeMillis() + runConfig.durationMs else Long.MAX_VALUE
         var consecutiveUnknownScreens = 0
+        var currentIteration = 0
         
-        while (System.currentTimeMillis() < endTime) {
+        while (!isStopped && (iterations == -1 || currentIteration < iterations) && System.currentTimeMillis() < endTime) {
             val currentScreen = detector.detectCurrent()
             
             if (currentScreen == null) {
@@ -45,6 +52,9 @@ class ActionLoop(
             
             logger.log(currentScreen.id, action.id, result)
             humanEngine.breathingPause()
+            
+            onIterationComplete()
+            currentIteration++
         }
     }
     
