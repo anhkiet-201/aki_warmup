@@ -1,7 +1,5 @@
 package com.aki.akiwarmup.core.dsl
 
-import androidx.test.uiautomator.By
-
 class DetectBuilder {
     fun has(selector: Selector) = DetectPredicate { device ->
         selector.exists(device)

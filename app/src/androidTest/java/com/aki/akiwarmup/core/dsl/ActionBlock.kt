@@ -1,7 +1,6 @@
 package com.aki.akiwarmup.core.dsl
 
 import android.graphics.Point
-import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiObject2
 import kotlinx.coroutines.delay
 import java.util.Random

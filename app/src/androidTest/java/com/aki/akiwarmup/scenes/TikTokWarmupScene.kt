@@ -1,11 +1,11 @@
 package com.aki.akiwarmup.scenes
 
+import com.aki.akiwarmup.core.dsl.ScrollDirection
 import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
 import com.aki.akiwarmup.core.dsl.desc
 import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.scene
 import com.aki.akiwarmup.core.dsl.text
-import java.util.Random
 
 val TikTokWarmupScene = scene("tiktok_warmup") {
     
@@ -77,7 +77,7 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
             }
             
             action("browse_profile", weight = 40) {
-                scroll("DOWN", (300..800).random())
+                scroll(ScrollDirection.Down, (300..800).random())
                 wait(2000)
                 pressBack()
             }
@@ -99,7 +99,6 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
                 pressBack()
                 wait(500)
                 pressBack()
-                scroll()
             }
         }
     }

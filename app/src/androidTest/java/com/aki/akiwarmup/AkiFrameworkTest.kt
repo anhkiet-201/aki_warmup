@@ -35,8 +35,7 @@ class AkiFrameworkTest {
 
     @Test
     fun runScene() = runBlocking {
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val runConfig = AdbConfigBridge.load(instrumentation)
+        val runConfig = AdbConfigBridge.load()
         
         val scene = SceneRegistry.get(runConfig.sceneName)
         val detector = ScreenDetector(device, scene.screens)

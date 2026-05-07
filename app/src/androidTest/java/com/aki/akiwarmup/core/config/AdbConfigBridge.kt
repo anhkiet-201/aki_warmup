@@ -1,7 +1,6 @@
 package com.aki.akiwarmup.core.config
 
-import android.app.Instrumentation
-import android.os.Bundle
+import androidx.test.platform.app.InstrumentationRegistry
 
 data class RunConfig(
     val sceneName: String,
@@ -13,8 +12,8 @@ data class RunConfig(
 )
 
 object AdbConfigBridge {
-    fun load(instrumentation: Instrumentation): RunConfig {
-        val args: Bundle = instrumentation.arguments
+    fun load(): RunConfig {
+        val args = InstrumentationRegistry.getArguments()
         
         return RunConfig(
             sceneName = args.getString("scene") ?: "tiktok_warmup",
