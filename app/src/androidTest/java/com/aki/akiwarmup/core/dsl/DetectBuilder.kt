@@ -3,16 +3,24 @@ package com.aki.akiwarmup.core.dsl
 import androidx.test.uiautomator.By
 
 class DetectBuilder {
-    fun hasResourceId(id: String) = DetectPredicate { device ->
-        device.findObject(By.res(id)) != null
+    fun has(selector: Selector) = DetectPredicate { device ->
+        selector.exists(device)
     }
-    
-    fun hasContentDesc(desc: String) = DetectPredicate { device ->
-        device.findObject(By.desc(desc)) != null
+
+    fun any(vararg predicates: DetectPredicate) = DetectPredicate { device ->
+        predicates.any { it.evaluate(device) }
     }
-    
-    fun hasText(text: String) = DetectPredicate { device ->
-        device.findObject(By.text(text)) != null
+
+    fun any(vararg selectors: Selector) = DetectPredicate { device ->
+        selectors.map { has(it) }.any { it.evaluate(device) }
+    }
+
+    fun all(vararg predicates: DetectPredicate) = DetectPredicate { device ->
+        predicates.all { it.evaluate(device) }
+    }
+
+    fun all(vararg selectors: Selector) = DetectPredicate { device ->
+        selectors.map { has(it) }.all { it.evaluate(device) }
     }
     
     fun currentPackageIs(pkg: String) = DetectPredicate { device ->

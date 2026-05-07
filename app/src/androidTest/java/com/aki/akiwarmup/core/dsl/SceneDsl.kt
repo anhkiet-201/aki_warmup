@@ -20,7 +20,7 @@ class SceneBuilder(val name: String) {
 }
 
 @SceneDslMarker
-class ScreenBuilder(val id: String) {
+class ScreenBuilder(val screenID: String) {
     private var detectPredicate: DetectPredicate? = null
     private val actions = mutableListOf<ActionDef>()
     
@@ -32,7 +32,7 @@ class ScreenBuilder(val id: String) {
         ActionsBuilder(actions).apply(block)
     }
     
-    fun build() = ScreenDef(id, detectPredicate ?: DetectPredicate { false }, actions)
+    fun build() = ScreenDef(screenID, detectPredicate ?: DetectPredicate { false }, actions)
 }
 
 @SceneDslMarker

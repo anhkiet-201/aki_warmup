@@ -1,7 +1,10 @@
 package com.aki.akiwarmup.scenes
 
 import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
+import com.aki.akiwarmup.core.dsl.desc
+import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.scene
+import com.aki.akiwarmup.core.dsl.text
 import java.util.Random
 
 val TikTokWarmupScene = scene("tiktok_warmup") {
@@ -15,8 +18,11 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
     // --- SCREEN 1: For You Page ---
     screen("for_you_page") {
         detect {
-            hasResourceId("com.zhiliaoapp.musically:id/feed_video_view") or 
-            hasContentDesc("For You")
+            any(
+                id("com.zhiliaoapp.musically:id/feed_video_view"),
+                desc("For You"),
+                text("For you")
+            )
         }
         
         actions {
@@ -42,13 +48,13 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
             }
             
             action("go_to_profile", weight = 5) {
-                tap(find(resourceId = "com.zhiliaoapp.musically:id/iv_author"), humanized = true)
+                tap(find(id("com.zhiliaoapp.musically:id/iv_author")), humanized = true)
                 // Navigation will be detected by the loop in the next iteration
                 wait(2000)
             }
             
             action("open_search", weight = 3) {
-                tap(find(resourceId = "com.zhiliaoapp.musically:id/tab_search"), humanized = true)
+                tap(find(id("com.zhiliaoapp.musically:id/tab_search")), humanized = true)
                 wait(2000)
             }
         }
@@ -57,12 +63,12 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
     // --- SCREEN 2: Creator Profile ---
     screen("creator_profile") {
         detect {
-            hasResourceId("com.zhiliaoapp.musically:id/profile_root")
+            has(id("com.zhiliaoapp.musically:id/profile_root"))
         }
         
         actions {
             action("follow", weight = 60) {
-                val btn = find(resourceId = "com.zhiliaoapp.musically:id/btn_follow")
+                val btn = find(id("com.zhiliaoapp.musically:id/btn_follow"))
                 if (btn?.text != "Following") {
                     tap(btn, humanized = true)
                 }
@@ -81,18 +87,19 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
     // --- SCREEN 3: Search Page ---
     screen("search_page") {
         detect {
-            hasResourceId("com.zhiliaoapp.musically:id/search_root")
+            has(id("com.zhiliaoapp.musically:id/search_root"))
         }
         
         actions {
             action("search_keyword", weight = 100) {
-                val field = find(resourceId = "com.zhiliaoapp.musically:id/et_search_kw")
-                humanType(field, "")
+                val field = find(id("com.zhiliaoapp.musically:id/et_search_kw"))
+                humanType(field, "tiktok warmup")
                 pressEnter()
                 wait(10000) // Watch results for 10s
                 pressBack()
                 wait(500)
                 pressBack()
+                scroll()
             }
         }
     }

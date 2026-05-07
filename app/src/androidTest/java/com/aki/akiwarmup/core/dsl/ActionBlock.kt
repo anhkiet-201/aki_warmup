@@ -6,6 +6,12 @@ import androidx.test.uiautomator.UiObject2
 import kotlinx.coroutines.delay
 import java.util.Random
 
+enum class ScrollDirection {
+    Up,
+    Down,
+    Left,
+    Right
+}
 class ActionBlock(private val context: ActionExecutionContext) {
     val device = context.device
     private val humanEngine = context.humanEngine
@@ -19,23 +25,31 @@ class ActionBlock(private val context: ActionExecutionContext) {
         delay(seconds * 1000L)
     }
 
-    fun find(resourceId: String? = null, text: String? = null, desc: String? = null): UiObject2? {
-        val selector = when {
-            resourceId != null -> By.res(resourceId)
-            text != null -> By.text(text)
-            desc != null -> By.desc(desc)
-            else -> return null
-        }
-        return device.findObject(selector)
+    fun find(selector: Selector): UiObject2? = selector.find(device)
+
+    fun find(
+        resourceId: String? = null,
+        text: String? = null,
+        desc: String? = null,
+        className: String? = null,
+        parent: UiObject2? = null
+    ): UiObject2? {
+        val s = SimpleSelector()
+        resourceId?.let { s.id(it) }
+        text?.let { s.text(it) }
+        desc?.let { s.desc(it) }
+        className?.let { s.clazz(it) }
+        
+        return if (parent != null) s.find(parent) else s.find(device)
     }
 
+    fun findAll(selector: Selector): List<UiObject2> = selector.findAll(device)
+
     fun findAll(resourceId: String? = null, text: String? = null): List<UiObject2> {
-        val selector = when {
-            resourceId != null -> By.res(resourceId)
-            text != null -> By.text(text)
-            else -> return emptyList()
-        }
-        return device.findObjects(selector)
+        val s = SimpleSelector()
+        resourceId?.let { s.id(it) }
+        text?.let { s.text(it) }
+        return s.findAll(device)
     }
 
     fun tap(target: UiObject2?, humanized: Boolean = true) {
@@ -67,15 +81,17 @@ class ActionBlock(private val context: ActionExecutionContext) {
         }
     }
 
-    fun scroll(direction: String, distancePx: Int) {
+    fun scroll(direction: ScrollDirection, distancePx: Int) {
         val width = device.displayWidth
         val height = device.displayHeight
         val startX = width / 2
         val startY = height / 2
         
-        when (direction.uppercase()) {
-            "DOWN" -> device.swipe(startX, startY, startX, startY - distancePx, 20)
-            "UP" -> device.swipe(startX, startY, startX, startY + distancePx, 20)
+        when (direction) {
+            ScrollDirection.Down -> device.swipe(startX, startY, startX, startY - distancePx, 20)
+            ScrollDirection.Up -> device.swipe(startX, startY, startX, startY + distancePx, 20)
+            ScrollDirection.Left -> device.swipe(startX, startY, startX + distancePx, startY, 20)
+            ScrollDirection.Right -> device.swipe(startX, startY, startX - distancePx, startY, 20)
         }
     }
 
@@ -94,9 +110,9 @@ class ActionBlock(private val context: ActionExecutionContext) {
     fun microScroll() {
         val dist = random.nextInt(100) + 50
         if (random.nextBoolean()) {
-            scroll("DOWN", dist)
+            scroll(ScrollDirection.Down, dist)
         } else {
-            scroll("UP", dist)
+            scroll(ScrollDirection.Up, dist)
         }
     }
 
