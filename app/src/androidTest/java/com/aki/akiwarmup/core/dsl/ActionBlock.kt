@@ -126,4 +126,22 @@ class ActionBlock(private val context: ActionExecutionContext) {
     fun stop() {
         context.stopSignal()
     }
+
+    /**
+     * Chọn ngẫu nhiên một trong các khối lệnh dựa trên trọng số (tổng trọng số nên là 1.0)
+     */
+    suspend fun choose(vararg possibilities: Pair<Float, suspend ActionBlock.() -> Unit>) {
+        val rand = random.nextFloat()
+        var accumulated = 0f
+        val totalWeight = possibilities.sumOf { it.first.toDouble() }.toFloat()
+        
+        for ((weight, block) in possibilities) {
+            val normalizedWeight = if (totalWeight > 0) weight / totalWeight else 0f
+            accumulated += normalizedWeight
+            if (rand < accumulated) {
+                this.block()
+                return
+            }
+        }
+    }
 }
