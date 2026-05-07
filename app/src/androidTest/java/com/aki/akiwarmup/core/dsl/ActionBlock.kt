@@ -18,11 +18,12 @@ class ActionBlock(private val context: ActionExecutionContext) {
     private val random = Random()
 
     suspend fun wait(ms: Long) {
-        Log.w("ScreenDetector", "Wait for $ms")
+        Log.d("AkiFramework", "[Action] wait(ms=$ms)")
         delay(ms)
     }
 
     suspend fun wait(seconds: Int) {
+        Log.d("AkiFramework", "[Action] wait(seconds=$seconds)")
         delay(seconds * 1000L)
     }
 
@@ -54,6 +55,7 @@ class ActionBlock(private val context: ActionExecutionContext) {
     }
 
     fun tap(target: UiObject2?, humanized: Boolean = true) {
+        Log.d("AkiFramework", "[Action] tap(target=${target?.resourceName ?: "null"}, humanized=$humanized)")
         target?.let {
             val center = it.visibleCenter
             val point = if (humanized) humanEngine.getScatterPoint(center, 10) else center
@@ -62,6 +64,7 @@ class ActionBlock(private val context: ActionExecutionContext) {
     }
 
     suspend fun doubleTap(center: Point, scatter: Int = 15) {
+        Log.d("AkiFramework", "[Action] doubleTap(center=$center)")
         val p1 = humanEngine.getScatterPoint(center, scatter)
         device.click(p1.x, p1.y)
         delay(100)
@@ -70,6 +73,7 @@ class ActionBlock(private val context: ActionExecutionContext) {
     }
 
     fun swipeUp(humanized: Boolean = true) {
+        Log.d("AkiFramework", "[Action] swipeUp(humanized=$humanized)")
         val width = device.displayWidth
         val height = device.displayHeight
         val from = Point(width / 2 + random.nextInt(100) - 50, (height * 0.8).toInt())
@@ -83,6 +87,7 @@ class ActionBlock(private val context: ActionExecutionContext) {
     }
 
     fun scroll(direction: ScrollDirection, distancePx: Int) {
+        Log.d("AkiFramework", "[Action] scroll(direction=$direction, distance=$distancePx)")
         val width = device.displayWidth
         val height = device.displayHeight
         val startX = width / 2
@@ -97,18 +102,22 @@ class ActionBlock(private val context: ActionExecutionContext) {
     }
 
     suspend fun humanType(field: UiObject2?, text: String) {
+        Log.d("AkiFramework", "[Action] humanType(field=${field?.resourceName ?: "null"}, text='$text')")
         field?.let { humanEngine.humanType(it, text) }
     }
 
     fun pressBack() {
+        Log.d("AkiFramework", "[Action] pressBack()")
         device.pressBack()
     }
 
     fun pressEnter() {
+        Log.d("AkiFramework", "[Action] pressEnter()")
         device.pressEnter()
     }
 
     fun microScroll() {
+        Log.d("AkiFramework", "[Action] microScroll()")
         val dist = random.nextInt(100) + 50
         if (random.nextBoolean()) {
             scroll(ScrollDirection.Down, dist)
@@ -118,12 +127,14 @@ class ActionBlock(private val context: ActionExecutionContext) {
     }
 
     suspend fun sometimes(chance: Float, block: suspend ActionBlock.() -> Unit) {
+        Log.d("AkiFramework", "[Action] sometimes(chance=$chance)")
         if (random.nextFloat() < chance) {
             this.block()
         }
     }
 
     fun stop() {
+        Log.d("AkiFramework", "[Action] stop()")
         context.stopSignal()
     }
 

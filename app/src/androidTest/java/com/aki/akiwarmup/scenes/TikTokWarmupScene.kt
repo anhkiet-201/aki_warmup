@@ -1,11 +1,8 @@
 package com.aki.akiwarmup.scenes
 
-import com.aki.akiwarmup.core.dsl.ScrollDirection
 import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
-import com.aki.akiwarmup.core.dsl.desc
 import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.scene
-import com.aki.akiwarmup.core.dsl.text
 
 val TikTokWarmupScene = scene("tiktok_warmup") {
     val pkg = "com.ss.android.ugc.trill"

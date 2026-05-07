@@ -1,27 +1,42 @@
 package com.aki.akiwarmup.core.dsl
 
+import android.util.Log
+
 class DetectBuilder {
     fun has(selector: Selector) = DetectPredicate { device ->
-        selector.exists(device)
+        val exists = selector.exists(device)
+        Log.d("AkiFramework", "[Detect] has($selector) -> $exists")
+        exists
     }
 
     fun any(vararg predicates: DetectPredicate) = DetectPredicate { device ->
-        predicates.any { it.evaluate(device) }
+        val result = predicates.any { it.evaluate(device) }
+        Log.d("AkiFramework", "[Detect] any(...) -> $result")
+        result
     }
 
     fun any(vararg selectors: Selector) = DetectPredicate { device ->
-        selectors.map { has(it) }.any { it.evaluate(device) }
+        val result = selectors.any { it.exists(device) }
+        Log.d("AkiFramework", "[Detect] any(${selectors.joinToString()}) -> $result")
+        result
     }
 
     fun all(vararg predicates: DetectPredicate) = DetectPredicate { device ->
-        predicates.all { it.evaluate(device) }
+        val result = predicates.all { it.evaluate(device) }
+        Log.d("AkiFramework", "[Detect] all(...) -> $result")
+        result
     }
 
     fun all(vararg selectors: Selector) = DetectPredicate { device ->
-        selectors.map { has(it) }.all { it.evaluate(device) }
+        val result = selectors.all { it.exists(device) }
+        Log.d("AkiFramework", "[Detect] all(${selectors.joinToString()}) -> $result")
+        result
     }
     
     fun currentPackageIs(pkg: String) = DetectPredicate { device ->
-        device.currentPackageName == pkg
+        val current = device.currentPackageName
+        val result = current == pkg
+        Log.d("AkiFramework", "[Detect] currentPackageIs($pkg) -> $result (actual: $current)")
+        result
     }
 }

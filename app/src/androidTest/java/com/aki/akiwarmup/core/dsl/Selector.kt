@@ -62,11 +62,40 @@ class SimpleSelector : Selector {
         return s
     }
 
-    override fun find(device: UiDevice): UiObject2? = device.findObject(toBySelector())
-    override fun findAll(device: UiDevice): List<UiObject2> = device.findObjects(toBySelector())
-    override fun find(parent: UiObject2): UiObject2? = parent.findObject(toBySelector())
-    override fun findAll(parent: UiObject2): List<UiObject2> = parent.findObjects(toBySelector())
+    override fun find(device: UiDevice): UiObject2? {
+        val sel = toBySelector()
+        val obj = device.findObject(sel)
+        android.util.Log.d("AkiFramework", "[Find] $this -> ${if (obj != null) "Found" else "Not Found"}")
+        return obj
+    }
+    override fun findAll(device: UiDevice): List<UiObject2> {
+        val sel = toBySelector()
+        val list = device.findObjects(sel)
+        android.util.Log.d("AkiFramework", "[FindAll] $this -> Found ${list.size} elements")
+        return list
+    }
+    override fun find(parent: UiObject2): UiObject2? {
+        val sel = toBySelector()
+        val obj = parent.findObject(sel)
+        android.util.Log.d("AkiFramework", "[FindChild] $this -> ${if (obj != null) "Found" else "Not Found"}")
+        return obj
+    }
+    override fun findAll(parent: UiObject2): List<UiObject2> {
+        val sel = toBySelector()
+        val list = parent.findObjects(sel)
+        android.util.Log.d("AkiFramework", "[FindChildren] $this -> Found ${list.size} elements")
+        return list
+    }
     override fun exists(device: UiDevice): Boolean = device.hasObject(toBySelector())
+
+    override fun toString(): String {
+        val sb = StringBuilder("SimpleSelector(")
+        resourceId?.let { sb.append("id=$it, ") }
+        text?.let { sb.append("text=$it, ") }
+        desc?.let { sb.append("desc=$it, ") }
+        pkg?.let { sb.append("pkg=$it, ") }
+        return sb.toString().trimEnd(',', ' ') + ")"
+    }
 
     // Fluent API
     fun id(id: String) = apply { resourceId = id }
@@ -118,24 +147,18 @@ class OrSelector(val left: Selector, val right: Selector) : Selector {
         (left.findAll(parent) + right.findAll(parent)).distinct()
 
     override fun exists(device: UiDevice): Boolean = left.exists(device) || right.exists(device)
+
+    override fun toString(): String = "($left OR $right)"
 }
 
 /**
  * Hỗ trợ toán tử AND phức hợp (khi không thể merge vào SimpleSelector).
  */
 class AndSelector(val left: Selector, val right: Selector) : Selector {
-    override fun find(device: UiDevice): UiObject2? {
-        // Tìm element thỏa mãn left, sau đó kiểm tra xem nó có thỏa mãn right không.
-        // Điều này hơi khó vì Selector find trả về object. 
-        // Đơn giản nhất là findAll và filter.
-        return findAll(device).firstOrNull()
-    }
+    override fun find(device: UiDevice): UiObject2? = findAll(device).firstOrNull()
 
     override fun findAll(device: UiDevice): List<UiObject2> {
         val leftResults = left.findAll(device)
-        // Đây là phần khó: làm sao biết UiObject2 khớp với selector?
-        // UI Automator không cung cấp hàm matches(UiObject2, BySelector).
-        // Giải pháp: Dùng findAll của right và lấy giao điểm.
         val rightResults = right.findAll(device)
         return leftResults.filter { l -> rightResults.any { r -> l == r } }
     }
@@ -148,6 +171,8 @@ class AndSelector(val left: Selector, val right: Selector) : Selector {
     }
 
     override fun exists(device: UiDevice): Boolean = left.exists(device) && right.exists(device)
+
+    override fun toString(): String = "($left AND $right)"
 }
 
 /**
@@ -174,6 +199,8 @@ class NestedSelector(val parentSelector: Selector, val childSelector: Selector) 
 
     override fun exists(device: UiDevice): Boolean =
         parentSelector.exists(device) && parentSelector.child(childSelector).exists(device)
+
+    override fun toString(): String = "$parentSelector -> $childSelector"
 }
 
 // --- DSL Functions ---
