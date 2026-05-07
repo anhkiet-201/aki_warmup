@@ -1,0 +1,108 @@
+package com.aki.akiwarmup.core.dsl
+
+import android.graphics.Point
+import androidx.test.uiautomator.By
+import androidx.test.uiautomator.UiObject2
+import kotlinx.coroutines.delay
+import java.util.Random
+
+class ActionBlock(private val context: ActionExecutionContext) {
+    val device = context.device
+    private val humanEngine = context.humanEngine
+    private val random = Random()
+
+    suspend fun wait(ms: Long) {
+        delay(ms)
+    }
+
+    suspend fun wait(seconds: Int) {
+        delay(seconds * 1000L)
+    }
+
+    fun find(resourceId: String? = null, text: String? = null, desc: String? = null): UiObject2? {
+        val selector = when {
+            resourceId != null -> By.res(resourceId)
+            text != null -> By.text(text)
+            desc != null -> By.desc(desc)
+            else -> return null
+        }
+        return device.findObject(selector)
+    }
+
+    fun findAll(resourceId: String? = null, text: String? = null): List<UiObject2> {
+        val selector = when {
+            resourceId != null -> By.res(resourceId)
+            text != null -> By.text(text)
+            else -> return emptyList()
+        }
+        return device.findObjects(selector)
+    }
+
+    fun tap(target: UiObject2?, humanized: Boolean = true) {
+        target?.let {
+            val center = it.visibleCenter
+            val point = if (humanized) humanEngine.getScatterPoint(center, 10) else center
+            device.click(point.x, point.y)
+        }
+    }
+
+    suspend fun doubleTap(center: Point, scatter: Int = 15) {
+        val p1 = humanEngine.getScatterPoint(center, scatter)
+        device.click(p1.x, p1.y)
+        delay(100)
+        val p2 = humanEngine.getScatterPoint(center, scatter)
+        device.click(p2.x, p2.y)
+    }
+
+    fun swipeUp(humanized: Boolean = true) {
+        val width = device.displayWidth
+        val height = device.displayHeight
+        val from = Point(width / 2 + random.nextInt(100) - 50, (height * 0.8).toInt())
+        val to = Point(width / 2 + random.nextInt(100) - 50, (height * 0.2).toInt())
+        
+        if (humanized) {
+            humanEngine.humanSwipe(device, from, to)
+        } else {
+            device.swipe(from.x, from.y, to.x, to.y, 10)
+        }
+    }
+
+    fun scroll(direction: String, distancePx: Int) {
+        val width = device.displayWidth
+        val height = device.displayHeight
+        val startX = width / 2
+        val startY = height / 2
+        
+        when (direction.uppercase()) {
+            "DOWN" -> device.swipe(startX, startY, startX, startY - distancePx, 20)
+            "UP" -> device.swipe(startX, startY, startX, startY + distancePx, 20)
+        }
+    }
+
+    suspend fun humanType(field: UiObject2?, text: String) {
+        field?.let { humanEngine.humanType(it, text) }
+    }
+
+    fun pressBack() {
+        device.pressBack()
+    }
+
+    fun pressEnter() {
+        device.pressEnter()
+    }
+
+    fun microScroll() {
+        val dist = random.nextInt(100) + 50
+        if (random.nextBoolean()) {
+            scroll("DOWN", dist)
+        } else {
+            scroll("UP", dist)
+        }
+    }
+
+    suspend fun sometimes(chance: Float, block: suspend ActionBlock.() -> Unit) {
+        if (random.nextFloat() < chance) {
+            this.block()
+        }
+    }
+}
