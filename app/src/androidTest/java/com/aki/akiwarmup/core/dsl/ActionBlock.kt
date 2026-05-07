@@ -22,9 +22,9 @@ class ActionBlock(private val context: ActionExecutionContext) {
         delay(ms)
     }
 
-    suspend fun wait(seconds: Int) {
-        Log.d("AkiFramework", "[Action] wait(seconds=$seconds)")
-        delay(seconds * 1000L)
+    suspend fun wait(milliseconds: Int) {
+        Log.d("AkiFramework", "[Action] wait(milliseconds=$milliseconds)")
+        delay(milliseconds.toLong())
     }
 
     fun find(selector: Selector): UiObject2? = selector.find(device)
@@ -116,6 +116,11 @@ class ActionBlock(private val context: ActionExecutionContext) {
         device.pressEnter()
     }
 
+    fun pressHome() {
+        Log.d("AkiFramework", "[Action] pressHome()")
+        device.pressHome()
+    }
+
     fun microScroll() {
         Log.d("AkiFramework", "[Action] microScroll()")
         val dist = random.nextInt(100) + 50
@@ -142,17 +147,48 @@ class ActionBlock(private val context: ActionExecutionContext) {
      * Chọn ngẫu nhiên một trong các khối lệnh dựa trên trọng số (tổng trọng số nên là 1.0)
      */
     suspend fun choose(vararg possibilities: Pair<Float, suspend ActionBlock.() -> Unit>) {
-        val rand = random.nextFloat()
-        var accumulated = 0f
-        val totalWeight = possibilities.sumOf { it.first.toDouble() }.toFloat()
+        val totalWeight = possibilities.sumOf { it.first.toDouble() }
+        if (totalWeight <= 0.0) return
+
+        val rand = random.nextDouble() * totalWeight
+        var accumulated = 0.0
         
-        for ((weight, block) in possibilities) {
-            val normalizedWeight = if (totalWeight > 0) weight / totalWeight else 0f
-            accumulated += normalizedWeight
-            if (rand < accumulated) {
+        for (i in possibilities.indices) {
+            val (weight, block) = possibilities[i]
+            accumulated += weight
+            if (rand < accumulated || i == possibilities.size - 1) {
+                Log.v("AkiFramework", "\tchoose: selected branch index $i (weight $weight)")
                 this.block()
                 return
             }
         }
     }
+
+    suspend fun loop(times: Int? = null, block: suspend ActionBlock.() -> Unit) {
+        Log.d("AkiFramework", "[Action] loop(times=$times) started")
+        var count = 0
+        while ((times == null || count < times) && !context.isStopped()) {
+            Log.d("AkiFramework", "\tloop iteration: ${++count}/${times ?: "inf"}")
+            this.block()
+            if (times != null) {
+                Log.v("AkiFramework", "  Sub-loop iteration $count/$times completed")
+            }
+        }
+        Log.d("AkiFramework", "[Action] loop finished or stopped (isStopped=${context.isStopped()})")
+    }
+
+    /**
+     * Lấy số ngẫu nhiên từ 1 đến [max]
+     */
+    fun random(max: Int): Int = if (max > 0) random.nextInt(max) + 1 else 1
+
+    /**
+     * Lấy số ngẫu nhiên trong khoảng [min] đến [max]
+     */
+    fun random(min: Int = 1, max: Int): Int = if (max > min) random.nextInt(max - min + 1) + min else min
+
+    /**
+     * Lấy số ngẫu nhiên Long trong khoảng [min] đến [max]
+     */
+    fun random(min: Long = 1L, max: Long): Long = if (max > min) min + (random.nextLong().run { if (this < 0) -this else this } % (max - min + 1)) else min
 }

@@ -1,5 +1,6 @@
 package com.aki.akiwarmup.core.loop
 
+import android.util.Log
 import androidx.test.uiautomator.UiDevice
 import com.aki.akiwarmup.core.config.RunConfig
 import com.aki.akiwarmup.core.dsl.ActionDef
@@ -52,7 +53,8 @@ class ActionLoop(
             val action = selectWeightedAction(currentScreen.actions)
             
             val result = runCatching {
-                val ctx = ActionExecutionContext(device, humanEngine, scene.config, runConfig, this::stop)
+                val ctx = ActionExecutionContext(device, humanEngine, scene.config, runConfig, this::stop, { isStopped })
+                Log.d("AkiFramework", "\n---------------------\n[Action Group] ${action.id}")
                 action.block.invoke(ctx)
             }
             

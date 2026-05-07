@@ -37,7 +37,7 @@ class ScreenBuilder(val screenID: String) {
 
 @SceneDslMarker
 class ActionsBuilder(private val list: MutableList<ActionDef>) {
-    fun action(id: String, weight: Int, block: suspend ActionBlock.() -> Unit) {
+    fun action(id: String, weight: Int = 1, block: suspend ActionBlock.() -> Unit) {
         list.add(ActionDef(id, weight) {
             ActionBlock(this).block()
         })

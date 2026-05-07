@@ -52,5 +52,6 @@ class ActionExecutionContext(
     val humanEngine: com.aki.akiwarmup.core.human.HumanBehaviorEngine,
     val sceneConfig: SceneConfig,
     val runConfig: com.aki.akiwarmup.core.config.RunConfig,
-    val stopSignal: () -> Unit = {}
+    val stopSignal: () -> Unit = {},
+    val isStopped: () -> Boolean = { false }
 )

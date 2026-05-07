@@ -44,22 +44,27 @@ class HumanBehaviorEngine(private val random: Random = Random()) {
 
     suspend fun humanType(field: UiObject2, text: String) {
         field.click()
-        gaussianDelay(500, 150)
+        gaussianDelay(100, 30)
         
-        var currentText = ""
-        for (char in text) {
-            currentText += char
-            field.text = currentText
-            // Random delay between characters
-            gaussianDelay(150, 50)
+        var i = 0
+        while (i < text.length) {
+            // Gõ theo cụm 1-3 ký tự để tăng tốc độ tối đa
+            val chunkSize = if (random.nextFloat() < 0.4) (1..3).random() else 1
+            val nextIndex = (i + chunkSize).coerceAtMost(text.length)
             
-            // Randomly "make a mistake" and fix it
+            field.text = text.substring(0, nextIndex)
+            i = nextIndex
+            
+            // Delay cực ngắn giữa các cụm
+            delay(random.nextInt(10) + 10L)
+            
+            // Tỉ lệ lỗi cực thấp (1%)
             if (random.nextFloat() < 0.03) {
                 val wrongChar = ('a'..'z').random()
-                field.text = currentText + wrongChar
-                gaussianDelay(200, 50)
-                field.text = currentText // Backspace
-                gaussianDelay(300, 100)
+                field.text = text.substring(0, i) + wrongChar
+                delay(30)
+                field.text = text.substring(0, i)
+                delay(50)
             }
         }
     }
