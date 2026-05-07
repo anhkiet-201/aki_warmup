@@ -144,6 +144,14 @@ class ActionBlock(private val context: ActionExecutionContext) {
     }
 
     /**
+     * Thoát khỏi Action Group hiện tại ngay lập tức.
+     */
+    fun endAction() {
+        Log.d("AkiFramework", "[Action] endAction() - Terminating current action")
+        throw EndActionException()
+    }
+
+    /**
      * Chọn ngẫu nhiên một trong các khối lệnh dựa trên trọng số (tổng trọng số nên là 1.0)
      */
     suspend fun choose(vararg possibilities: Pair<Float, suspend ActionBlock.() -> Unit>) {
@@ -164,17 +172,28 @@ class ActionBlock(private val context: ActionExecutionContext) {
         }
     }
 
-    suspend fun loop(times: Int? = null, block: suspend ActionBlock.() -> Unit) {
-        Log.d("AkiFramework", "[Action] loop(times=$times) started")
-        var count = 0
-        while ((times == null || count < times) && !context.isStopped()) {
-            Log.d("AkiFramework", "\tloop iteration: ${++count}/${times ?: "inf"}")
+    /**
+     * Vòng lặp dựa trên điều kiện động.
+     * Ví dụ: loop({ !shouldExit }) { ... }
+     */
+    suspend fun loop(condition: () -> Boolean, block: suspend ActionBlock.() -> Unit) {
+        Log.d("AkiFramework", "[Action] loop (dynamic condition) started")
+        while (!context.isStopped() && condition()) {
             this.block()
-            if (times != null) {
-                Log.v("AkiFramework", "  Sub-loop iteration $count/$times completed")
-            }
         }
-        Log.d("AkiFramework", "[Action] loop finished or stopped (isStopped=${context.isStopped()})")
+        Log.d("AkiFramework", "[Action] loop finished or stopped")
+    }
+
+    /**
+     * Vòng lặp dựa trên số lần.
+     */
+    suspend fun loop(times: Int? = null, block: suspend ActionBlock.() -> Unit) {
+        var count = 0
+        Log.d("AkiFramework", "[Action] loop(times=$times) started")
+        loop({ times == null || count < times }) {
+            Log.v("AkiFramework", "  \tloop iteration ${++count}/${times ?: "inf"}")
+            this.block()
+        }
     }
 
     /**

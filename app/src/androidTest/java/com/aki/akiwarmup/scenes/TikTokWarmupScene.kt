@@ -1,11 +1,11 @@
 package com.aki.akiwarmup.scenes
 
 import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
+import com.aki.akiwarmup.core.dsl.clazz
 import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.scene
 
 val TikTokWarmupScene = scene("tiktok_warmup") {
-    val pkg = "com.ss.android.ugc.trill"
     config {
         targetPackage = "com.ss.android.ugc.trill"
         onUnknownScreen = UnknownScreenPolicy.PRESS_BACK
@@ -21,10 +21,104 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
         }
 
         actions {
-            action("lo", weight = 50) {
-                swipeUp()
-                val watchTime = (2..30).random().toLong() * 1000
-                wait(watchTime)
+            action("Lướt xem") {
+                loop {
+                    wait(random(500, 20000))
+                    choose(
+                        5f to {
+                            swipeUp()
+                        },
+                        0.5f to {
+                            find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                tap(it)
+                                wait(random(min = 1000, max = 3000))
+                            }
+                        },
+                        0.5f to {
+                            find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                tap(it)
+                                wait(random(min = 1000, max = 3000))
+                            }
+                        },
+                        4f to {
+                            find("com.ss.android.ugc.trill:id/jb1")?.let {
+                                tap(it)
+                                wait(300)
+                                endAction()
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    screen("Search") {
+        detect {
+            has(id("com.ss.android.ugc.trill:id/gz8") and id("com.ss.android.ugc.trill:id/voice_button_click_area"))
+        }
+
+        actions {
+            action("Nhập từ khóa") {
+                find(id("com.ss.android.ugc.trill:id/gz8"))?.let {
+                    tap(it)
+                    wait(500)
+                    humanType(it, "Ttnhr")
+                    wait(random(200))
+                }
+                find(id("com.ss.android.ugc.trill:id/trq"))?.let {
+                    tap(it)
+                    wait(random(1000))
+                }
+            }
+        }
+    }
+
+    screen("Search Result") {
+        detect { has(id("com.ss.android.ugc.trill:id/viewpager_search")) }
+        actions {
+            action("sd") {
+                sometimes(0.5f) {
+                    swipeUp()
+                }
+                find(id("com.ss.android.ugc.trill:id/m_7"))?.findObjects(clazz("android.view.View").toBySelector()).run {
+                    this?.take(4)?.let {
+                        tap(it.random())
+                    }
+                }
+            }
+        }
+    }
+
+    screen("Video Search") {
+        detect { has(id("com.ss.android.ugc.trill:id/e02")) }
+
+        actions {
+            action("Lướt xem") {
+                loop {
+                    wait(random(1000, 30000))
+                    choose(
+                        5f to {
+                            swipeUp()
+                        },
+                        0.5f to {
+                            find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                tap(it)
+                                wait(random(min = 1000, max = 3000))
+                            }
+                        },
+                        0.5f to {
+                            find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                tap(it)
+                                wait(random(min = 1000, max = 3000))
+                            }
+                        },
+                        3f to {
+                            pressHome()
+                            stop()
+                        }
+                    )
+                }
             }
         }
     }

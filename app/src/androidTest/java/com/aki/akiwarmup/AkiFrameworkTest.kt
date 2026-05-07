@@ -14,8 +14,6 @@ class AkiFrameworkTest {
         // Khởi chạy ứng dụng (tự động lấy package từ scene)
         launchApp()
 
-        scene.loop(3) {
-
-        }
+        scene.loop {}
     }
 }

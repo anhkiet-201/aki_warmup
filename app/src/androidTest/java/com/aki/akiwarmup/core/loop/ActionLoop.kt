@@ -58,7 +58,15 @@ class ActionLoop(
                 action.block.invoke(ctx)
             }
             
-            logger.log(currentScreen.id, action.id, result)
+            // Xử lý kết quả: Nếu là EndActionException thì coi như thành công và tiếp tục
+            val finalResult = if (result.exceptionOrNull() is com.aki.akiwarmup.core.dsl.EndActionException) {
+                Log.d("AkiFramework", "Action [${action.id}] ended prematurely via endAction()")
+                Result.success(Unit)
+            } else {
+                result
+            }
+            
+            logger.log(currentScreen.id, action.id, finalResult)
             humanEngine.breathingPause()
             
             onIterationComplete()
