@@ -33,7 +33,6 @@ class SimpleSelector : Selector {
     var clickable: Boolean? = null
     var enabled: Boolean? = null
     var depth: Int? = null
-    var index: Int? = null
     
     // Lưu các con/cháu bắt buộc
     var descendant: Selector? = null
@@ -54,7 +53,6 @@ class SimpleSelector : Selector {
         clickable?.let { s.clickable(it) }
         enabled?.let { s.enabled(it) }
         depth?.let { s.depth(it) }
-        index?.let { s.index(it) }
         
         descendant?.let { 
             if (it is SimpleSelector) {
@@ -81,7 +79,6 @@ class SimpleSelector : Selector {
     fun pkg(v: String) = apply { pkg = v }
     fun clickable(v: Boolean) = apply { clickable = v }
     fun enabled(v: Boolean) = apply { enabled = v }
-    fun index(v: Int) = apply { index = v }
     
     fun contains(child: Selector) = apply { descendant = child }
 
@@ -179,7 +176,6 @@ fun descContains(v: String) = SimpleSelector().descContains(v)
 fun clazz(v: String) = SimpleSelector().clazz(v)
 fun pkg(v: String) = SimpleSelector().pkg(v)
 fun clickable(v: Boolean) = SimpleSelector().clickable(v)
-fun index(v: Int) = SimpleSelector().index(v)
 
 fun any(vararg selectors: Selector): Selector {
     if (selectors.isEmpty()) return SimpleSelector()

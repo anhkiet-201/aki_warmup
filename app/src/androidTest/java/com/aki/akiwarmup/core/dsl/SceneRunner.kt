@@ -24,19 +24,14 @@ class SceneRunner(
     private val loopManager = ActionLoop(device, scene, detector, humanEngine, logger, runConfig)
 
     /**
-     * Khởi chạy ứng dụng mục tiêu của Scene.
+     * Khởi chạy ứng dụng mục tiêu của Scene bằng lệnh monkey.
      */
     fun launchApp() {
         val pkg = scene.config.targetPackage
         if (pkg.isNotEmpty()) {
-            val context = InstrumentationRegistry.getInstrumentation().targetContext
-            val intent = context.packageManager.getLaunchIntentForPackage(pkg)
-            if (intent != null) {
-                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(intent)
-                // Chờ ứng dụng lên (có thể tùy chỉnh)
-                Thread.sleep(5000)
-            }
+            device.executeShellCommand("monkey -p $pkg -c android.intent.category.LAUNCHER 1")
+            // Chờ ứng dụng lên
+            Thread.sleep(5000)
         }
     }
 

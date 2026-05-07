@@ -51,5 +51,6 @@ class ActionExecutionContext(
     val device: UiDevice,
     val humanEngine: com.aki.akiwarmup.core.human.HumanBehaviorEngine,
     val sceneConfig: SceneConfig,
-    val runConfig: com.aki.akiwarmup.core.config.RunConfig
+    val runConfig: com.aki.akiwarmup.core.config.RunConfig,
+    val stopSignal: () -> Unit = {}
 )

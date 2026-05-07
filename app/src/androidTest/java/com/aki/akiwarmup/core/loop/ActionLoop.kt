@@ -28,6 +28,7 @@ class ActionLoop(
     }
 
     suspend fun run(iterations: Int = -1, onIterationComplete: suspend () -> Unit = {}) {
+        if (scene.screens.isEmpty()) return
         isStopped = false
         val endTime = if (runConfig.durationMs > 0) System.currentTimeMillis() + runConfig.durationMs else Long.MAX_VALUE
         var consecutiveUnknownScreens = 0
@@ -39,6 +40,11 @@ class ActionLoop(
             if (currentScreen == null) {
                 consecutiveUnknownScreens++
                 handleUnknownScreen(consecutiveUnknownScreens)
+                
+                // Nếu không có màn hình nào được định nghĩa, hoặc bị kẹt quá lâu, hãy dừng lại để tránh loop vô tận
+                if (consecutiveUnknownScreens > 20 && scene.screens.isEmpty()) {
+                    stop()
+                }
                 continue
             }
             
@@ -46,7 +52,7 @@ class ActionLoop(
             val action = selectWeightedAction(currentScreen.actions)
             
             val result = runCatching {
-                val ctx = ActionExecutionContext(device, humanEngine, scene.config, runConfig)
+                val ctx = ActionExecutionContext(device, humanEngine, scene.config, runConfig, this::stop)
                 action.block.invoke(ctx)
             }
             
@@ -69,19 +75,25 @@ class ActionLoop(
     }
     
     private suspend fun handleUnknownScreen(count: Int) {
-        when {
-            count < 3 -> {
-                humanEngine.gaussianDelay(1000, 200)
+        val policy = scene.config.onUnknownScreen
+        val timeout = scene.config.recoveryTimeoutMs
+        
+        // Thử các biện pháp nhẹ trước (delay/back)
+        if (count < 3) {
+            humanEngine.gaussianDelay(1000, 200)
+            return
+        }
+
+        // Nếu vượt quá timeout hoặc count quá lớn, thực hiện restart theo policy
+        val totalWaitEstimate = count * 1500L
+        if (totalWaitEstimate > timeout || count >= 10) {
+            restartTargetApp()
+        } else {
+            when (policy) {
+                UnknownScreenPolicy.PRESS_BACK -> device.pressBack()
+                UnknownScreenPolicy.WAIT -> delay(2000)
+                UnknownScreenPolicy.RESTART_APP -> restartTargetApp()
             }
-            count < 6 -> {
-                val policy = scene.config.onUnknownScreen
-                when (policy) {
-                    UnknownScreenPolicy.PRESS_BACK -> device.pressBack()
-                    UnknownScreenPolicy.WAIT -> delay(2000)
-                    UnknownScreenPolicy.RESTART_APP -> restartTargetApp()
-                }
-            }
-            else -> restartTargetApp()
         }
     }
 

@@ -19,7 +19,7 @@ class HumanBehaviorEngine(private val random: Random = Random()) {
         gaussianDelay(300, 100)
     }
 
-    fun humanSwipe(device: UiDevice, from: Point, to: Point, steps: Int = 25) {
+    fun humanSwipe(device: UiDevice, from: Point, to: Point, steps: Int = 12) {
         val points = mutableListOf<Point>()
         
         // Control points for Bezier (randomized slightly for "human" curve)
@@ -39,7 +39,7 @@ class HumanBehaviorEngine(private val random: Random = Random()) {
             points.add(Point(x.toInt(), y.toInt()))
         }
 
-        device.swipe(points.toTypedArray(), 10)
+        device.swipe(points.toTypedArray(), 2)
     }
 
     suspend fun humanType(field: UiObject2, text: String) {

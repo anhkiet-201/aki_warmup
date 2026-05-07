@@ -76,7 +76,7 @@ class ActionBlock(private val context: ActionExecutionContext) {
         if (humanized) {
             humanEngine.humanSwipe(device, from, to)
         } else {
-            device.swipe(from.x, from.y, to.x, to.y, 10)
+            device.swipe(from.x, from.y, to.x, to.y, 5)
         }
     }
 
@@ -87,10 +87,10 @@ class ActionBlock(private val context: ActionExecutionContext) {
         val startY = height / 2
         
         when (direction) {
-            ScrollDirection.Down -> device.swipe(startX, startY, startX, startY - distancePx, 20)
-            ScrollDirection.Up -> device.swipe(startX, startY, startX, startY + distancePx, 20)
-            ScrollDirection.Left -> device.swipe(startX, startY, startX + distancePx, startY, 20)
-            ScrollDirection.Right -> device.swipe(startX, startY, startX - distancePx, startY, 20)
+            ScrollDirection.Down -> device.swipe(startX, startY, startX, startY - distancePx, 10)
+            ScrollDirection.Up -> device.swipe(startX, startY, startX, startY + distancePx, 10)
+            ScrollDirection.Left -> device.swipe(startX, startY, startX + distancePx, startY, 10)
+            ScrollDirection.Right -> device.swipe(startX, startY, startX - distancePx, startY, 10)
         }
     }
 
@@ -119,5 +119,9 @@ class ActionBlock(private val context: ActionExecutionContext) {
         if (random.nextFloat() < chance) {
             this.block()
         }
+    }
+
+    fun stop() {
+        context.stopSignal()
     }
 }
