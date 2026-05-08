@@ -7,6 +7,7 @@ import com.aki.akiwarmup.core.dsl.ActionDef
 import com.aki.akiwarmup.core.dsl.ActionExecutionContext
 import com.aki.akiwarmup.core.dsl.Scene
 import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
+import com.aki.akiwarmup.core.dsl.SceneExecutionContext
 import com.aki.akiwarmup.core.human.HumanBehaviorEngine
 import com.aki.akiwarmup.core.logger.SessionLogger
 import com.aki.akiwarmup.core.screen.ScreenDetector
@@ -23,9 +24,13 @@ class ActionLoop(
 ) {
     private val random = Random()
     private var isStopped = false
+    private var consecutiveRestarts = 0
 
-    fun stop() {
+    fun stop(reason: String = "") {
         isStopped = true
+        if (reason.isNotEmpty()) {
+            Log.d("AkiFramework", "Stopping execution. Reason: $reason")
+        }
     }
 
     suspend fun run(iterations: Int = -1, onIterationComplete: suspend () -> Unit = {}) {
@@ -40,20 +45,29 @@ class ActionLoop(
             
             if (currentScreen == null) {
                 consecutiveUnknownScreens++
-                handleUnknownScreen(consecutiveUnknownScreens)
+                
+                if (scene.unknownScreenHandler != null) {
+                    val androidContext = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
+                    val ctx = SceneExecutionContext(androidContext, device, scene, consecutiveRestarts, { reason -> this.stop(reason) })
+                    scene.unknownScreenHandler.invoke(ctx)
+                } else {
+                    handleUnknownScreen(consecutiveUnknownScreens)
+                }
                 
                 // Nếu không có màn hình nào được định nghĩa, hoặc bị kẹt quá lâu, hãy dừng lại để tránh loop vô tận
                 if (consecutiveUnknownScreens > 20 && scene.screens.isEmpty()) {
-                    stop()
+                    stop("No screens defined and stuck too long")
                 }
                 continue
             }
             
             consecutiveUnknownScreens = 0
+            consecutiveRestarts = 0
             val action = selectWeightedAction(currentScreen.actions)
             
             val result = runCatching {
-                val ctx = ActionExecutionContext(device, humanEngine, scene.config, runConfig, this::stop, { isStopped })
+                val androidContext = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
+                val ctx = ActionExecutionContext(androidContext, device, scene, consecutiveRestarts, currentScreen, action, humanEngine, runConfig, { reason -> this.stop(reason) }, { isStopped })
                 Log.d("AkiFramework", "\n---------------------\n[Action Group] ${action.id}")
                 action.block.invoke(ctx)
             }
@@ -110,6 +124,7 @@ class ActionLoop(
     private fun restartTargetApp() {
         val pkg = scene.config.targetPackage
         if (pkg.isNotEmpty()) {
+            consecutiveRestarts++
             device.executeShellCommand("am force-stop $pkg")
             delaySync(1000)
             device.executeShellCommand("monkey -p $pkg -c android.intent.category.LAUNCHER 1")

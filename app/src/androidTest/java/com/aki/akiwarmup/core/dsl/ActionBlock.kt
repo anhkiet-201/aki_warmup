@@ -12,7 +12,7 @@ enum class ScrollDirection {
     Left,
     Right
 }
-class ActionBlock(private val context: ActionExecutionContext) {
+class ActionBlock(val context: ActionExecutionContext) {
     val device = context.device
     private val humanEngine = context.humanEngine
     private val random = Random()
@@ -140,7 +140,7 @@ class ActionBlock(private val context: ActionExecutionContext) {
 
     fun stop() {
         Log.d("AkiFramework", "[Action] stop()")
-        context.stopSignal()
+        context.stopSignal("Action requested stop")
     }
 
     /**

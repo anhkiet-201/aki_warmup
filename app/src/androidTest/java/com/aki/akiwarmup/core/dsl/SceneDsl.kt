@@ -16,7 +16,13 @@ class SceneBuilder(val name: String) {
         screens.add(ScreenBuilder(id).apply(block).build())
     }
     
-    fun build() = Scene(name, screens, sceneConfig)
+    var unknownScreenHandler: (suspend SceneExecutionContext.() -> Unit)? = null
+    
+    fun handleUnknowScreen(block: suspend SceneExecutionContext.() -> Unit) {
+        unknownScreenHandler = block
+    }
+    
+    fun build() = Scene(name, screens, sceneConfig, unknownScreenHandler)
 }
 
 @SceneDslMarker

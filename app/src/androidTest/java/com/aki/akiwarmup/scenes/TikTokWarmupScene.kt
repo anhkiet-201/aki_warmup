@@ -12,6 +12,24 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
         recoveryTimeoutMs = 15000L
     }
 
+    this.sceneConfig
+
+    val keyWorlds = listOf<String>(
+        "ttnhr",
+        "Việc làm bình dương",
+        "Việc làm thời vụ Bình dương",
+        "Tìm việc Vsip 2A",
+        "Việc làm ở Mỹ Phước",
+        "tìm việc ttnhr"
+    )
+    // Nếu không nhận dạng ra screen nào thì chạy vào hàm này
+    handleUnknowScreen {
+        // Nếu restart 3 lần liên tiếp mà không thực hiện bất kỳ screen nào
+        if(restartCount > 3) {
+            stop("Lỗi app")
+        }
+    }
+
     screen("Home") {
         detect {
             all(
@@ -19,13 +37,12 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
                 id("com.ss.android.ugc.trill:id/user_avatar")
             )
         }
-
         actions {
             action("Lướt xem") {
                 loop {
                     wait(random(500, 20000))
                     choose(
-                        5f to {
+                        6f to {
                             swipeUp()
                         },
                         0.5f to {
@@ -40,7 +57,7 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
                                 wait(random(min = 1000, max = 3000))
                             }
                         },
-                        4f to {
+                        3f to {
                             find("com.ss.android.ugc.trill:id/jb1")?.let {
                                 tap(it)
                                 wait(300)
@@ -63,7 +80,7 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
                 find(id("com.ss.android.ugc.trill:id/gz8"))?.let {
                     tap(it)
                     wait(500)
-                    humanType(it, "Ttnhr")
+                    humanType(it, keyWorlds.random())
                     wait(random(200))
                 }
                 find(id("com.ss.android.ugc.trill:id/trq"))?.let {
@@ -98,7 +115,7 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
                 loop {
                     wait(random(1000, 30000))
                     choose(
-                        5f to {
+                        7f to {
                             swipeUp()
                         },
                         0.5f to {
@@ -113,7 +130,7 @@ val TikTokWarmupScene = scene("tiktok_warmup") {
                                 wait(random(min = 1000, max = 3000))
                             }
                         },
-                        3f to {
+                        2f to {
                             pressHome()
                             stop()
                         }

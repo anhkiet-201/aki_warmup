@@ -1,11 +1,13 @@
 package com.aki.akiwarmup.core.dsl
 
 import androidx.test.uiautomator.UiDevice
+import com.aki.akiwarmup.core.config.RunConfig
 
 data class Scene(
     val name: String,
     val screens: List<ScreenDef>,
-    val config: SceneConfig
+    val config: SceneConfig,
+    val unknownScreenHandler: (suspend SceneExecutionContext.() -> Unit)? = null
 )
 
 data class SceneConfig(
@@ -47,11 +49,32 @@ data class ActionDef(
     val block: suspend ActionExecutionContext.() -> Unit
 )
 
+interface AkiContext {
+    val context: android.content.Context
+    val device: UiDevice
+}
+
+open class SceneExecutionContext(
+    override val context: android.content.Context,
+    override val device: UiDevice,
+    val scene: Scene,
+    val restartCount: Int,
+    val stopSignal: (String) -> Unit = {}
+) : AkiContext {
+    fun stop(reason: String) {
+        stopSignal(reason)
+    }
+}
+
 class ActionExecutionContext(
-    val device: UiDevice,
+    context: android.content.Context,
+    device: UiDevice,
+    scene: Scene,
+    restartCount: Int,
+    val currentScreen: ScreenDef,
+    val action: ActionDef,
     val humanEngine: com.aki.akiwarmup.core.human.HumanBehaviorEngine,
-    val sceneConfig: SceneConfig,
-    val runConfig: com.aki.akiwarmup.core.config.RunConfig,
-    val stopSignal: () -> Unit = {},
+    val runConfig: RunConfig,
+    stopSignal: (String) -> Unit = {},
     val isStopped: () -> Boolean = { false }
-)
+) : SceneExecutionContext(context, device, scene, restartCount, stopSignal)
