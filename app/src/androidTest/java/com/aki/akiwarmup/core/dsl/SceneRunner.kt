@@ -23,10 +23,10 @@ class SceneRunner(
     init {
         // Tối ưu hóa UI Automator cho các ứng dụng video (không đợi idle quá lâu)
         androidx.test.uiautomator.Configurator.getInstance().apply {
-            waitForIdleTimeout = 200L
-            actionAcknowledgmentTimeout = 200L
-            scrollAcknowledgmentTimeout = 200L
-            waitForSelectorTimeout = 1000L
+            waitForIdleTimeout = 2000L
+            actionAcknowledgmentTimeout = 500L
+            scrollAcknowledgmentTimeout = 500L
+            waitForSelectorTimeout = 3000L
         }
     }
 
@@ -38,7 +38,7 @@ class SceneRunner(
     suspend fun loop(iterations: Int = -1, afterIteration: suspend () -> Unit = {}) {
         val scene = _scene ?: throw Exception()
         val detector = ScreenDetector(device, scene.screens)
-        val loopManager = ActionLoop(context, scene, detector, logger)
+        val loopManager = ActionLoop(scene, detector, logger)
         loopManager.run(iterations, afterIteration)
     }
 

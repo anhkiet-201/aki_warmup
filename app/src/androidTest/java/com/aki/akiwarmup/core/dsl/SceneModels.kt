@@ -80,7 +80,9 @@ open class AkiContext(
 
 open class SceneExecutionContext(
     akiContext: AkiContext,
-    val restartCount: Int = 0,
+    var restartCount: Int = 0,
+    var consecutiveRestarts: Int = 0,
+    var consecutiveUnknownScreens: Int = 0
 ) : AkiContext(akiContext)
 
 class ActionExecutionContext(

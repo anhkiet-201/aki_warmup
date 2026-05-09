@@ -12,16 +12,15 @@ import kotlinx.coroutines.delay
 import java.util.Random
 
 class ActionLoop(
-    private val context: AkiContext,
     private val scene: Scene,
     private val detector: ScreenDetector,
     private val logger: SessionLogger,
 ) {
+    private val context = scene.context
     private val device = context.device
     private val humanEngine = context.humanBehaviorEngine
     private val random = Random()
     private var isStopped = false
-    private var consecutiveRestarts = 0
 
     fun stop(reason: String = "") {
         context.stopSignal = {
@@ -36,30 +35,26 @@ class ActionLoop(
         if (scene.screens.isEmpty()) return
         isStopped = false
         val endTime = if (AppConfig.DURATION > 0) System.currentTimeMillis() + AppConfig.DURATION else Long.MAX_VALUE
-        var consecutiveUnknownScreens = 0
         var currentIteration = 0
         
         while (!isStopped && (iterations == -1 || currentIteration < iterations) && System.currentTimeMillis() < endTime) {
             val currentScreen = detector.detectCurrent()
             
             if (currentScreen == null) {
-                consecutiveUnknownScreens++
-                
-                if (scene.unknownScreenHandler != null) {
-                    scene.unknownScreenHandler.invoke()
-                } else {
-                    handleUnknownScreen(consecutiveUnknownScreens)
-                }
+                context.consecutiveUnknownScreens++
+
+                handleUnknownScreen(context.consecutiveUnknownScreens)
+                scene.unknownScreenHandler?.invoke()
                 
                 // Nếu không có màn hình nào được định nghĩa, hoặc bị kẹt quá lâu, hãy dừng lại để tránh loop vô tận
-                if (consecutiveUnknownScreens > 20 && scene.screens.isEmpty()) {
+                if (scene.context.consecutiveUnknownScreens > 20 && scene.screens.isEmpty()) {
                     stop("No screens defined and stuck too long")
                 }
                 continue
             }
             
-            consecutiveUnknownScreens = 0
-            consecutiveRestarts = 0
+            scene.context.consecutiveUnknownScreens = 0
+            scene.context.consecutiveRestarts = 0
             val action = selectWeightedAction(currentScreen.actions)
             
             val result = runCatching {
@@ -119,7 +114,8 @@ class ActionLoop(
     private fun restartTargetApp() {
         val pkg = context.sceneConfig.targetPackage
         if (pkg.isNotEmpty()) {
-            consecutiveRestarts++
+            scene.context.restartCount++
+            scene.context.consecutiveRestarts++
             device.executeShellCommand("am force-stop $pkg")
             delaySync(1000)
             device.executeShellCommand("monkey -p $pkg -c android.intent.category.LAUNCHER 1")

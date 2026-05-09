@@ -81,7 +81,7 @@ class AkiFrameworkTest {
 
             screen("Search Screen") {
                 detect {
-                    has(text("Bạn có thể thích") and text("Tìm kiếm"))
+                    has( id("com.ss.android.ugc.trill:id/gz8") and text("Tìm kiếm"))
                 }
                 action("Nhập từ khóa mặc định") {
                     find(id("com.ss.android.ugc.trill:id/gz8"))?.let {
@@ -93,6 +93,7 @@ class AkiFrameworkTest {
                     find(id("com.ss.android.ugc.trill:id/trq"))?.let {
                         tap(it)
                         wait(1000)
+                        endAction()
                     }
                 }
             }
@@ -106,6 +107,8 @@ class AkiFrameworkTest {
                     find(id("com.ss.android.ugc.trill:id/m_7"))?.findObjects(clazz("android.view.View").toBySelector()).run {
                         this?.take(4)?.let {
                             tap(it.random())
+                            wait(3000)
+                            endAction()
                         }
                     }
                 }
@@ -135,6 +138,7 @@ class AkiFrameworkTest {
                             },
                             2f to {
                                 pressHome()
+                                this@scene.killApp()
                                 stop()
                             }
                         )
@@ -143,7 +147,7 @@ class AkiFrameworkTest {
             }
         }
 
-        run {
+        loop {
 
         }
     }
