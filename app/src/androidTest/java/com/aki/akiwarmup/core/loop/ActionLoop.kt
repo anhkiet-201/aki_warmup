@@ -1,42 +1,41 @@
 package com.aki.akiwarmup.core.loop
 
 import android.util.Log
-import androidx.test.uiautomator.UiDevice
-import com.aki.akiwarmup.core.config.RunConfig
+import com.aki.akiwarmup.core.config.AppConfig
 import com.aki.akiwarmup.core.dsl.ActionDef
-import com.aki.akiwarmup.core.dsl.ActionExecutionContext
+import com.aki.akiwarmup.core.dsl.AkiContext
 import com.aki.akiwarmup.core.dsl.Scene
 import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
-import com.aki.akiwarmup.core.dsl.SceneExecutionContext
-import com.aki.akiwarmup.core.human.HumanBehaviorEngine
 import com.aki.akiwarmup.core.logger.SessionLogger
 import com.aki.akiwarmup.core.screen.ScreenDetector
 import kotlinx.coroutines.delay
 import java.util.Random
 
 class ActionLoop(
-    private val device: UiDevice,
+    private val context: AkiContext,
     private val scene: Scene,
     private val detector: ScreenDetector,
-    private val humanEngine: HumanBehaviorEngine,
     private val logger: SessionLogger,
-    private val runConfig: RunConfig
 ) {
+    private val device = context.device
+    private val humanEngine = context.humanBehaviorEngine
     private val random = Random()
     private var isStopped = false
     private var consecutiveRestarts = 0
 
     fun stop(reason: String = "") {
-        isStopped = true
-        if (reason.isNotEmpty()) {
-            Log.d("AkiFramework", "Stopping execution. Reason: $reason")
+        context.stopSignal = {
+            context.isStopped = { true }
+            if (reason.isNotEmpty()) {
+                Log.d("AkiFramework", "Stopping execution. Reason: $reason")
+            }
         }
     }
 
     suspend fun run(iterations: Int = -1, onIterationComplete: suspend () -> Unit = {}) {
         if (scene.screens.isEmpty()) return
         isStopped = false
-        val endTime = if (runConfig.durationMs > 0) System.currentTimeMillis() + runConfig.durationMs else Long.MAX_VALUE
+        val endTime = if (AppConfig.DURATION > 0) System.currentTimeMillis() + AppConfig.DURATION else Long.MAX_VALUE
         var consecutiveUnknownScreens = 0
         var currentIteration = 0
         
@@ -47,9 +46,7 @@ class ActionLoop(
                 consecutiveUnknownScreens++
                 
                 if (scene.unknownScreenHandler != null) {
-                    val androidContext = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
-                    val ctx = SceneExecutionContext(androidContext, device, scene, consecutiveRestarts, { reason -> this.stop(reason) })
-                    scene.unknownScreenHandler.invoke(ctx)
+                    scene.unknownScreenHandler.invoke()
                 } else {
                     handleUnknownScreen(consecutiveUnknownScreens)
                 }
@@ -66,10 +63,8 @@ class ActionLoop(
             val action = selectWeightedAction(currentScreen.actions)
             
             val result = runCatching {
-                val androidContext = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
-                val ctx = ActionExecutionContext(androidContext, device, scene, consecutiveRestarts, currentScreen, action, humanEngine, runConfig, { reason -> this.stop(reason) }, { isStopped })
                 Log.d("AkiFramework", "\n---------------------\n[Action Group] ${action.id}")
-                action.block.invoke(ctx)
+                action.block.invoke()
             }
             
             // Xử lý kết quả: Nếu là EndActionException thì coi như thành công và tiếp tục
@@ -99,8 +94,8 @@ class ActionLoop(
     }
     
     private suspend fun handleUnknownScreen(count: Int) {
-        val policy = scene.config.onUnknownScreen
-        val timeout = scene.config.recoveryTimeoutMs
+        val policy = context.sceneConfig.onUnknownScreen
+        val timeout = context.sceneConfig.recoveryTimeoutMs
         
         // Thử các biện pháp nhẹ trước (delay/back)
         if (count < 3) {
@@ -122,7 +117,7 @@ class ActionLoop(
     }
 
     private fun restartTargetApp() {
-        val pkg = scene.config.targetPackage
+        val pkg = context.sceneConfig.targetPackage
         if (pkg.isNotEmpty()) {
             consecutiveRestarts++
             device.executeShellCommand("am force-stop $pkg")

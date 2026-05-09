@@ -1,4 +1,4 @@
-﻿# Script chạy AkiFrameworkTest trên tất cả thiết bị ADB kết nối
+# Script chạy AkiFrameworkTest trên tất cả thiết bị ADB kết nối
 # Chế độ: Chạy song song (Parallel) dùng PowerShell Jobs
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -31,22 +31,48 @@ foreach ($device in $devices) {
     
     $job = Start-Job -ScriptBlock {
         param($d, $workingDir)
-        # Chuyển về thư mục dự án
         cd $workingDir
         
-        $logFile = "test_log_$($d.Replace(':', '_')).txt"
-        "--- Bắt đầu test trên $d ---" | Out-File $logFile
+        $output = @()
+        $output += "--- Bắt đầu test trên $d ---"
         
         # Cài đặt APK
-        "Đang cài đặt APK..." | Out-File $logFile -Append
-        adb -s $d install -r app/build/outputs/apk/debug/app-debug.apk >> $logFile 2>&1
-        adb -s $d install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk >> $logFile 2>&1
+        $output += "Đang cài đặt APK..."
+        $installDebug = adb -s $d install -r app/build/outputs/apk/debug/app-debug.apk 2>&1
+        $output += $installDebug
+        $installTest = adb -s $d install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk 2>&1
+        $output += $installTest
+        
+        $installFailed = ($installDebug -match "Failure") -or ($installTest -match "Failure")
+        
+        if ($installFailed) {
+            $reason = "Cài đặt APK thất bại"
+            return [PSCustomObject]@{ Device = $d; Status = "FAILURE"; Reason = $reason; Output = $output }
+        }
         
         # Chạy test
-        "Đang chạy test..." | Out-File $logFile -Append
-        adb -s $d shell am instrument -w -e class com.aki.akiwarmup.AkiFrameworkTest com.aki.akiwarmup.test/androidx.test.runner.AndroidJUnitRunner >> $logFile 2>&1
+        $output += "Đang chạy test..."
+        $testOutput = adb -s $d shell am instrument -w -e class com.aki.akiwarmup.AkiFrameworkTest com.aki.akiwarmup.test/androidx.test.runner.AndroidJUnitRunner 2>&1
+        $output += $testOutput
         
-        "--- Hoàn thành test trên $d ---" | Out-File $logFile -Append
+        $testSuccess = $testOutput -match "OK \("
+        
+        if ($testSuccess) {
+            return [PSCustomObject]@{ Device = $d; Status = "OK"; Reason = ""; Output = $output }
+        } else {
+            $reason = "Test thất bại"
+            foreach ($line in $testOutput) {
+                if ($line -match "Failure in") {
+                    $reason = $line.Trim()
+                    break
+                }
+                if ($line -match "INSTRUMENTATION_RESULT: shortMsg=(.*)") {
+                    $reason = $Matches[1].Trim()
+                    break
+                }
+            }
+            return [PSCustomObject]@{ Device = $d; Status = "FAILURE"; Reason = $reason; Output = $output }
+        }
     } -ArgumentList $device, $pwd
     
     $jobs += $job
@@ -60,21 +86,54 @@ try {
     # Chờ tất cả các job hoàn thành
     $jobs | Wait-Job | Out-Null
     $completed = $true
+    
+    Write-Host "`n================ KẾT QUẢ TEST ================" -ForegroundColor Green
+    
+    foreach ($job in $jobs) {
+        $results = Receive-Job -Job $job
+        $result = $results | Where-Object { $_.Status -ne $null } | Select-Object -First 1
+        
+        if ($result) {
+            $d = $result.Device
+            $status = $result.Status
+            $reason = $result.Reason
+            $output = $result.Output
+            
+            if ($status -eq "OK") {
+                Write-Host "[$d]: OK" -ForegroundColor Green
+            } else {
+                Write-Host "[$d]: FAILURE - $reason" -ForegroundColor Red
+                
+                # Option B: Lưu log nếu fail
+                $logFile = "test_log_$($d.Replace(':', '_')).txt"
+                $output | Out-File $logFile
+                Write-Host "  -> Chi tiết lỗi được lưu tại: $logFile" -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "Không nhận được kết quả từ job của thiết bị." -ForegroundColor Yellow
+        }
+    }
 } finally {
     if (-not $completed) {
         Write-Host "`n[!] Script bị dừng đột ngột. Đang dừng ứng dụng trên các thiết bị..." -ForegroundColor Yellow
-        foreach ($device in $devices) {
+        # Lấy danh sách thiết bị động như stop_tests.ps1
+        $currentDevices = adb devices | Where-Object { $_ -match "\bdevice\b" } | ForEach-Object { $_.Split("`t")[0] }
+        foreach ($device in $currentDevices) {
             adb -s $device shell am force-stop com.aki.akiwarmup
         }
     }
-    # Dừng và xóa các job
-    $jobs | Stop-Job -ErrorAction SilentlyContinue
-    $jobs | Remove-Job -ErrorAction SilentlyContinue
+    # Dừng và xóa tất cả các job như stop_tests.ps1
+    $allJobs = Get-Job
+    if ($allJobs.Count -gt 0) {
+        Write-Host "Đang dừng các background jobs..." -ForegroundColor Gray
+        $allJobs | Stop-Job -ErrorAction SilentlyContinue
+        $allJobs | Remove-Job -ErrorAction SilentlyContinue
+    }
 }
 
 if ($completed) {
     Write-Host "`n==================================================" -ForegroundColor Green
     Write-Host "Tất cả các thiết bị đã hoàn thành quá trình test." -ForegroundColor Green
-    Write-Host "Vui lòng kiểm tra các file log 'test_log_<IP>_5555.txt' để xem kết quả chi tiết." -ForegroundColor Green
+    Write-Host "Vui lòng kiểm tra các file log tương ứng nếu có thiết bị thất bại." -ForegroundColor Green
     Write-Host "==================================================" -ForegroundColor Green
 }

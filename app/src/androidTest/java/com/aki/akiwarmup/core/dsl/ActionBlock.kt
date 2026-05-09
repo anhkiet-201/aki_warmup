@@ -12,9 +12,10 @@ enum class ScrollDirection {
     Left,
     Right
 }
-class ActionBlock(val context: ActionExecutionContext) {
-    val device = context.device
-    private val humanEngine = context.humanEngine
+class ActionBuilder(sceneExecutionContext: SceneExecutionContext) {
+    val context = ActionExecutionContext(sceneExecutionContext)
+    private val humanEngine = context.humanBehaviorEngine
+    private val device = context.device
     private val random = Random()
 
     suspend fun wait(ms: Long) {
@@ -131,10 +132,10 @@ class ActionBlock(val context: ActionExecutionContext) {
         }
     }
 
-    suspend fun sometimes(chance: Float, block: suspend ActionBlock.() -> Unit) {
+    suspend fun sometimes(chance: Float, block: suspend () -> Unit) {
         Log.d("AkiFramework", "[Action] sometimes(chance=$chance)")
         if (random.nextFloat() < chance) {
-            this.block()
+            block()
         }
     }
 
@@ -154,7 +155,7 @@ class ActionBlock(val context: ActionExecutionContext) {
     /**
      * Chọn ngẫu nhiên một trong các khối lệnh dựa trên trọng số (tổng trọng số nên là 1.0)
      */
-    suspend fun choose(vararg possibilities: Pair<Float, suspend ActionBlock.() -> Unit>) {
+    suspend fun choose(vararg possibilities: Pair<Float, suspend ActionBuilder.() -> Unit>) {
         val totalWeight = possibilities.sumOf { it.first.toDouble() }
         if (totalWeight <= 0.0) return
 
@@ -176,7 +177,7 @@ class ActionBlock(val context: ActionExecutionContext) {
      * Vòng lặp dựa trên điều kiện động.
      * Ví dụ: loop({ !shouldExit }) { ... }
      */
-    suspend fun loop(condition: () -> Boolean, block: suspend ActionBlock.() -> Unit) {
+    suspend fun loop(condition: () -> Boolean, block: suspend ActionBuilder.() -> Unit) {
         Log.d("AkiFramework", "[Action] loop (dynamic condition) started")
         while (!context.isStopped() && condition()) {
             this.block()
@@ -187,7 +188,7 @@ class ActionBlock(val context: ActionExecutionContext) {
     /**
      * Vòng lặp dựa trên số lần.
      */
-    suspend fun loop(times: Int? = null, block: suspend ActionBlock.() -> Unit) {
+    suspend fun loop(times: Int? = null, block: suspend ActionBuilder.() -> Unit) {
         var count = 0
         Log.d("AkiFramework", "[Action] loop(times=$times) started")
         loop({ times == null || count < times }) {

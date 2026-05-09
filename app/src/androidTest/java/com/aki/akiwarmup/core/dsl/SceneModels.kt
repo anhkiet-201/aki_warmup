@@ -1,13 +1,16 @@
 package com.aki.akiwarmup.core.dsl
 
+import android.app.Instrumentation
+import android.content.Context
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
-import com.aki.akiwarmup.core.config.RunConfig
+import com.aki.akiwarmup.core.human.HumanBehaviorEngine
 
 data class Scene(
     val name: String,
     val screens: List<ScreenDef>,
-    val config: SceneConfig,
-    val unknownScreenHandler: (suspend SceneExecutionContext.() -> Unit)? = null
+    val unknownScreenHandler: (suspend () -> Unit)? = null,
+    val context: SceneExecutionContext
 )
 
 data class SceneConfig(
@@ -46,35 +49,43 @@ class DetectPredicate(val check: (UiDevice) -> Boolean) {
 data class ActionDef(
     val id: String,
     val weight: Int,
-    val block: suspend ActionExecutionContext.() -> Unit
+    val block: suspend () -> Unit
 )
 
-interface AkiContext {
-    val context: android.content.Context
-    val device: UiDevice
-}
+open class AkiContext(
+    val instrumentation: Instrumentation = InstrumentationRegistry.getInstrumentation(),
+    val androidContext: Context = instrumentation.targetContext,
+    val device: UiDevice = UiDevice.getInstance(instrumentation),
+    var stopSignal: (String) -> Unit = {},
+    val humanBehaviorEngine: HumanBehaviorEngine,
+    var isStopped: () -> Boolean = { false },
+    val sceneConfig: SceneConfig = SceneConfig()
+) {
+    constructor(akiContext: AkiContext): this(
+        akiContext.instrumentation,
+        akiContext.androidContext,
+        akiContext.device,
+        akiContext.stopSignal,
+        akiContext.humanBehaviorEngine,
+        akiContext.isStopped,
+        akiContext.sceneConfig
+    )
 
-open class SceneExecutionContext(
-    override val context: android.content.Context,
-    override val device: UiDevice,
-    val scene: Scene,
-    val restartCount: Int,
-    val stopSignal: (String) -> Unit = {}
-) : AkiContext {
+    val args = InstrumentationRegistry.getArguments()
+
     fun stop(reason: String) {
         stopSignal(reason)
     }
 }
 
+open class SceneExecutionContext(
+    akiContext: AkiContext,
+    val restartCount: Int = 0,
+) : AkiContext(akiContext)
+
 class ActionExecutionContext(
-    context: android.content.Context,
-    device: UiDevice,
-    scene: Scene,
-    restartCount: Int,
-    val currentScreen: ScreenDef,
-    val action: ActionDef,
-    val humanEngine: com.aki.akiwarmup.core.human.HumanBehaviorEngine,
-    val runConfig: RunConfig,
-    stopSignal: (String) -> Unit = {},
-    val isStopped: () -> Boolean = { false }
-) : SceneExecutionContext(context, device, scene, restartCount, stopSignal)
+    context: SceneExecutionContext,
+//    val currentScreen: ScreenDef,
+//    val action: ActionDef,
+//    humanEngine: HumanBehaviorEngine,
+) : SceneExecutionContext(context)

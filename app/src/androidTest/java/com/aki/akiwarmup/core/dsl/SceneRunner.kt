@@ -1,9 +1,5 @@
 package com.aki.akiwarmup.core.dsl
 
-import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
-import com.aki.akiwarmup.core.config.AdbConfigBridge
-import com.aki.akiwarmup.core.config.RunConfig
 import com.aki.akiwarmup.core.human.HumanBehaviorEngine
 import com.aki.akiwarmup.core.logger.SessionLogger
 import com.aki.akiwarmup.core.loop.ActionLoop
@@ -14,14 +10,15 @@ import kotlinx.coroutines.runBlocking
  * SceneRunner cung cấp các lệnh điều khiển cao cấp cho một Scene.
  */
 class SceneRunner(
-    val device: UiDevice,
-    private val scene: Scene,
     private val logger: SessionLogger,
     private val humanEngine: HumanBehaviorEngine,
-    private val runConfig: RunConfig
 ) {
-    private val detector = ScreenDetector(device, scene.screens)
-    private val loopManager = ActionLoop(device, scene, detector, humanEngine, logger, runConfig)
+    val context: AkiContext = AkiContext(humanBehaviorEngine = humanEngine)
+
+    val device = context.device
+
+    private var _scene: Scene? = null
+
 
     init {
         // Tối ưu hóa UI Automator cho các ứng dụng video (không đợi idle quá lâu)
@@ -34,23 +31,14 @@ class SceneRunner(
     }
 
     /**
-     * Khởi chạy ứng dụng mục tiêu của Scene bằng lệnh monkey.
-     */
-    fun launchApp() {
-        val pkg = scene.config.targetPackage
-        if (pkg.isNotEmpty()) {
-            device.executeShellCommand("monkey -p $pkg -c android.intent.category.LAUNCHER 1")
-            // Chờ ứng dụng lên
-            Thread.sleep(5000)
-        }
-    }
-
-    /**
      * Chạy vòng lặp hành động.
      * @param iterations Số lần lặp (-1 là vô hạn cho đến khi hết thời gian hoặc gọi stop)
      * @param afterIteration Callback chạy sau mỗi bước hành động.
      */
     suspend fun loop(iterations: Int = -1, afterIteration: suspend () -> Unit = {}) {
+        val scene = _scene ?: throw Exception()
+        val detector = ScreenDetector(device, scene.screens)
+        val loopManager = ActionLoop(context, scene, detector, logger)
         loopManager.run(iterations, afterIteration)
     }
 
@@ -64,24 +52,24 @@ class SceneRunner(
     /**
      * Dừng vòng lặp hiện tại.
      */
-    fun stop() {
-        loopManager.stop()
+//    fun stop() {
+//        loopManager.stop()
+//    }
+
+    fun scene(name: String, block: SceneBuilder.() -> Unit) {
+        _scene = SceneBuilder(name, context).apply(block).build()
     }
 }
 
 /**
  * Hàm khởi chạy Scene DSL.
  */
-fun runScene(scene: Scene, block: suspend SceneRunner.(SceneRunner) -> Unit) = runBlocking {
-    val instrumentation = InstrumentationRegistry.getInstrumentation()
-    val device = UiDevice.getInstance(instrumentation)
+fun runScene(block: suspend SceneRunner.() -> Unit) = runBlocking {
     val logger = SessionLogger()
     val humanEngine = HumanBehaviorEngine()
-    val runConfig = AdbConfigBridge.load()
-
-    val runner = SceneRunner(device, scene, logger, humanEngine, runConfig)
+    val runner = SceneRunner(logger, humanEngine)
     try {
-        runner.block(runner)
+        runner.block()
     } finally {
         logger.finalize()
     }
