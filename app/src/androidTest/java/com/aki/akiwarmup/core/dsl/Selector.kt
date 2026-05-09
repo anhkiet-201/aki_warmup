@@ -111,25 +111,7 @@ class SimpleSelector : Selector {
 
     fun contains(child: Selector) = apply { descendant = child }
 
-    infix fun and(other: Selector): Selector {
-        if (other is SimpleSelector) {
-            // Merge criteria nếu cả hai đều là SimpleSelector
-            val merged = SimpleSelector()
-            merged.resourceId = other.resourceId ?: this.resourceId
-            merged.text = other.text ?: this.text
-            merged.textContains = other.textContains ?: this.textContains
-            merged.textMatches = other.textMatches ?: this.textMatches
-            merged.desc = other.desc ?: this.desc
-            merged.descContains = other.descContains ?: this.descContains
-            merged.className = other.className ?: this.className
-            merged.pkg = other.pkg ?: this.pkg
-            merged.clickable = other.clickable ?: this.clickable
-            merged.enabled = other.enabled ?: this.enabled
-            merged.descendant = other.descendant ?: this.descendant
-            return merged
-        }
-        return AndSelector(this, other)
-    }
+    infix fun and(other: Selector): Selector = AndSelector(this, other)
 
     infix fun or(other: Selector): Selector = OrSelector(this, other)
 }
