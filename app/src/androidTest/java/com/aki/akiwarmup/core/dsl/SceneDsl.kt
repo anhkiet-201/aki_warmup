@@ -16,6 +16,10 @@ class SceneBuilder(val name: String) {
         screens.add(ScreenBuilder(id).apply(block).build())
     }
     
+    fun screen(screenDef: ScreenDef) {
+        screens.add(screenDef)
+    }
+    
     var unknownScreenHandler: (suspend SceneExecutionContext.() -> Unit)? = null
     
     fun handleUnknowScreen(block: suspend SceneExecutionContext.() -> Unit) {
@@ -48,8 +52,22 @@ class ActionsBuilder(private val list: MutableList<ActionDef>) {
             ActionBlock(this).block()
         })
     }
+
+    fun action(actionDef: ActionDef, weight: Int? = null) {
+        list.add(if (weight != null) actionDef.copy(weight = weight) else actionDef)
+    }
 }
 
 fun scene(name: String, block: SceneBuilder.() -> Unit): Scene {
     return SceneBuilder(name).apply(block).build()
+}
+
+fun defineScreen(id: String, block: ScreenBuilder.() -> Unit): ScreenDef {
+    return ScreenBuilder(id).apply(block).build()
+}
+
+fun defineAction(id: String, weight: Int = 1, block: suspend ActionBlock.() -> Unit): ActionDef {
+    return ActionDef(id, weight) {
+        ActionBlock(this).block()
+    }
 }
