@@ -58,36 +58,62 @@ open class AkiContext(
     val device: UiDevice = UiDevice.getInstance(instrumentation),
     var stopSignal: (String) -> Unit = {},
     val humanBehaviorEngine: HumanBehaviorEngine,
-    var isStopped: () -> Boolean = { false },
     val sceneConfig: SceneConfig = SceneConfig()
 ) {
+    var stopped: Boolean = false
+    var isStopped: () -> Boolean = { stopped }
+
     constructor(akiContext: AkiContext): this(
         akiContext.instrumentation,
         akiContext.androidContext,
         akiContext.device,
         akiContext.stopSignal,
         akiContext.humanBehaviorEngine,
-        akiContext.isStopped,
         akiContext.sceneConfig
-    )
+    ) {
+        this.isStopped = akiContext.isStopped
+    }
 
     val args = InstrumentationRegistry.getArguments()
 
     fun stop(reason: String) {
+        stopped = true
         stopSignal(reason)
     }
 }
 
 open class SceneExecutionContext(
-    akiContext: AkiContext,
+    val baseContext: AkiContext,
     var restartCount: Int = 0,
     var consecutiveRestarts: Int = 0,
     var consecutiveUnknownScreens: Int = 0
-) : AkiContext(akiContext)
+) {
+    val device get() = baseContext.device
+    val isStopped get() = baseContext.isStopped
+    val sceneConfig get() = baseContext.sceneConfig
+    val instrumentation get() = baseContext.instrumentation
+    val androidContext get() = baseContext.androidContext
+    val humanBehaviorEngine get() = baseContext.humanBehaviorEngine
+    val stopSignal get() = baseContext.stopSignal
+    
+    fun stop(reason: String) {
+        baseContext.stop(reason)
+    }
+}
 
 class ActionExecutionContext(
-    context: SceneExecutionContext,
-//    val currentScreen: ScreenDef,
-//    val action: ActionDef,
-//    humanEngine: HumanBehaviorEngine,
-) : SceneExecutionContext(context)
+    val sceneContext: SceneExecutionContext
+) {
+    val baseContext get() = sceneContext.baseContext
+    val device get() = sceneContext.device
+    val isStopped get() = sceneContext.isStopped
+    val sceneConfig get() = sceneContext.sceneConfig
+    val instrumentation get() = sceneContext.instrumentation
+    val androidContext get() = sceneContext.androidContext
+    val humanBehaviorEngine get() = sceneContext.humanBehaviorEngine
+    val stopSignal get() = sceneContext.stopSignal
+    
+    fun stop(reason: String) {
+        sceneContext.stop(reason)
+    }
+}

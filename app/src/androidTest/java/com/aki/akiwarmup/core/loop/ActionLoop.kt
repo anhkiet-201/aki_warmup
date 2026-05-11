@@ -20,24 +20,18 @@ class ActionLoop(
     private val device = context.device
     private val humanEngine = context.humanBehaviorEngine
     private val random = Random()
-    private var isStopped = false
 
     fun stop(reason: String = "") {
-        context.stopSignal = {
-            context.isStopped = { true }
-            if (reason.isNotEmpty()) {
-                Log.d("AkiFramework", "Stopping execution. Reason: $reason")
-            }
+        if (reason.isNotEmpty()) {
+            Log.d("AkiFramework", "Stopping execution. Reason: $reason")
         }
     }
 
     suspend fun run(iterations: Int = -1, onIterationComplete: suspend () -> Unit = {}) {
         if (scene.screens.isEmpty()) return
-        isStopped = false
-        val endTime = if (AppConfig.DURATION > 0) System.currentTimeMillis() + AppConfig.DURATION else Long.MAX_VALUE
         var currentIteration = 0
         
-        while (!isStopped && (iterations == -1 || currentIteration < iterations) && System.currentTimeMillis() < endTime) {
+        while (!context.isStopped() && (iterations == -1 || currentIteration < iterations)) {
             val currentScreen = detector.detectCurrent()
             
             if (currentScreen == null) {
