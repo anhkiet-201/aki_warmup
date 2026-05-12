@@ -13,7 +13,7 @@ $projectRoot = (Get-Item "$PSScriptRoot\..").FullName
 Set-Utf8Encoding
 
 Write-Host "==================================================" -ForegroundColor Green
-Write-Host "Äang build APK (Debug vÃ  AndroidTest)..." -ForegroundColor Green
+Write-Host "Buid APK" -ForegroundColor Green
 Write-Host "==================================================" -ForegroundColor Green
 
 # Chuyá»ƒn vá» gá»‘c dá»± Ã¡n Ä‘á»ƒ build
@@ -21,41 +21,41 @@ cd $projectRoot
 ./gradlew assembleDebug assembleAndroidTest
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Build tháº¥t báº¡i. Vui lÃ²ng kiá»ƒm tra láº¡i lá»—i build." -ForegroundColor Red
+    Write-Host "Bui thất bại." -ForegroundColor Red
     exit $LASTEXITCODE
 }
 
 $devices = Get-AdbDevices -deviceFile $deviceFile
 
 if ($devices.Count -eq 0) {
-    Write-Host "KhÃ´ng tÃ¬m tháº¥y thiáº¿t bá»‹ ADB nÃ o Ä‘ang káº¿t ná»‘i!" -ForegroundColor Yellow
+    Write-Host "Không tìm thấy thiết bị" -ForegroundColor Yellow
     exit 1
 }
 
-Write-Host "TÃ¬m tháº¥y $($devices.Count) thiáº¿t bá»‹. Báº¯t Ä‘áº§u kÃ­ch hoáº¡t test song song..." -ForegroundColor Green
+Write-Host "Tìm thấy $($devices.Count) thiết bị. Bắt đầu kích hoạt test song song..." -ForegroundColor Green
 
 $jobs = @()
 $i = 0
 
 foreach ($device in $devices) {
-    $caption = "Xin chÃ o"
+    $caption = "#ttnhr Tuyển dụng việc làm Bình Dương"
     if ($captions.Count -gt 0) {
         $caption = $captions[$i % $captions.Count]
     }
     $i++
     
-    Write-Host "Äang khá»Ÿi táº¡o job cho thiáº¿t bá»‹: $device" -ForegroundColor Cyan
+    Write-Host "Bắt đầu chạy cho thiết bị: $device" -ForegroundColor Cyan
     
     $job = Start-Job -ScriptBlock {
         param($d, $workingDir, $method, $caption)
         cd $workingDir
         
         $output = @()
-        $output += "--- Báº¯t Ä‘áº§u test trÃªn $d ---"
+        $output += "--- on $d ---"
         
         # CÃ i Ä‘áº·t APK
         adb -s $d shell settings put global package_verifier_user_consent -1
-        $output += "Äang cÃ i Ä‘áº·t APK..."
+        $output += "Installing APK..."
         $installDebug = adb -s $d install -r app/build/outputs/apk/debug/app-debug.apk 2>&1
         $output += $installDebug
         $installTest = adb -s $d install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk 2>&1
@@ -64,12 +64,12 @@ foreach ($device in $devices) {
         $installFailed = ($installDebug -match "Failure") -or ($installTest -match "Failure")
         
         if ($installFailed) {
-            $reason = "CÃ i Ä‘áº·t APK tháº¥t báº¡i"
+            $reason = "Cài thất bại"
             return [PSCustomObject]@{ Device = $d; Status = "FAILURE"; Reason = $reason; Output = $output }
         }
         
         # Cháº¡y test
-        $output += "Äang cháº¡y test..."
+        $output += "Đang chạy"
         
         $targetClass = "com.aki.akiwarmup.AkiFrameworkTest"
         if ($method) {
@@ -118,15 +118,15 @@ foreach ($device in $devices) {
     $jobs += $job
 }
 
-Write-Host "`nÄÃ£ kÃ­ch hoáº¡t test trÃªn táº¥t cáº£ cÃ¡c thiáº¿t bá»‹." -ForegroundColor Green
-Write-Host "Äang chá» cÃ¡c thiáº¿t bá»‹ hoÃ n thÃ nh..." -ForegroundColor Yellow
+Write-Host "`nĐã chạy trên tất cả các thiết bị." -ForegroundColor Green
+Write-Host "Đang chờ các thiết bị hoàn thành..." -ForegroundColor Yellow
 
 $completed = $false
 try {
     $jobs | Wait-Job | Out-Null
     $completed = $true
     
-    Write-Host "`n================ Káº¾T QUáº¢ TEST ================" -ForegroundColor Green
+    Write-Host "`n================ Kết quả ================" -ForegroundColor Green
     
     foreach ($job in $jobs) {
         $results = Receive-Job -Job $job
@@ -145,13 +145,13 @@ try {
                 
                 $logFile = "$PSScriptRoot\test_log_$($d.Replace(':', '_')).txt"
                 $output | Out-File $logFile
-                Write-Host "  -> Chi tiáº¿t lá»—i Ä‘Æ°á»£c lÆ°u táº¡i: $logFile" -ForegroundColor Yellow
+                Write-Host "  -> Chi tiết: $logFile" -ForegroundColor Yellow
             }
         }
     }
 } finally {
     if (-not $completed) {
-        Write-Host "`n[!] Script bá»‹ dá»«ng Ä‘á»™t ngá»™t. Äang dá»n dáº¹p..." -ForegroundColor Yellow
+        Write-Host "`n Dừng." -ForegroundColor Yellow
         # CÃ³ thá»ƒ gá»i stop_tests.ps1 á»Ÿ Ä‘Ã¢y
         . "$PSScriptRoot\stop_tests.ps1"
     }
