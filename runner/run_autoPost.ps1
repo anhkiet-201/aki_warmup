@@ -14,10 +14,10 @@ if (-not $contentFile) {
 $captions = @()
 
 if (Test-Path $contentFile) {
-    Write-Host "Đang đọc dữ liệu từ: $contentFile" -ForegroundColor Cyan
+    Write-Host "Reading content from: $contentFile" -ForegroundColor Cyan
     $captions = Get-Content -Path $contentFile -Encoding utf8
 } else {
-    Write-Host "Cảnh báo: Không tìm thấy file content.txt tại $contentFile. Sẽ dùng caption mặc định." -ForegroundColor Yellow
+    Write-Host "Warning: Content file not found at $contentFile. Using default caption." -ForegroundColor Yellow
 }
 
 # Gọi file lõi điều phối và truyền method cùng mảng captions

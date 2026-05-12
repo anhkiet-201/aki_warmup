@@ -13,7 +13,7 @@ $projectRoot = (Get-Item "$PSScriptRoot\..").FullName
 Set-Utf8Encoding
 
 Write-Host "==================================================" -ForegroundColor Green
-Write-Host "Buid APK" -ForegroundColor Green
+Write-Host "Building APK..." -ForegroundColor Green
 Write-Host "==================================================" -ForegroundColor Green
 
 # Chuyển về gốc dự án để build
@@ -21,18 +21,18 @@ cd $projectRoot
 ./gradlew assembleDebug assembleAndroidTest
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Bui thất bại." -ForegroundColor Red
+    Write-Host "Build failed." -ForegroundColor Red
     exit $LASTEXITCODE
 }
 
 $devices = Get-AdbDevices -deviceFile $deviceFile
 
 if ($devices.Count -eq 0) {
-    Write-Host "Không tìm thấy thiết bị" -ForegroundColor Yellow
+    Write-Host "No devices found." -ForegroundColor Yellow
     exit 1
 }
 
-Write-Host "Tìm thấy $($devices.Count) thiết bị. Bắt đầu kích hoạt test song song..." -ForegroundColor Green
+Write-Host "Found $($devices.Count) devices. Starting parallel tests..." -ForegroundColor Green
 
 $jobs = @()
 $i = 0
@@ -44,7 +44,7 @@ foreach ($device in $devices) {
     }
     $i++
     
-    Write-Host "Bắt đầu chạy cho thiết bị: $device" -ForegroundColor Cyan
+    Write-Host "Starting test on device: $device" -ForegroundColor Cyan
     
     $job = Start-Job -ScriptBlock {
         param($d, $workingDir, $method, $caption)
@@ -64,12 +64,12 @@ foreach ($device in $devices) {
         $installFailed = ($installDebug -match "Failure") -or ($installTest -match "Failure")
         
         if ($installFailed) {
-            $reason = "Cài thất bại"
+            $reason = "Install failed"
             return [PSCustomObject]@{ Device = $d; Status = "FAILURE"; Reason = $reason; Output = $output }
         }
         
         # Chạy test
-        $output += "Đang chạy"
+        $output += "Running..."
         
         $targetClass = "com.aki.akiwarmup.AkiFrameworkTest"
         if ($method) {
@@ -87,7 +87,7 @@ foreach ($device in $devices) {
         if ($testSuccess) {
             return [PSCustomObject]@{ Device = $d; Status = "OK"; Reason = ""; Output = $output }
         } else {
-            $reason = "Test thất bại"
+            $reason = "Test failed"
             foreach ($line in $testOutput) {
                 # Kiểm tra kết quả từ finish() trong app
                 if ($line -match "INSTRUMENTATION_RESULT: reason=(.*)") {
@@ -118,15 +118,15 @@ foreach ($device in $devices) {
     $jobs += $job
 }
 
-Write-Host "`nĐã chạy trên tất cả các thiết bị." -ForegroundColor Green
-Write-Host "Đang chờ các thiết bị hoàn thành..." -ForegroundColor Yellow
+Write-Host "`nTriggered tests on all devices." -ForegroundColor Green
+Write-Host "Waiting for devices to complete..." -ForegroundColor Yellow
 
 $completed = $false
 try {
     $jobs | Wait-Job | Out-Null
     $completed = $true
     
-    Write-Host "`n================ Kết quả ================" -ForegroundColor Green
+    Write-Host "`n================ RESULTS ================" -ForegroundColor Green
     
     foreach ($job in $jobs) {
         $results = Receive-Job -Job $job
@@ -145,13 +145,13 @@ try {
                 
                 $logFile = "$PSScriptRoot\test_log_$($d.Replace(':', '_')).txt"
                 $output | Out-File $logFile
-                Write-Host "  -> Chi tiết: $logFile" -ForegroundColor Yellow
+                Write-Host "  -> Details: $logFile" -ForegroundColor Yellow
             }
         }
     }
 } finally {
     if (-not $completed) {
-        Write-Host "`n Dừng." -ForegroundColor Yellow
+        Write-Host "`n Stopped." -ForegroundColor Yellow
         # Gọi stop_tests.ps1 và truyền deviceFile nếu có
         . "$PSScriptRoot\stop_tests.ps1" -deviceFile $deviceFile
     }
