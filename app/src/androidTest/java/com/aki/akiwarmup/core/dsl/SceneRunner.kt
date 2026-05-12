@@ -36,7 +36,7 @@ class SceneRunner(
      * @param afterIteration Callback chạy sau mỗi bước hành động.
      */
     suspend fun loop(iterations: Int = -1, afterIteration: suspend () -> Unit = {}) {
-        val scene = _scene ?: throw Exception()
+        val scene = _scene ?: throw Exception("No Scenes are defined")
         val detector = ScreenDetector(device, scene.screens)
         val loopManager = ActionLoop(scene, detector, logger)
         loopManager.run(iterations, afterIteration)
