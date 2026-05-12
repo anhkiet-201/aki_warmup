@@ -1,8 +1,16 @@
-﻿# Script chuyên biệt để chạy tính năng Auto Post
+param(
+    [string]$contentPath,
+    [string]$deviceFile
+)
+
+# Script chuyên biệt để chạy tính năng Auto Post
 $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $projectRoot = (Get-Item "$PSScriptRoot\..").FullName
 
-$contentFile = "$projectRoot\content.txt"
+$contentFile = $contentPath
+if (-not $contentFile) {
+    $contentFile = "$projectRoot\content.txt"
+}
 $captions = @()
 
 if (Test-Path $contentFile) {
@@ -13,5 +21,5 @@ if (Test-Path $contentFile) {
 }
 
 # Gọi file lõi điều phối và truyền method cùng mảng captions
-& "$PSScriptRoot\run_parallel.ps1" -method autoPost -captions $captions
+& "$PSScriptRoot\run_parallel.ps1" -method autoPost -captions $captions -deviceFile $deviceFile
 

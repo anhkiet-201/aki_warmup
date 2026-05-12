@@ -1,6 +1,7 @@
-﻿param(
+param(
     [string]$method,
-    [string[]]$captions = @()
+    [string[]]$captions = @(),
+    [string]$deviceFile
 )
 
 # Láº¥y Ä‘Æ°á»ng dáº«n thÆ° má»¥c chá»©a script nÃ y
@@ -24,7 +25,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-$devices = Get-AdbDevices
+$devices = Get-AdbDevices -deviceFile $deviceFile
 
 if ($devices.Count -eq 0) {
     Write-Host "KhÃ´ng tÃ¬m tháº¥y thiáº¿t bá»‹ ADB nÃ o Ä‘ang káº¿t ná»‘i!" -ForegroundColor Yellow
@@ -74,8 +75,11 @@ foreach ($device in $devices) {
         if ($method) {
             $targetClass = "$targetClass#$method"
         }
+        # Dừng các package uiautomator khác để tránh xung đột
+        adb -s $d shell am force-stop com.genfarmer.uiautomator.test
+        adb -s $d shell am force-stop com.genfarmer.uiautomator
         
-        $testOutput = adb -s $d shell am instrument -w -e class $targetClass -e caption "'$caption'" com.aki.akiwarmup.test/androidx.test.runner.AndroidJUnitRunner 2>&1
+        $testOutput = adb -s $d shell am instrument -w -r -e class $targetClass -e caption "'$caption'" com.aki.akiwarmup.test/androidx.test.runner.AndroidJUnitRunner 2>&1
         $output += $testOutput
         
         $testSuccess = $testOutput -match "OK \("
@@ -152,4 +156,3 @@ try {
         . "$PSScriptRoot\stop_tests.ps1"
     }
 }
-
