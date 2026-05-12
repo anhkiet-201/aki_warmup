@@ -23,6 +23,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Khóa hướng dọc
+        requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         // Đọc dữ liệu từ Intent lúc Activity được tạo
         messageState.value = (intent.getStringExtra("message") ?: "Chưa có nội dung từ ADB").replace("_", " ")
 
