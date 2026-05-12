@@ -158,4 +158,94 @@ class AkiFrameworkTest {
 
         }
     }
+
+    @Test
+    fun autoPost() = runScene {
+        scene("Auto Post") {
+            config {
+                targetPackage = "com.ss.android.ugc.trill"
+                onUnknownScreen = UnknownScreenPolicy.PRESS_BACK
+                recoveryTimeoutMs = 15000L
+            }
+
+            handleUnknowScreen {
+                Log.i("AkiFramework", "${context.restartCount}")
+                if(this.context.restartCount > 3) {
+                    this.context.stop("")
+                }
+            }
+
+            screen("Share on tiktok") {
+                detect {
+                    has(text("Chia sẻ lên TikTok"))
+                }
+               action("Click Video") {
+                   find(text("Video"))?.let {
+                       tap(it)
+                       wait(random(3000, 5000))
+                       endAction()
+                   }
+               }
+            }
+
+            screen("Video Edit") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/zo6"))
+                }
+
+                action("Select Music") {
+                    find(id("com.ss.android.ugc.trill:id/zo6"))?.let {
+                        if (it.text == "Thêm âm thanh") {
+                            tap(it)
+                            wait(5000)
+                            endAction()
+                        }
+                    }
+                    find(id("com.ss.android.ugc.trill:id/ond"))?.let {
+                        tap(it)
+                        wait(random(3000, 5000))
+                    }
+                    endAction()
+                }
+            }
+
+            screen("Select Music") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/t96"))
+                }
+
+                action("Choose Music") {
+                    find(id("com.ss.android.ugc.trill:id/t96"))?.findObjects(clazz("android.widget.LinearLayout").toBySelector()).run {
+                        tap(this?.random())
+                        wait(random(3000, 5000))
+                        pressBack()
+                        endAction()
+                    }
+                }
+            }
+
+            screen("Type Caption") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/gfw"))
+                }
+
+                action("Post") {
+                    val caption = context.args.getString("caption")!!
+                    find(id("com.ss.android.ugc.trill:id/gfw"))?.let {
+                        humanType(it, "$caption ")
+                        wait(random(3000,5000))
+                        find(text("Đăng"))?.let { post ->
+                            tap(post)
+                            wait(random(20000, 40000))
+                            pressHome()
+                            stop()
+                        }
+                    }
+                }
+            }
+        }
+        loop {
+
+        }
+    }
 }

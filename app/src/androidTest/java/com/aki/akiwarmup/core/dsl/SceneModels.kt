@@ -95,6 +95,8 @@ open class SceneExecutionContext(
     val androidContext get() = baseContext.androidContext
     val humanBehaviorEngine get() = baseContext.humanBehaviorEngine
     val stopSignal get() = baseContext.stopSignal
+
+    val args get() = baseContext.args
     
     fun stop(reason: String) {
         baseContext.stop(reason)
@@ -112,6 +114,7 @@ class ActionExecutionContext(
     val androidContext get() = sceneContext.androidContext
     val humanBehaviorEngine get() = sceneContext.humanBehaviorEngine
     val stopSignal get() = sceneContext.stopSignal
+    val args get() = baseContext.args
     
     fun stop(reason: String) {
         sceneContext.stop(reason)

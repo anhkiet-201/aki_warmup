@@ -1,16 +1,22 @@
-﻿# Script chạy AkiFrameworkTest trên tất cả thiết bị ADB kết nối
-# Chế độ: Chạy song song (Parallel) dùng PowerShell Jobs
-param(
-    [string]$method
+﻿param(
+    [string]$method,
+    [string[]]$captions = @()
 )
-[Console]::InputEncoding = [System.Text.Encoding]::UTF8
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
+
+# Lấy đường dẫn thư mục chứa script này
+$PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$projectRoot = (Get-Item "$PSScriptRoot\..").FullName
+
+# Import tiện ích
+. "$PSScriptRoot\utils.ps1"
+Set-Utf8Encoding
 
 Write-Host "==================================================" -ForegroundColor Green
 Write-Host "Đang build APK (Debug và AndroidTest)..." -ForegroundColor Green
 Write-Host "==================================================" -ForegroundColor Green
 
+# Chuyển về gốc dự án để build
+cd $projectRoot
 ./gradlew assembleDebug assembleAndroidTest
 
 if ($LASTEXITCODE -ne 0) {
@@ -18,8 +24,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-# Lấy danh sách thiết bị đang kết nối
-$devices = adb devices | Where-Object { $_ -match "\bdevice\b" } | ForEach-Object { $_.Split("`t")[0] }
+$devices = Get-AdbDevices
 
 if ($devices.Count -eq 0) {
     Write-Host "Không tìm thấy thiết bị ADB nào đang kết nối!" -ForegroundColor Yellow
@@ -28,12 +33,6 @@ if ($devices.Count -eq 0) {
 
 Write-Host "Tìm thấy $($devices.Count) thiết bị. Bắt đầu kích hoạt test song song..." -ForegroundColor Green
 
-$captions = @()
-if (Test-Path "content.txt") {
-    $captions = Get-Content -Path "content.txt" -Encoding utf8
-}
-
-$pwd = Get-Location
 $jobs = @()
 $i = 0
 
@@ -43,6 +42,7 @@ foreach ($device in $devices) {
         $caption = $captions[$i % $captions.Count]
     }
     $i++
+    
     Write-Host "Đang khởi tạo job cho thiết bị: $device" -ForegroundColor Cyan
     
     $job = Start-Job -ScriptBlock {
@@ -75,7 +75,6 @@ foreach ($device in $devices) {
             $targetClass = "$targetClass#$method"
         }
         
-        # Truyền caption vào instrumentation arguments
         $testOutput = adb -s $d shell am instrument -w -e class $targetClass -e caption "'$caption'" com.aki.akiwarmup.test/androidx.test.runner.AndroidJUnitRunner 2>&1
         $output += $testOutput
         
@@ -97,17 +96,16 @@ foreach ($device in $devices) {
             }
             return [PSCustomObject]@{ Device = $d; Status = "FAILURE"; Reason = $reason; Output = $output }
         }
-    } -ArgumentList $device, $pwd, $method, $caption
+    } -ArgumentList $device, $projectRoot, $method, $caption
     
     $jobs += $job
 }
 
 Write-Host "`nĐã kích hoạt test trên tất cả các thiết bị." -ForegroundColor Green
-Write-Host "Đang chờ các thiết bị hoàn thành (Bạn có thể xem file log 'test_log_*.txt' để theo dõi tiến độ)..." -ForegroundColor Yellow
+Write-Host "Đang chờ các thiết bị hoàn thành..." -ForegroundColor Yellow
 
 $completed = $false
 try {
-    # Chờ tất cả các job hoàn thành
     $jobs | Wait-Job | Out-Null
     $completed = $true
     
@@ -128,40 +126,17 @@ try {
             } else {
                 Write-Host "[$d]: FAILURE - $reason" -ForegroundColor Red
                 
-                # Option B: Lưu log nếu fail
-                $logFile = "test_log_$($d.Replace(':', '_')).txt"
+                $logFile = "$PSScriptRoot\test_log_$($d.Replace(':', '_')).txt"
                 $output | Out-File $logFile
                 Write-Host "  -> Chi tiết lỗi được lưu tại: $logFile" -ForegroundColor Yellow
             }
-        } else {
-            Write-Host "Không nhận được kết quả từ job của thiết bị." -ForegroundColor Yellow
         }
     }
 } finally {
     if (-not $completed) {
-        Write-Host "`n[!] Script bị dừng đột ngột. Đang dừng ứng dụng trên các thiết bị..." -ForegroundColor Yellow
-        # Lấy danh sách thiết bị động như stop_tests.ps1
-        # $currentDevices = adb devices | Where-Object { $_ -match "\bdevice\b" } | ForEach-Object { $_.Split("`t")[0] }
-        # foreach ($device in $currentDevices) {
-        #     adb -s $device shell am force-stop com.aki.akiwarmup
-        # }
-        ./stop_tests.ps1
+        Write-Host "`n[!] Script bị dừng đột ngột. Đang dọn dẹp..." -ForegroundColor Yellow
+        # Có thể gọi stop_tests.ps1 ở đây
+        . "$PSScriptRoot\stop_tests.ps1"
     }
-    # Dừng và xóa tất cả các job như stop_tests.ps1
-    # $allJobs = Get-Job
-    # if ($allJobs.Count -gt 0) {
-    #     Write-Host "Đang dừng các background jobs..." -ForegroundColor Gray
-    #     $allJobs | Stop-Job -ErrorAction SilentlyContinue
-    #     $allJobs | Remove-Job -ErrorAction SilentlyContinue
-    # }
 }
-
-if ($completed) {
-    Write-Host "`n==================================================" -ForegroundColor Green
-    Write-Host "Tất cả các thiết bị đã hoàn thành quá trình test." -ForegroundColor Green
-    Write-Host "Vui lòng kiểm tra các file log tương ứng nếu có thiết bị thất bại." -ForegroundColor Green
-    Write-Host "==================================================" -ForegroundColor Green
-}
-
-
 
