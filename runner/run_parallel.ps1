@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$method,
     [string[]]$captions = @()
 )
@@ -85,6 +85,16 @@ foreach ($device in $devices) {
         } else {
             $reason = "Test thất bại"
             foreach ($line in $testOutput) {
+                # Kiểm tra kết quả từ finish() trong app
+                if ($line -match "INSTRUMENTATION_RESULT: reason=(.*)") {
+                    $reason = $Matches[1].Trim()
+                    break
+                }
+                # Kiểm tra reason từ sendStatus (nếu có dùng)
+                if ($line -match "INSTRUMENTATION_STATUS: reason=(.*)") {
+                    $reason = $Matches[1].Trim()
+                    break
+                }
                 if ($line -match "Failure in") {
                     $reason = $line.Trim()
                     break
@@ -94,6 +104,9 @@ foreach ($device in $devices) {
                     break
                 }
             }
+            $reasonNoSpaces = $reason -replace ' ', '_'
+            adb -s $d shell "am start -n com.aki.akiwarmup/.MainActivity --es message '$reasonNoSpaces' -f 0x10000000"
+            
             return [PSCustomObject]@{ Device = $d; Status = "FAILURE"; Reason = $reason; Output = $output }
         }
     } -ArgumentList $device, $projectRoot, $method, $caption

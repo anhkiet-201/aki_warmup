@@ -76,8 +76,16 @@ open class AkiContext(
 
     val args = InstrumentationRegistry.getArguments()
 
-    fun stop(reason: String) {
+    fun stop(reason: String = "", resultCode: Int = 0) {
         stopped = true
+        val reasonStr = reason.ifEmpty { "Stopped" }
+        
+        val bundle = android.os.Bundle().apply {
+            putString("reason", reasonStr)
+        }
+
+        instrumentation.finish(resultCode, bundle)
+        
         stopSignal(reason)
     }
 }
@@ -98,8 +106,8 @@ open class SceneExecutionContext(
 
     val args get() = baseContext.args
     
-    fun stop(reason: String) {
-        baseContext.stop(reason)
+    fun stop(reason: String = "", resultCode: Int = 0) {
+        baseContext.stop(reason, resultCode)
     }
 }
 
@@ -116,7 +124,7 @@ class ActionExecutionContext(
     val stopSignal get() = sceneContext.stopSignal
     val args get() = baseContext.args
     
-    fun stop(reason: String) {
-        sceneContext.stop(reason)
+    fun stop(reason: String = "", resultCode: Int = 0) {
+        sceneContext.stop(reason, resultCode)
     }
 }

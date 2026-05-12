@@ -21,10 +21,11 @@ class ActionLoop(
     private val humanEngine = context.humanBehaviorEngine
     private val random = Random()
 
-    fun stop(reason: String = "") {
+    fun stop(reason: String = "", resultCode: Int = android.app.Activity.RESULT_OK) {
         if (reason.isNotEmpty()) {
             Log.d("AkiFramework", "Stopping execution. Reason: $reason")
         }
+        context.stop(reason, resultCode)
     }
 
     suspend fun run(iterations: Int = -1, onIterationComplete: suspend () -> Unit = {}) {
