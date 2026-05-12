@@ -122,10 +122,10 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(1000, 20000))
                         choose(
-                            8f to {
+                            7f to {
                                 swipeUp()
                             },
-                            0.5f to {
+                            1f to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
                                     if (!has(textContains("ttnhr")) && random(1, 100) > 20) {
                                         return@let
@@ -134,7 +134,7 @@ class AkiFrameworkTest {
                                     wait(random(min = 1000, max = 3000))
                                 }
                             },
-                            0.5f to {
+                            1f to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
                                     if (!has(textContains("ttnhr")) && random(1, 100) > 20) {
                                         return@let

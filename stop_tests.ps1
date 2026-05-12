@@ -22,6 +22,7 @@ if ($devices.Count -gt 0) {
     foreach ($device in $devices) {
         # Force stop app và test runner
         adb -s $device shell am force-stop com.aki.akiwarmup
+        adb -s $device shell am force-stop com.ss.android.ugc.trill
     }
 }
 

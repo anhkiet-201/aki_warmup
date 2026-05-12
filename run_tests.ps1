@@ -1,6 +1,8 @@
-# Script chạy AkiFrameworkTest trên tất cả thiết bị ADB kết nối
+﻿# Script chạy AkiFrameworkTest trên tất cả thiết bị ADB kết nối
 # Chế độ: Chạy song song (Parallel) dùng PowerShell Jobs
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 
 Write-Host "==================================================" -ForegroundColor Green
 Write-Host "Đang build APK (Debug và AndroidTest)..." -ForegroundColor Green
@@ -37,6 +39,7 @@ foreach ($device in $devices) {
         $output += "--- Bắt đầu test trên $d ---"
         
         # Cài đặt APK
+        adb -s $d shell settings put global package_verifier_user_consent -1
         $output += "Đang cài đặt APK..."
         $installDebug = adb -s $d install -r app/build/outputs/apk/debug/app-debug.apk 2>&1
         $output += $installDebug
@@ -117,18 +120,19 @@ try {
     if (-not $completed) {
         Write-Host "`n[!] Script bị dừng đột ngột. Đang dừng ứng dụng trên các thiết bị..." -ForegroundColor Yellow
         # Lấy danh sách thiết bị động như stop_tests.ps1
-        $currentDevices = adb devices | Where-Object { $_ -match "\bdevice\b" } | ForEach-Object { $_.Split("`t")[0] }
-        foreach ($device in $currentDevices) {
-            adb -s $device shell am force-stop com.aki.akiwarmup
-        }
+        # $currentDevices = adb devices | Where-Object { $_ -match "\bdevice\b" } | ForEach-Object { $_.Split("`t")[0] }
+        # foreach ($device in $currentDevices) {
+        #     adb -s $device shell am force-stop com.aki.akiwarmup
+        # }
+        ./stop_tests.ps1
     }
     # Dừng và xóa tất cả các job như stop_tests.ps1
-    $allJobs = Get-Job
-    if ($allJobs.Count -gt 0) {
-        Write-Host "Đang dừng các background jobs..." -ForegroundColor Gray
-        $allJobs | Stop-Job -ErrorAction SilentlyContinue
-        $allJobs | Remove-Job -ErrorAction SilentlyContinue
-    }
+    # $allJobs = Get-Job
+    # if ($allJobs.Count -gt 0) {
+    #     Write-Host "Đang dừng các background jobs..." -ForegroundColor Gray
+    #     $allJobs | Stop-Job -ErrorAction SilentlyContinue
+    #     $allJobs | Remove-Job -ErrorAction SilentlyContinue
+    # }
 }
 
 if ($completed) {
@@ -137,3 +141,4 @@ if ($completed) {
     Write-Host "Vui lòng kiểm tra các file log tương ứng nếu có thiết bị thất bại." -ForegroundColor Green
     Write-Host "==================================================" -ForegroundColor Green
 }
+
