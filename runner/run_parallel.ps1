@@ -1,14 +1,14 @@
-param(
+﻿param(
     [string]$method,
     [string[]]$captions = @(),
     [string]$deviceFile
 )
 
-# Láº¥y Ä‘Æ°á»ng dáº«n thÆ° má»¥c chá»©a script nÃ y
+# Lấy đường dẫn thư mục chứa script này
 $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $projectRoot = (Get-Item "$PSScriptRoot\..").FullName
 
-# Import tiá»‡n Ã­ch
+# Import tiện ích
 . "$PSScriptRoot\utils.ps1"
 Set-Utf8Encoding
 
@@ -16,7 +16,7 @@ Write-Host "==================================================" -ForegroundColor
 Write-Host "Buid APK" -ForegroundColor Green
 Write-Host "==================================================" -ForegroundColor Green
 
-# Chuyá»ƒn vá» gá»‘c dá»± Ã¡n Ä‘á»ƒ build
+# Chuyển về gốc dự án để build
 cd $projectRoot
 ./gradlew assembleDebug assembleAndroidTest
 
@@ -53,7 +53,7 @@ foreach ($device in $devices) {
         $output = @()
         $output += "--- on $d ---"
         
-        # CÃ i Ä‘áº·t APK
+        # Cài đặt APK
         adb -s $d shell settings put global package_verifier_user_consent -1
         $output += "Installing APK..."
         $installDebug = adb -s $d install -r app/build/outputs/apk/debug/app-debug.apk 2>&1
@@ -68,7 +68,7 @@ foreach ($device in $devices) {
             return [PSCustomObject]@{ Device = $d; Status = "FAILURE"; Reason = $reason; Output = $output }
         }
         
-        # Cháº¡y test
+        # Chạy test
         $output += "Đang chạy"
         
         $targetClass = "com.aki.akiwarmup.AkiFrameworkTest"
@@ -87,14 +87,14 @@ foreach ($device in $devices) {
         if ($testSuccess) {
             return [PSCustomObject]@{ Device = $d; Status = "OK"; Reason = ""; Output = $output }
         } else {
-            $reason = "Test tháº¥t báº¡i"
+            $reason = "Test thất bại"
             foreach ($line in $testOutput) {
-                # Kiá»ƒm tra káº¿t quáº£ tá»« finish() trong app
+                # Kiểm tra kết quả từ finish() trong app
                 if ($line -match "INSTRUMENTATION_RESULT: reason=(.*)") {
                     $reason = $Matches[1].Trim()
                     break
                 }
-                # Kiá»ƒm tra reason tá»« sendStatus (náº¿u cÃ³ dÃ¹ng)
+                # Kiểm tra reason từ sendStatus (nếu có dùng)
                 if ($line -match "INSTRUMENTATION_STATUS: reason=(.*)") {
                     $reason = $Matches[1].Trim()
                     break
@@ -152,7 +152,7 @@ try {
 } finally {
     if (-not $completed) {
         Write-Host "`n Dừng." -ForegroundColor Yellow
-        # CÃ³ thá»ƒ gá»i stop_tests.ps1 á»Ÿ Ä‘Ã¢y
-        . "$PSScriptRoot\stop_tests.ps1"
+        # Gọi stop_tests.ps1 và truyền deviceFile nếu có
+        . "$PSScriptRoot\stop_tests.ps1" -deviceFile $deviceFile
     }
 }
