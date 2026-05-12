@@ -9,6 +9,7 @@ import com.aki.akiwarmup.core.dsl.clazz
 import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.runScene
 import com.aki.akiwarmup.core.dsl.text
+import com.aki.akiwarmup.core.dsl.textContains
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -23,7 +24,7 @@ class AkiFrameworkTest {
                 recoveryTimeoutMs = 15000L
             }
 
-            val keyWorlds = listOf<String>(
+            val keyWorlds = listOf(
                 "ttnhr",
                 "Việc làm bình dương",
                 "Việc làm thời vụ Bình dương",
@@ -52,22 +53,22 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(500, 20000))
                         choose(
-                            6f to {
+                            9.4f to {
                                 swipeUp()
                             },
-                            0.5f to {
+                            0.2f to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
                                     tap(it)
                                     wait(random(min = 1000, max = 3000))
                                 }
                             },
-                            0.5f to {
+                            0.2f to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
                                     tap(it)
                                     wait(random(min = 1000, max = 3000))
                                 }
                             },
-                            3f to {
+                            1f to {
                                 find("com.ss.android.ugc.trill:id/jb1")?.let {
                                     tap(it)
                                     wait(300)
@@ -101,7 +102,7 @@ class AkiFrameworkTest {
             screen("Search Result") {
                 detect { has(id("com.ss.android.ugc.trill:id/viewpager_search")) }
                 action("sd") {
-                    sometimes(0.5f) {
+                    sometimes(0.2f) {
                         swipeUp()
                     }
                     find(id("com.ss.android.ugc.trill:id/m_7"))?.findObjects(clazz("android.view.View").toBySelector()).run {
@@ -119,24 +120,30 @@ class AkiFrameworkTest {
 
                 action("Lướt xem") {
                     loop {
-                        wait(random(1000, 30000))
+                        wait(random(1000, 20000))
                         choose(
-                            7f to {
+                            8f to {
                                 swipeUp()
                             },
                             0.5f to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                    if (!has(textContains("ttnhr")) && random(1, 100) > 20) {
+                                        return@let
+                                    }
                                     tap(it)
                                     wait(random(min = 1000, max = 3000))
                                 }
                             },
                             0.5f to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                    if (!has(textContains("ttnhr")) && random(1, 100) > 20) {
+                                        return@let
+                                    }
                                     tap(it)
                                     wait(random(min = 1000, max = 3000))
                                 }
                             },
-                            2f to {
+                            1f to {
                                 pressHome()
                                 this@scene.killApp()
                                 stop()

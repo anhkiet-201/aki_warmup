@@ -30,6 +30,8 @@ class ActionBuilder(sceneExecutionContext: SceneExecutionContext) {
 
     fun find(selector: Selector): UiObject2? = selector.find(device)
 
+    fun has(selector: Selector): Boolean = selector.exists(device)
+
     fun find(
         resourceId: String? = null,
         text: String? = null,
