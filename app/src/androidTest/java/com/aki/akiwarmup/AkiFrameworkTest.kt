@@ -36,7 +36,7 @@ class AkiFrameworkTest {
             handleUnknowScreen {
                 Log.i("AkiFramework", "${context.restartCount}")
                 if(this.context.restartCount > 3) {
-                    this.context.stop("")
+                    this.context.stop("lỖI APP")
                 }
             }
 
