@@ -30,7 +30,12 @@ class AkiFrameworkTest {
                 "Việc làm thời vụ Bình dương",
                 "Tìm việc Vsip 2A",
                 "Việc làm ở Mỹ Phước",
-                "tìm việc ttnhr"
+                "tìm việc ttnhr",
+                "việc làm nam tân uyên",
+                "việc làm kcn sóng thần 3",
+                "việc làm ở kcn vsip 2a",
+                "việc làm mỹ phước 1234",
+                "việc làm mỹ phước ttnhr"
             )
 
             handleUnknowScreen {
@@ -122,7 +127,7 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(1000, 20000))
                         choose(
-                            7f to {
+                            6f to {
                                 swipeUp()
                             },
                             1f to {
@@ -144,6 +149,10 @@ class AkiFrameworkTest {
                                 }
                             },
                             1f to {
+                                pressBack()
+                                endAction()
+                            },
+                            1f to {
                                 pressHome()
                                 this@scene.killApp()
                                 stop()
@@ -152,6 +161,19 @@ class AkiFrameworkTest {
                     }
                 }
             }
+
+            screen("Unknow") {
+                detect {
+                    any(text("Đã hiểu"))
+                }
+
+                action("Click") {
+                    find(text("Đã hiểu"))?.let {
+                        tap(it)
+                    }
+                }
+            }
+
         }
 
         loop {

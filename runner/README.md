@@ -59,7 +59,27 @@ Chứa các hàm tiện ích dùng chung cho các script khác (Không chạy tr
 - `Set-Utf8Encoding`: Cấu hình Console hiển thị đúng tiếng Việt.
 - `Get-AdbDevices`: Đọc danh sách thiết bị (ưu tiên đọc từ file nếu truyền vào, hoặc tự quét thiết bị đang cắm).
 
-### 4. `stop_tests.ps1`
+### 4. `install_apk.ps1`
+Dùng để cài đặt APK lên nhiều thiết bị đồng thời mà không cần chạy test.
+- **Tính năng**:
+  - Tự động build dự án trước khi cài đặt (có thể bỏ qua).
+  - Cài đặt song song lên tất cả thiết bị đang kết nối hoặc danh sách từ file.
+  - Hỗ trợ cài đặt cả App APK và Test APK.
+- **Tham số**:
+  - `-apkPath`: Đường dẫn APK tùy chỉnh.
+  - `-noBuild`: Bỏ qua bước build Gradle (dùng khi đã có APK sẵn).
+  - `-onlyMain`: Chỉ cài đặt App chính, không cài Test APK.
+  - `-deviceFile`: Đường dẫn file danh sách thiết bị.
+- **Ví dụ sử dụng**:
+  ```powershell
+  # Build và cài đặt mặc định lên tất cả thiết bị
+  ./runner/install_apk.ps1
+  
+  # Chỉ cài đặt App chính và bỏ qua bước build
+  ./runner/install_apk.ps1 -onlyMain -noBuild
+  ```
+
+### 5. `stop_tests.ps1`
 Dùng để dọn dẹp và dừng khẩn cấp tất cả các test đang chạy ngầm nếu bạn lỡ tay tắt script chính giữa chừng.
 
 ---

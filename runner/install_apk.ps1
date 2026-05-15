@@ -2,7 +2,8 @@ param(
     [string]$apkPath,
     [string]$testApkPath,
     [string]$deviceFile,
-    [switch]$onlyMain # Chỉ cài đặt main APK, không cài Test APK
+    [switch]$onlyMain, # Chỉ cài đặt main APK, không cài Test APK
+    [switch]$noBuild   # Bỏ qua bước build Gradle
 )
 
 # Lấy đường dẫn thư mục chứa script này
@@ -16,6 +17,18 @@ Set-Utf8Encoding
 Write-Host "==================================================" -ForegroundColor Green
 Write-Host "APK Installation Tool" -ForegroundColor Green
 Write-Host "==================================================" -ForegroundColor Green
+
+# Thực hiện build nếu không có cờ -noBuild và không cung cấp apkPath cụ thể
+if (-not $noBuild -and -not $apkPath) {
+    Write-Host "Building project..." -ForegroundColor Green
+    cd $projectRoot
+    ./gradlew assembleDebug assembleAndroidTest
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Build failed. Aborting installation." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+}
 
 # Xác định đường dẫn APK nếu không cung cấp
 if (-not $apkPath) {
