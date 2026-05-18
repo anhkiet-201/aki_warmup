@@ -193,7 +193,7 @@ class AkiFrameworkTest {
                                                 humanType(textField, generateComment(enableTypos = true))
                                                 wait(random(100, 1500))
                                                 pressBack()
-                                                find(id("com.ss.android.ugc.trill:id/cj9"))?.let { postButton ->
+                                                find(id("com.ss.android.ugc.trill:id/e2s"))?.let { postButton ->
                                                     tap(postButton)
                                                     wait(random(100, 1500))
                                                 }
