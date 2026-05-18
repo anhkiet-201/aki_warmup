@@ -7,7 +7,7 @@ import kotlin.random.Random
 val keywordPool = mapOf(
     "greetings" to listOf(
         "Anh ơi", "Chị ơi", "Dạ", "Ad ơi", "Chào a/c",
-        "Shop ơi", "Bên mình", "Chủ thớt", "Bác ơi", "E chào a", "Cho xin hỏi",
+        "Shop ơi", "Bên mình", "Chủ thớt", "Bác ơi", "E chào a",
         "Sếp ơi", "Chủ xưởng", "Nhà tuyển dụng ơi", "E hóng", "Chủ kênh ơi"
     ),
     "job_role" to listOf(
@@ -107,8 +107,8 @@ val keywordPool = mapOf(
         "hỗ trợ nhau lên xu hướng", "chào ngày mới m.n", "ủng hộ kênh", "chấm mút trả tim"
     ),
     "teen_code_filler" to listOf(
-        "z", "zậy", "ko", "k", "dc k", "đc k", "rùi", "r", "nà", "k ạ",
-        "nek", "nhaaa", "đó chời", "á", "dới", "ik", "lm k", "lm j"
+        "z", "zậy", "ko", "k", "dc k", "đc k", "nà", "ạ",
+        "nek", "nhaaa", "đó chời", "á", "dới", "ik",
     )
 )
 
@@ -223,8 +223,6 @@ val typoRules = listOf(
     Regex("c$") to "t",
     Regex("n$") to "ng",
     Regex("ng$") to "n",
-    Regex("tr") to "ch",
-    Regex("^ch") to "tr",
     Regex("^l") to "n",
     Regex("ả") to "ã", Regex("ã") to "ả",
     Regex("ẻ") to "ẽ", Regex("ẽ") to "ẻ",

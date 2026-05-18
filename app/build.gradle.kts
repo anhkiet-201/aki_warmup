@@ -57,7 +57,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     // UIAutomator2
-    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.4.0-alpha05")
     // Coroutines
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     // Gson

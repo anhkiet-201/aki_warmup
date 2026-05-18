@@ -2,8 +2,11 @@ package com.aki.akiwarmup
 
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.uiautomator.type
+import androidx.test.uiautomator.uiAutomator
 import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
 import com.aki.akiwarmup.core.dsl.clazz
+import com.aki.akiwarmup.core.dsl.desc
 import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.runScene
 import com.aki.akiwarmup.core.dsl.text
@@ -85,7 +88,8 @@ class AkiFrameworkTest {
                                                 humanType(textField, generateComment(enableTypos = true))
                                                 wait(random(100, 1500))
                                                 pressBack()
-                                                find(id("com.ss.android.ugc.trill:id/cj9"))?.let { postButton ->
+                                                wait(random(100, 1500))
+                                                find(desc("@2131953937"))?.let { postButton ->
                                                     tap(postButton)
                                                     wait(random(100, 1500))
                                                 }
@@ -193,7 +197,8 @@ class AkiFrameworkTest {
                                                 humanType(textField, generateComment(enableTypos = true))
                                                 wait(random(100, 1500))
                                                 pressBack()
-                                                find(id("com.ss.android.ugc.trill:id/e2s"))?.let { postButton ->
+                                                wait(random(100, 1500))
+                                                find(desc("@2131953937"))?.let { postButton ->
                                                     tap(postButton)
                                                     wait(random(100, 1500))
                                                 }
