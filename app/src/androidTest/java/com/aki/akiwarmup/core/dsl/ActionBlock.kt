@@ -142,9 +142,9 @@ class ActionBuilder(sceneExecutionContext: SceneExecutionContext) {
         }
     }
 
-    fun stop() {
-        Log.d("AkiFramework", "[Action] stop()")
-        context.stop("Action requested stop")
+    fun stop(message: String = "Complete") {
+        Log.d("AkiFramework", "[Action] stop($message)")
+        context.stop(message)
     }
 
     /**

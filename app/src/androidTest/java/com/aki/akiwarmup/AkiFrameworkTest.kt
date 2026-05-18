@@ -2,14 +2,13 @@ package com.aki.akiwarmup
 
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.aki.akiwarmup.core.dsl.ActionBuilder
-import com.aki.akiwarmup.core.dsl.ActionDef
 import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
 import com.aki.akiwarmup.core.dsl.clazz
 import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.runScene
 import com.aki.akiwarmup.core.dsl.text
 import com.aki.akiwarmup.core.dsl.textContains
+import com.aki.akiwarmup.random.generateComment
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -58,7 +57,7 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(500, 20000))
                         choose(
-                            9.4f to {
+                            7.4f to {
                                 swipeUp()
                             },
                             0.2f to {
@@ -71,6 +70,32 @@ class AkiFrameworkTest {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
                                     tap(it)
                                     wait(random(min = 1000, max = 3000))
+                                }
+                            },
+                            1f to {
+                                find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                    if (it.text.contains("#ttnhr")) {
+                                        find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
+                                            tap(commentButon)
+                                            wait(random(100, 1500))
+                                            sometimes(5f) {
+                                                swipeUp()
+                                            }
+                                            find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
+                                                humanType(textField, generateComment(enableTypos = true))
+                                                wait(random(100, 1500))
+                                                pressBack()
+                                                find(id("com.ss.android.ugc.trill:id/cj9"))?.let { postButton ->
+                                                    tap(postButton)
+                                                    wait(random(100, 1500))
+                                                }
+                                            }
+                                            pressBack()
+                                        }
+                                    } else if (it.text.contains("…thêm")) {
+                                        tap(it)
+                                    }
+                                    endAction()
                                 }
                             },
                             1f to {
@@ -93,7 +118,8 @@ class AkiFrameworkTest {
                     find(id("com.ss.android.ugc.trill:id/gz8"))?.let {
                         tap(it)
                         wait(500)
-                        humanType(it, keyWorlds.random())
+                        val keyword = context.args.getString("keyword")
+                        humanType(it, keyword ?: keyWorlds.random())
                         wait(200)
                     }
                     find(id("com.ss.android.ugc.trill:id/trq"))?.let {
@@ -107,6 +133,12 @@ class AkiFrameworkTest {
             screen("Search Result") {
                 detect { has(id("com.ss.android.ugc.trill:id/viewpager_search")) }
                 action("sd") {
+                    find(text("Video"))?.let {
+                        tap(it)
+                        if (!it.isSelected) {
+                            endAction()
+                        }
+                    }
                     sometimes(0.2f) {
                         swipeUp()
                     }
@@ -123,11 +155,11 @@ class AkiFrameworkTest {
             screen("Video Search") {
                 detect { has(text("Tìm kiếm") and id("com.ss.android.ugc.trill:id/user_avatar")) }
 
-                action("Lướt xem") {
+                action("Lướt xem Video Search") {
                     loop {
                         wait(random(1000, 20000))
                         choose(
-                            6f to {
+                            5f to {
                                 swipeUp()
                             },
                             1f to {
@@ -149,9 +181,40 @@ class AkiFrameworkTest {
                                 }
                             },
                             1f to {
+                                find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                    if (it.text.contains("#ttnhr")) {
+                                        find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
+                                            tap(commentButon)
+                                            wait(random(100, 1500))
+                                            sometimes(5f) {
+                                                swipeUp()
+                                            }
+                                            find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
+                                                humanType(textField, generateComment(enableTypos = true))
+                                                wait(random(100, 1500))
+                                                pressBack()
+                                                find(id("com.ss.android.ugc.trill:id/cj9"))?.let { postButton ->
+                                                    tap(postButton)
+                                                    wait(random(100, 1500))
+                                                }
+                                            }
+                                            pressBack()
+                                        }
+                                    } else if (it.text.contains("…thêm")) {
+                                        tap(it)
+                                    }
+                                    endAction()
+                                }
+                            },
+                            1f to {
+                                pressBack()
+                                wait(random(1000, 2000))
+                                pressBack()
+                                wait(random(1000, 2000))
                                 pressBack()
                                 endAction()
                             },
+
                             1f to {
                                 pressHome()
                                 this@scene.killApp()
@@ -170,6 +233,39 @@ class AkiFrameworkTest {
                 action("Click") {
                     find(text("Đã hiểu"))?.let {
                         tap(it)
+                    }
+                }
+            }
+
+            screen("expand comment") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/dzt"))
+                }
+
+                action("comment") {
+                    find(id("com.ss.android.ugc.trill:id/dzt"))?.let {
+                        if (it.text.contains("ttnhr")) {
+                            choose(
+                                5f to {
+                                    swipeUp()
+                                },
+                                5f to {
+                                    find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
+                                        humanType(textField, generateComment(enableTypos = true))
+                                        wait(random(100, 1500))
+                                        find(id("com.ss.android.ugc.trill:id/cj9"))?.let { postButton ->
+                                            tap(postButton)
+                                            wait(random(100, 1500))
+                                        }
+                                        pressBack()
+                                        endAction()
+                                    }
+                                }
+                            )
+                        } else {
+                            pressBack()
+                            endAction()
+                        }
                     }
                 }
             }
