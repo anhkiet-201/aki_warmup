@@ -194,7 +194,7 @@ class AkiFrameworkTest {
                                                 swipeUp()
                                             }
                                             find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                                humanType(textField, generateComment(enableTypos = true))
+                                                humanType(textField, generateComment(enableTypos = false))
                                                 wait(random(100, 1500))
                                                 pressBack()
                                                 wait(random(100, 1500))
@@ -255,10 +255,16 @@ class AkiFrameworkTest {
                                     swipeUp()
                                 },
                                 5f to {
-                                    find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                        humanType(textField, generateComment(enableTypos = true))
+                                    find(id("com.ss.android.ugc.trill:id/kcz"))?.let { comment ->
+                                        tap(comment)
                                         wait(random(100, 1500))
-                                        find(id("com.ss.android.ugc.trill:id/cj9"))?.let { postButton ->
+                                    }
+                                    find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
+                                        humanType(textField, generateComment(enableTypos = false))
+                                        wait(random(100, 1500))
+                                        pressBack()
+                                        wait(random(100, 1500))
+                                        find(desc("@2131953937"))?.let { postButton ->
                                             tap(postButton)
                                             wait(random(100, 1500))
                                         }
@@ -367,6 +373,246 @@ class AkiFrameworkTest {
                 }
             }
         }
+        loop {
+
+        }
+    }
+
+    @Test
+    fun seeding() = runScene {
+        scene("tiktok_seeding") {
+            config {
+                targetPackage = "com.ss.android.ugc.trill"
+                onUnknownScreen = UnknownScreenPolicy.PRESS_BACK
+                recoveryTimeoutMs = 15000L
+            }
+
+            handleUnknowScreen {
+                Log.i("AkiFramework", "${context.restartCount}")
+                if(this.context.restartCount > 3) {
+                    this.context.stop("lỖI APP")
+                }
+            }
+
+            launchApp()
+            val keyword = context.args.getString("keyword")
+            if (keyword == null) {
+                context.stop("Wrong Keyword")
+            }
+            screen("Home") {
+                detect {
+                    all(
+                        text("Trang chủ"),
+                        id("com.ss.android.ugc.trill:id/user_avatar")
+                    )
+                }
+                action("Lướt xem") {
+                    loop {
+                        wait(random(500, 20000))
+                        choose(
+                            7.4f to {
+                                swipeUp()
+                            },
+                            0.2f to {
+                                find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                    tap(it)
+                                    wait(random(min = 1000, max = 3000))
+                                }
+                            },
+                            0.2f to {
+                                find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                    tap(it)
+                                    wait(random(min = 1000, max = 3000))
+                                }
+                            },
+                            1f to {
+                                find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                    if (it.text.contains("#ttnhr")) {
+                                        find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
+                                            tap(commentButon)
+                                            wait(random(100, 1500))
+                                            sometimes(5f) {
+                                                swipeUp()
+                                            }
+                                            find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
+                                                humanType(textField, generateComment(enableTypos = true))
+                                                wait(random(100, 1500))
+                                                pressBack()
+                                                wait(random(100, 1500))
+                                                find(desc("@2131953937"))?.let { postButton ->
+                                                    tap(postButton)
+                                                    wait(random(100, 1500))
+                                                }
+                                            }
+                                            pressBack()
+                                        }
+                                    } else if (it.text.contains("…thêm")) {
+                                        tap(it)
+                                    }
+                                    endAction()
+                                }
+                            },
+                            1f to {
+                                find("com.ss.android.ugc.trill:id/jb1")?.let {
+                                    tap(it)
+                                    wait(300)
+                                    endAction()
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+
+            screen("Search Screen") {
+                detect {
+                    has( id("com.ss.android.ugc.trill:id/gz8") and text("Tìm kiếm"))
+                }
+                action("Nhập từ khóa mặc định") {
+                    find(id("com.ss.android.ugc.trill:id/gz8"))?.let {
+                        tap(it)
+                        wait(500)
+                        humanType(it, keyword!!)
+                        wait(200)
+                    }
+                    find(id("com.ss.android.ugc.trill:id/trq"))?.let {
+                        tap(it)
+                        wait(1000)
+                        endAction()
+                    }
+                }
+            }
+
+            screen("Profile") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/hdm"))
+                }
+
+                action("Choose Video") {
+                    find(id("com.ss.android.ugc.trill:id/hdm"))?.findObjects(id("com.ss.android.ugc.trill:id/efq").toBySelector()).let {
+                        if (it?.isEmpty() ?: true) {
+                            stop("No Videos")
+                        }
+                        tap(it?.first())
+                        endAction()
+                    }
+                }
+            }
+
+            screen("Search Result") {
+                detect { has(id("com.ss.android.ugc.trill:id/viewpager_search")) }
+                action("Chọn tap người dùng") {
+                    find(text("Người dùng"))?.let {
+                        tap(it)
+                        if (!it.isSelected) {
+                            endAction()
+                        }
+                    }
+                    findAll(id("com.ss.android.ugc.trill:id/yi8")).findLast { it.text == keyword!!.trim() }.let {
+                        if (it == null) {
+                            pressHome()
+                            stop("Không tìm thấy User")
+                        } else {
+                            tap(it)
+                            wait(random(1000, 3000))
+                        }
+                    }
+                }
+            }
+
+            screen("Video Search") {
+                detect { has(text("Tìm kiếm") and id("com.ss.android.ugc.trill:id/user_avatar")) }
+
+                action("Lướt xem Video Search") {
+                    loop {
+                        wait(random(1000, 20000))
+                        choose(
+                            4f to {
+                                swipeUp()
+                            },
+                            1f to {
+                                find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                    tap(it)
+                                    wait(random(min = 1000, max = 3000))
+                                }
+                            },
+                            1f to {
+                                find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                    tap(it)
+                                    wait(random(min = 1000, max = 3000))
+                                }
+                            },
+                            1f to {
+                                find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                    find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
+                                        tap(commentButon)
+                                        wait(random(100, 1500))
+                                        sometimes(5f) {
+                                            swipeUp()
+                                        }
+                                        find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
+                                            humanType(textField, generateComment(enableTypos = false))
+                                            wait(random(100, 1500))
+                                            pressBack()
+                                            wait(random(100, 1500))
+                                            find(desc("@2131953937"))?.let { postButton ->
+                                                tap(postButton)
+                                                wait(random(100, 1500))
+                                            }
+                                        }
+                                        pressBack()
+                                    }
+                                    endAction()
+                                }
+                            },
+
+                            1f to {
+                              find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                  tap(it)
+                                  wait(random(1000, 1500))
+                                  find(text("Đăng lại"))?.let { repost ->
+                                      tap(repost)
+                                      wait(random(1000, 1500))
+                                  }
+                                  endAction()
+                              }
+                            },
+
+                            1f to {
+                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    tap(it)
+                                    wait(random(1000, 1500))
+                                    find(text("Sao chép Liên kết"))?.let { repost ->
+                                        tap(repost)
+                                        wait(random(1000, 1500))
+                                    }
+                                    endAction()
+                                }
+                            },
+
+                            1f to {
+                                pressHome()
+                                this@scene.killApp()
+                                stop()
+                            }
+                        )
+                    }
+                }
+            }
+
+            screen("Unknow") {
+                detect {
+                    any(text("Đã hiểu"))
+                }
+
+                action("Click") {
+                    find(text("Đã hiểu"))?.let {
+                        tap(it)
+                    }
+                }
+            }
+        }
+
         loop {
 
         }
