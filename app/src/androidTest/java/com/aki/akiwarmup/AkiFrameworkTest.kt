@@ -414,7 +414,7 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(500, 20000))
                         choose(
-                            7.4f to {
+                            6.4f to {
                                 swipeUp()
                             },
                             0.2f to {
@@ -460,7 +460,7 @@ class AkiFrameworkTest {
                                     endAction()
                                 }
                             },
-                            1f to {
+                            2f to {
                                 find("com.ss.android.ugc.trill:id/jb1")?.let {
                                     tap(it)
                                     wait(300)
@@ -535,7 +535,7 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(1000, 20000))
                         choose(
-                            2f to {
+                            3f to {
                                 swipeUp()
                             },
                             1f to {
@@ -606,7 +606,7 @@ class AkiFrameworkTest {
                                 }
                             },
 
-                            1f to {
+                            2f to {
                                 pressHome()
                                 this@scene.killApp()
                                 stop()
