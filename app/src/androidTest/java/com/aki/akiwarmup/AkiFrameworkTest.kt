@@ -65,14 +65,18 @@ class AkiFrameworkTest {
                             },
                             0.2f to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                    tap(it)
-                                    wait(random(min = 1000, max = 3000))
+                                    if (!it.isSelected) {
+                                        tap(it)
+                                        wait(random(min = 1000, max = 3000))
+                                    }
                                 }
                             },
                             0.2f to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                    tap(it)
-                                    wait(random(min = 1000, max = 3000))
+                                    if (!it.isSelected) {
+                                        tap(it)
+                                        wait(random(min = 1000, max = 3000))
+                                    }
                                 }
                             },
                             1f to {
@@ -168,7 +172,7 @@ class AkiFrameworkTest {
                             },
                             1f to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                    if (!has(textContains("ttnhr")) && random(1, 100) > 20) {
+                                    if (!has(textContains("ttnhr")) && random(1, 100) > 20 && it.isSelected) {
                                         return@let
                                     }
                                     tap(it)
@@ -177,7 +181,7 @@ class AkiFrameworkTest {
                             },
                             1f to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                    if (!has(textContains("ttnhr")) && random(1, 100) > 20) {
+                                    if (!has(textContains("ttnhr")) && random(1, 100) > 20 && it.isSelected) {
                                         return@let
                                     }
                                     tap(it)
@@ -415,14 +419,18 @@ class AkiFrameworkTest {
                             },
                             0.2f to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                    tap(it)
-                                    wait(random(min = 1000, max = 3000))
+                                    if (!it.isSelected) {
+                                        tap(it)
+                                        wait(random(min = 1000, max = 3000))
+                                    }
                                 }
                             },
                             0.2f to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                    tap(it)
-                                    wait(random(min = 1000, max = 3000))
+                                    if (!it.isSelected) {
+                                        tap(it)
+                                        wait(random(min = 1000, max = 3000))
+                                    }
                                 }
                             },
                             1f to {
@@ -527,19 +535,23 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(1000, 20000))
                         choose(
-                            4f to {
+                            2f to {
                                 swipeUp()
                             },
                             1f to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                    tap(it)
-                                    wait(random(min = 1000, max = 3000))
+                                    if (!it.isSelected) {
+                                        tap(it)
+                                        wait(random(min = 1000, max = 3000))
+                                    }
                                 }
                             },
                             1f to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                    tap(it)
-                                    wait(random(min = 1000, max = 3000))
+                                    if (!it.isSelected) {
+                                        tap(it)
+                                        wait(random(min = 1000, max = 3000))
+                                    }
                                 }
                             },
                             1f to {
@@ -570,9 +582,13 @@ class AkiFrameworkTest {
                               find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
                                   tap(it)
                                   wait(random(1000, 1500))
-                                  find(text("Đăng lại"))?.let { repost ->
-                                      tap(repost)
-                                      wait(random(1000, 1500))
+                                  find(text("Đăng lại")).let { repost ->
+                                      if (repost == null) {
+                                          pressBack()
+                                      } else {
+                                          tap(repost)
+                                          wait(random(1000, 1500))
+                                      }
                                   }
                                   endAction()
                               }
