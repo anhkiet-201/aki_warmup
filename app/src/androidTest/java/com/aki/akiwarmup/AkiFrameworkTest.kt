@@ -313,8 +313,7 @@ class AkiFrameworkTest {
             }
 
             handleUnknowScreen {
-                Log.i("AkiFramework", "${context.restartCount}")
-                if(this.context.restartCount > 0) {
+                if(this.context.consecutiveUnknownScreens > 8) {
                     context.stop("Failure", -2)
                 }
             }
@@ -658,9 +657,8 @@ class AkiFrameworkTest {
             }
 
             handleUnknowScreen {
-                Log.i("AkiFramework", "${context.restartCount}")
-                if(this.context.restartCount > 3) {
-                    this.context.stop("lỖI APP")
+                if(this.context.consecutiveUnknownScreens > 8) {
+                    context.stop("Failure", -2)
                 }
             }
 
@@ -682,9 +680,8 @@ class AkiFrameworkTest {
                                 wait(random(1000, 3000))
                                 return@action
                             }
-                            if (i >= (it.size)) {
+                            if (i >= (it.size - 1)) {
                                 stop("Không tìm thấy video 0 View nào")
-                                return@action
                             }
                         }
                         endAction()
@@ -719,7 +716,7 @@ class AkiFrameworkTest {
                 }
             }
 
-            screen("Delete Popup") {
+            screen("RePost Popup") {
                 detect {
                     has(id("com.ss.android.ugc.trill:id/ofw"))
                 }
@@ -728,15 +725,23 @@ class AkiFrameworkTest {
                     find(id("com.ss.android.ugc.trill:id/sbo")).let {
                         if (it != null) {
                             tap(it)
-                        } else {
-                            find(text("Xóa"))?.let { deleteButon ->
-                                tap(deleteButon)
-                                wait(random(2000, 5000))
-                                stop()
-                            }
                         }
                         wait(random(2000, 5000))
                         endAction()
+                    }
+                }
+            }
+
+            screen("Delete Popup") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/xd"))
+                }
+
+                action("Repost") {
+                    find(id("com.ss.android.ugc.trill:id/wk"))?.let { deleteButon ->
+                        tap(deleteButon)
+                        wait(random(2000, 5000))
+                        stop("Đã xóa video")
                     }
                 }
             }
@@ -761,7 +766,7 @@ class AkiFrameworkTest {
                 action("CLick post") {
                     tap(find(text("Đăng")))
                     wait(random(20000, 40000))
-                    stop()
+                    stop("Đã đăng lại video")
                 }
             }
 
