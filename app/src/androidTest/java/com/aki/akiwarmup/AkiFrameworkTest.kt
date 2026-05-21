@@ -790,4 +790,125 @@ class AkiFrameworkTest {
 
         }
     }
+
+    @Test
+    fun delete0() = runScene {
+        var hasDeleteVideo = false
+        scene("tiktok_rePost") {
+            config {
+                targetPackage = "com.ss.android.ugc.trill"
+                onUnknownScreen = UnknownScreenPolicy.PRESS_BACK
+                recoveryTimeoutMs = 15000L
+            }
+
+            handleUnknowScreen {
+                if(this.context.consecutiveUnknownScreens > 8) {
+                    context.stop("Failure", -2)
+                }
+            }
+
+
+            screen("Profile") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/hdm"))
+                }
+
+                action("Choose Video") {
+                    find(id("com.ss.android.ugc.trill:id/hdm"))?.findObjects(id("com.ss.android.ugc.trill:id/z9y").toBySelector()).let {
+                        if (it?.isEmpty() ?: true) {
+                            stop("No Videos")
+                        }
+                        for (i in 0..(it?.size ?: 0)) {
+                            val videoText = it!![i]
+                            if (videoText.text.trim().toInt() < 2) {
+                                tap(videoText)
+                                wait(random(1000, 3000))
+                                return@action
+                            }
+                            if (i >= (it.size - 1)) {
+                                stop(if (hasDeleteVideo) "Đã xóa tất cả video 0 View" else "Không tìm thấy video 0 View nào")
+                            }
+                        }
+                        endAction()
+                    }
+                }
+            }
+
+            screen("Video Search") {
+                detect { has(text("Tìm kiếm") and id("com.ss.android.ugc.trill:id/user_avatar")) }
+
+                action("Lướt xem Video Search") {
+                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                        tap(it)
+                        wait(random(1000, 1500))
+                        endAction()
+                    }
+                }
+            }
+
+            screen("Share Screen") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/znd"))
+                }
+                action("Swipe to choose delete") {
+                    find(id("com.ss.android.ugc.trill:id/vv"))?.scroll(Direction.RIGHT, 0.8f)
+                    wait(random(1000, 1500))
+                    find(text("Xóa"))?.let {
+                        tap(it)
+                        wait(random(1000, 1500))
+                    }
+                    endAction()
+                }
+            }
+
+            screen("RePost Popup") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/ofw"))
+                }
+
+                action("Repost") {
+                    find(text("Xóa"))?.let {
+                        tap(it)
+                        wait(random(2000, 5000))
+                        pressBack()
+                        endAction()
+                    }
+                }
+            }
+
+            screen("Delete Popup") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/xd"))
+                }
+
+                action("Repost") {
+                    find(text("Xóa"))?.let { deleteButon ->
+                        tap(deleteButon)
+                        wait(random(2000, 5000))
+                        pressBack()
+                        endAction()
+                    }
+                }
+            }
+
+            screen("Unknow") {
+                detect {
+                    any(text("Đã hiểu"), text("Không cho phép"))
+                }
+
+                action("Click") {
+                    find(text("Đã hiểu"))?.let {
+                        tap(it)
+                    }
+                    find(text("Không cho phép"))?.let {
+                        tap(it)
+                    }
+                }
+            }
+        }
+
+        loop {
+
+        }
+    }
 }
