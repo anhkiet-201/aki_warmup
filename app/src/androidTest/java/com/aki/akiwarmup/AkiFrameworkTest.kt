@@ -820,7 +820,7 @@ class AkiFrameworkTest {
                         }
                         for (i in 0..(it?.size ?: 0)) {
                             val videoText = it!![i]
-                            if (videoText.text.trim().toInt() < 2) {
+                            if (videoText.text.trim().toInt() < 10) {
                                 tap(videoText)
                                 wait(random(1000, 3000))
                                 return@action
@@ -867,8 +867,9 @@ class AkiFrameworkTest {
                 }
 
                 action("Repost") {
-                    find(text("Xóa"))?.let {
+                    find(id("com.ss.android.ugc.trill:id/f9z"))?.let {
                         tap(it)
+                        hasDeleteVideo = true
                         wait(random(2000, 5000))
                         pressBack()
                         endAction()
@@ -884,6 +885,7 @@ class AkiFrameworkTest {
                 action("Repost") {
                     find(text("Xóa"))?.let { deleteButon ->
                         tap(deleteButon)
+                        hasDeleteVideo = true
                         wait(random(2000, 5000))
                         pressBack()
                         endAction()
