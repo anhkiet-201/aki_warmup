@@ -27,6 +27,9 @@ class AkiFrameworkTest {
                 recoveryTimeoutMs = 15000L
             }
 
+            var likeRate = 1f
+            var commentRate = 1f
+
             val keyWorlds = listOf(
                 "ttnhr",
                 "việc làm bình dương",
@@ -64,14 +67,17 @@ class AkiFrameworkTest {
                         id("com.ss.android.ugc.trill:id/user_avatar")
                     )
                 }
+
                 action("Lướt xem") {
                     loop {
                         wait(random(500, 20000))
                         choose(
-                            7.4f to {
+                            4f to {
                                 swipeUp()
+                                likeRate = 1f
+                                commentRate = 1f
                             },
-                            0.2f to {
+                            likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
                                     if (!it.isSelected) {
                                         tap(it)
@@ -79,7 +85,7 @@ class AkiFrameworkTest {
                                     }
                                 }
                             },
-                            0.2f to {
+                            likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
                                     if (!it.isSelected) {
                                         tap(it)
@@ -87,7 +93,7 @@ class AkiFrameworkTest {
                                     }
                                 }
                             },
-                            1f to {
+                            commentRate to {
                                 find(id("com.ss.android.ugc.trill:id/desc"))?.let {
                                     if (it.text.contains("#ttnhr")) {
                                         find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
@@ -104,12 +110,40 @@ class AkiFrameworkTest {
                                                 find(desc("@2131953937"))?.let { postButton ->
                                                     tap(postButton)
                                                     wait(random(100, 1500))
+                                                    likeRate += 1f
+                                                    commentRate = 0f
                                                 }
                                             }
                                             pressBack()
                                         }
                                     } else if (it.text.contains("…thêm")) {
                                         tap(it)
+                                    }
+                                    endAction()
+                                }
+                            },
+                            likeRate to {
+                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    tap(it)
+                                    wait(random(1000, 1500))
+                                    find(text("Đăng lại")).let { repost ->
+                                        if (repost == null) {
+                                            pressBack()
+                                        } else {
+                                            tap(repost)
+                                            wait(random(1000, 1500))
+                                        }
+                                    }
+                                    endAction()
+                                }
+                            },
+                            likeRate to {
+                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    tap(it)
+                                    wait(random(1000, 1500))
+                                    find(text("Sao chép Liên kết"))?.let { repost ->
+                                        tap(repost)
+                                        wait(random(1000, 1500))
                                     }
                                     endAction()
                                 }
@@ -124,6 +158,7 @@ class AkiFrameworkTest {
                         )
                     }
                 }
+
             }
 
             screen("Search Screen") {
@@ -175,64 +210,82 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(1000, 20000))
                         choose(
-                            5f to {
+                            3f to {
+                                likeRate = 1f
+                                commentRate = 1f
                                 swipeUp()
                             },
-                            1f to {
+                            likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                    if (!has(textContains("ttnhr")) && random(1, 100) > 20 && it.isSelected) {
-                                        return@let
-                                    }
-                                    tap(it)
-                                    wait(random(min = 1000, max = 3000))
-                                }
-                            },
-                            1f to {
-                                find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                    if (!has(textContains("ttnhr")) && random(1, 100) > 20 && it.isSelected) {
-                                        return@let
-                                    }
-                                    tap(it)
-                                    wait(random(min = 1000, max = 3000))
-                                }
-                            },
-                            1f to {
-                                find(id("com.ss.android.ugc.trill:id/desc"))?.let {
-                                    if (it.text.contains("#ttnhr")) {
-                                        find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
-                                            tap(commentButon)
-                                            wait(random(100, 1500))
-                                            sometimes(5f) {
-                                                swipeUp()
-                                            }
-                                            find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                                humanType(textField, generateComment(enableTypos = true))
-                                                wait(random(100, 1500))
-                                                pressBack()
-                                                wait(random(100, 1500))
-                                                find(desc("@2131953937"))?.let { postButton ->
-                                                    tap(postButton)
-                                                    wait(random(100, 1500))
-                                                }
-                                            }
-                                            pressBack()
-                                        }
-                                    } else if (it.text.contains("…thêm")) {
+                                    if (!it.isSelected) {
                                         tap(it)
+                                        wait(random(min = 1000, max = 3000))
+                                    }
+                                }
+                            },
+                            likeRate to {
+                                find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                    if (!it.isSelected) {
+                                        tap(it)
+                                        wait(random(min = 1000, max = 3000))
+                                    }
+                                }
+                            },
+                            commentRate to {
+                                find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                    find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
+                                        tap(commentButon)
+                                        wait(random(100, 1500))
+                                        sometimes(5f) {
+                                            swipeUp()
+                                        }
+                                        find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
+                                            humanType(textField, generateComment(enableTypos = true))
+                                            wait(random(100, 1500))
+                                            pressBack()
+                                            wait(random(100, 1500))
+                                            find(desc("@2131953937"))?.let { postButton ->
+                                                tap(postButton)
+                                                wait(random(100, 1500))
+                                                likeRate = 2f
+                                                commentRate = 0f
+                                            }
+                                        }
+                                        pressBack()
                                     }
                                     endAction()
                                 }
                             },
-                            1f to {
-                                pressBack()
-                                wait(random(1000, 2000))
-                                pressBack()
-                                wait(random(1000, 2000))
-                                pressBack()
-                                endAction()
+
+                            likeRate to {
+                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    tap(it)
+                                    wait(random(1000, 1500))
+                                    find(text("Đăng lại")).let { repost ->
+                                        if (repost == null) {
+                                            pressBack()
+                                        } else {
+                                            tap(repost)
+                                            wait(random(1000, 1500))
+                                        }
+                                    }
+                                    endAction()
+                                }
                             },
 
-                            1f to {
+                            likeRate to {
+                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    tap(it)
+                                    wait(random(1000, 1500))
+                                    find(text("Sao chép Liên kết"))?.let { repost ->
+                                        tap(repost)
+                                        wait(random(1000, 1500))
+                                    }
+                                    endAction()
+                                }
+                            },
+
+                            2f to {
                                 pressHome()
                                 this@scene.killApp()
                                 stop()
@@ -394,6 +447,8 @@ class AkiFrameworkTest {
 
     @Test
     fun seeding() = runScene {
+        var likeRate = 1f
+        var commentRate = 1f
         scene("tiktok_seeding") {
             config {
                 targetPackage = "com.ss.android.ugc.trill"
@@ -424,10 +479,12 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(500, 20000))
                         choose(
-                            6.4f to {
+                            4f to {
                                 swipeUp()
+                                likeRate = 1f
+                                commentRate = 1f
                             },
-                            0.2f to {
+                            likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
                                     if (!it.isSelected) {
                                         tap(it)
@@ -435,7 +492,7 @@ class AkiFrameworkTest {
                                     }
                                 }
                             },
-                            0.2f to {
+                            likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
                                     if (!it.isSelected) {
                                         tap(it)
@@ -443,7 +500,7 @@ class AkiFrameworkTest {
                                     }
                                 }
                             },
-                            1f to {
+                            commentRate to {
                                 find(id("com.ss.android.ugc.trill:id/desc"))?.let {
                                     if (it.text.contains("#ttnhr")) {
                                         find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
@@ -460,6 +517,8 @@ class AkiFrameworkTest {
                                                 find(desc("@2131953937"))?.let { postButton ->
                                                     tap(postButton)
                                                     wait(random(100, 1500))
+                                                    likeRate += 1f
+                                                    commentRate = 0f
                                                 }
                                             }
                                             pressBack()
@@ -470,7 +529,33 @@ class AkiFrameworkTest {
                                     endAction()
                                 }
                             },
-                            2f to {
+                            likeRate to {
+                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    tap(it)
+                                    wait(random(1000, 1500))
+                                    find(text("Đăng lại")).let { repost ->
+                                        if (repost == null) {
+                                            pressBack()
+                                        } else {
+                                            tap(repost)
+                                            wait(random(1000, 1500))
+                                        }
+                                    }
+                                    endAction()
+                                }
+                            },
+                            likeRate to {
+                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    tap(it)
+                                    wait(random(1000, 1500))
+                                    find(text("Sao chép Liên kết"))?.let { repost ->
+                                        tap(repost)
+                                        wait(random(1000, 1500))
+                                    }
+                                    endAction()
+                                }
+                            },
+                            1f to {
                                 find("com.ss.android.ugc.trill:id/jb1")?.let {
                                     tap(it)
                                     wait(300)
@@ -546,9 +631,11 @@ class AkiFrameworkTest {
                         wait(random(1000, 20000))
                         choose(
                             3f to {
+                                likeRate = 1f
+                                commentRate = 1f
                                 swipeUp()
                             },
-                            1f to {
+                            likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
                                     if (!it.isSelected) {
                                         tap(it)
@@ -556,7 +643,7 @@ class AkiFrameworkTest {
                                     }
                                 }
                             },
-                            1f to {
+                            likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
                                     if (!it.isSelected) {
                                         tap(it)
@@ -564,7 +651,7 @@ class AkiFrameworkTest {
                                     }
                                 }
                             },
-                            1f to {
+                            commentRate to {
                                 find(id("com.ss.android.ugc.trill:id/desc"))?.let {
                                     find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
                                         tap(commentButon)
@@ -580,6 +667,8 @@ class AkiFrameworkTest {
                                             find(desc("@2131953937"))?.let { postButton ->
                                                 tap(postButton)
                                                 wait(random(100, 1500))
+                                                likeRate = 2f
+                                                commentRate = 0f
                                             }
                                         }
                                         pressBack()
@@ -588,7 +677,7 @@ class AkiFrameworkTest {
                                 }
                             },
 
-                            1f to {
+                            likeRate to {
                               find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
                                   tap(it)
                                   wait(random(1000, 1500))
@@ -604,7 +693,7 @@ class AkiFrameworkTest {
                               }
                             },
 
-                            1f to {
+                            likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
                                     tap(it)
                                     wait(random(1000, 1500))
