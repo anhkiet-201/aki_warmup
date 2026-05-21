@@ -3,202 +3,174 @@ package com.aki.akiwarmup.random
 import java.util.Locale
 import kotlin.random.Random
 
-// Dữ liệu Keyword Pool mở rộng
+// Dữ liệu Keyword Pool sạch (được làm mới toàn bộ hướng tới vai trò Nữ và không chứa vị trí cụ thể)
 val keywordPool = mapOf(
     "greetings" to listOf(
-        "Anh ơi", "Chị ơi", "Dạ", "Ad ơi", "Chào a/c",
-        "Shop ơi", "Bên mình", "Chủ thớt", "Bác ơi", "E chào a",
-        "Sếp ơi", "Chủ xưởng", "Nhà tuyển dụng ơi", "E hóng", "Chủ kênh ơi"
+        "Anh ơi", "Chị ơi", "Ad ơi", "Shop ơi", "Sếp ơi", "Cả nhà ơi",
+        "Mọi người ơi", "Bên mình ơi", "Bác ơi", "Chủ thớt ơi", "Chủ kênh ơi"
     ),
-    "job_role" to listOf(
-        "công việc này", "chỗ này", "việc này", "làm khâu này",
-        "việc trên video", "làm y như video", "thời vụ"
+    "job_target" to listOf(
+        "công việc này", "việc thời vụ", "việc y như video", "việc bên mình",
+        "công việc", "việc này"
     ),
-    "age_status" to listOf(
-        "30 tuổi", "45 tuổi", "ngoài 40", "mới ở quê lên",
-        "từng làm công trình r", "làm bốc vác r", "công nhân may nghỉ đẻ xong",
-        "thất nghiệp mấy tháng nay", "làm mộc 10 năm",
-        "đã có gia đình", "đang nợ nần", "trông con nhỏ", "đi bộ đội mới về",
-        "có bằng B2", "lái xe 5 năm", "biết hàn xì", "có chứng chỉ xe nâng",
-        "sức khoẻ yếu", "lớn tuổi rồi", "từng làm giày da"
+    "candidate_status_young" to listOf(
+        "sinh năm 2k4", "mới ra trường", "muốn làm thêm dịp hè", "chưa có kinh nghiệm gì",
+        "sinh năm 2005", "18 tuổi", "mới nghỉ công ty cũ", "đang rảnh"
     ),
-    "young_status" to listOf(
-        "sn 2k", "e 2k4", "e 2k2", "vừa nghỉ cty r",
-        "mới ra trường", "sn 2k1", "99 chưa có vk", "đang rảnh",
-        "genz", "bỏ học sớm", "đang đợi lấy bằng", "muốn làm dịp hè",
-        "đi làm thêm", "rớt đại học", "18 tủi", "chưa có kinh nghiệm gì"
+    "candidate_status_adult" to listOf(
+        "ngoài 30 tuổi", "ngoài 40 tuổi", "đã có gia đình", "có con nhỏ",
+        "mẹ bỉm sữa", "mới ở quê lên", "từng làm công nhân may", "từng làm giày da",
+        "sức khoẻ tốt", "muốn tìm việc làm thêm"
     ),
-    "questions_salary" to listOf(
-        "lương cơ bản nhiêu v?", "tổng thu nhập tháng chục củ k?",
-        "lương tính ngày hay tháng s a?", "có đc tăng ca k a?",
-        "bao ăn ở k ạ?", "có cho ứng lương mùng 10 k?", "lương thực lãnh bn?",
-        "lương cứng nhiu", "khoán hay tính ngày", "có tiền chuyên cần ko",
-        "đóng bhxh ko", "lễ tết có thưởng k", "có hay trễ lương ko",
-        "mấy tây thì lãnh lương", "làm khoán hay tính công"
+    "ask_vacancy" to listOf(
+        "còn tuyển không", "còn nhận người không", "còn slot không", "còn nhận hồ sơ không",
+        "còn tuyển thời vụ không", "còn nhận nữ không", "có nhận nữ không", "còn slot cho nữ không",
+        "nữ còn nhận không"
     ),
-    "short_questions" to listOf(
-        "còn tuyển k?", "lương s?", "ở đâu v?", "địa chỉ s?",
-        "xăm trổ nhận k?", "có ca đêm k?", "nhận nam k?",
-        "phỏng vấn ở đâu?", "cần hs ko?", "thử việc mấy ngày?", "còn slot k?",
-        "còn việc ko?", "có xe đưa rước k?",
-        "mang cccd đi làm luôn đc k?", "hồ sơ thiếu bổ sung sau đc k?",
-        "làm mấy tiếng 1 ca?", "xoay ca đc ko?", "chốt sổ chưa", "chính thức hay thời vụ", "có cccd photo thôi được không", "làm từ mấy giừo đến mấy giờ", "tăng ca nhiều không",
-        "làm nóng không", "làm hctc hay xoay ca vậy", "có ca đêm k", "ca ngày lương sao", "có nhận chính thức không", "còn nhận k", "mai có nhận k"
+    "ask_salary" to listOf(
+        "lương cơ bản bao nhiêu", "tổng thu nhập tháng thế nào", "tính lương theo ngày hay theo tháng",
+        "có được tăng ca nhiều không", "có bao ăn ở không", "mùng mấy thì được lãnh lương",
+        "có cho ứng lương không"
     ),
-    "questions_requirements" to listOf(
-        "có cần bằng cấp 2 k?", "xăm full tay nhận k a?",
-        "không có hồ sơ xin việc ngay đc k?", "tuổi cao có nhận k ạ?",
-        "không biết chữ nhận ko?", "chưa biết việc có người chỉ ko?", "cận thị làm đc k?",
-        "cận nặng có làm đc k", "1m50 có mần đc ko", "không kinh nghiệm có đào tạo k",
-        "mù chữ nhưng lanh lẹ đc k", "có xét lý lịch k",
-        "nhuộm tóc đc k", "mất cccd gốc nhận k", "xăm kín cổ đc k",
-        "được mang dép k", "hút thuóc được khong"
+    "ask_requirements" to listOf(
+        "không có bằng cấp có làm được không", "tuổi cao có nhận không",
+        "cận thị có làm được không", "hồ sơ thiếu bổ sung sau được không", "chưa kinh nghiệm có đào tạo không",
+        "nhuộm tóc có nhận không", "thử việc có lương không"
     ),
-    "actions" to listOf(
-        "xin địa chỉ qua làm với", "cho e xin sdt liên hệ",
-        "ib e với", "tư vấn e vs", "e muốn đi làm luôn",
-        "gọi e số này nhé", "mai e lên nhận việc đc ko",
-        "cho e xin 1 chân", "e đăng ký", "hướng dẫn e dăng kí vs",
-        "chỉ e chỗ đk với", "liên hệ ai để phỏng vấn",
-        "mai e mang hồ sơ qua luôn", "cho e địa chỉ chính xác"
+    "actions_apply" to listOf(
+        "xin địa chỉ qua làm với", "cho xin số điện thoại liên hệ", "tư vấn giúp em",
+        "inbox em nha", "rep tin nhắn em với", "mai em qua nộp hồ sơ luôn nhé",
+        "cho em đăng ký với", "gọi cho em số này nhé"
     ),
-    "abbrev_actions" to listOf(
-        "xin dchi", "cho xin sdt", "ib nha", "check ib a ơi",
-        "rep tn đi a", "alo e sdt này", "chấm", ". ib e", "xin in4",
-        "xin 1 vé", "đk 1 slot", "inb zalo e", "lh e", "xin tt", "hóng", "ở đâu"
-    ),
-    "praise" to listOf(
-        "cty làm ăn đàng hoàng", "chỗ làm mát mẻ",
-        "bao ăn ở là ngon", "xưởng bự ghê", "việc có vẻ nhẹ",
-        "làm v thoải mái", "xịn xò", "chỗ này quen quen",
-        "việc ngon đó", "chỗ này đợt t làm r ok lắm",
-        "bên này quản lý dễ thương", "thấy review tốt"
+    "praises" to listOf(
+        "chỗ làm có vẻ mát mẻ", "bao ăn ở là thấy ngon rồi", "xưởng to sạch sẽ ghê",
+        "quản lý thân thiện lắm", "thấy môi trường tốt ghê", "công việc thấy cũng ổn"
     ),
     "skeptical_questions" to listOf(
-        "việc này có thu phí môi giới k ạ?", "lại đa cấp phải k?",
-        "có chắc là k giam lương k?", "xin việc có mất tiền k a?",
-        "có bắt mua đồng phục k?", "nhìn ảo ảo sao ấy nhỉ?",
-        "việc ngon vậy có lừa k ae", "tin được không đây mọi người?",
-        "vào làm có trừ tiền này kia k v?", "chắc không phải lừa đảo chứ?",
-        "có đóng cọc k sốp?", "làm đàng hoàng k hay vô trừ đầu trừ đuôi?"
+        "có mất phí môi giới không", "có bắt mua đồng phục không", "có bị giam lương không",
+        "có cần đóng cọc gì không", "có lừa đảo gì không", "có trừ đầu trừ đuôi gì không"
     ),
     "location" to listOf(
         "Bình Dương", "KCN VSIP","KCN Mỹ Phước"," Vsip 2A", "Nam tân uyên", "ST 3", "sóng thần 3", "vsip 2a", "Tân uyên", "Đồng an 2", "vĩnh tân", "Bến cát"
     ),
-    "emojis" to listOf(
-        "👍", "🙏", "💪", "😊", "🖐", "👋", "👀", "🔥", "💯", "😅", "😂", "🤔",
-        "🥲", "😭", "🛑", "✅", "📍", "🤝", "👌", "👇"
-    ),
-    "filler" to listOf(
-        "nha", "ạ", "vs ạ", "nhé", "đc ko a", "vậy ạ",
-        "đó ạ", "vậy sốp", "luôn á", "trời", "đi anh", "giúp e"
-    ),
     "wishes" to listOf(
-        "chúc shop mau tuyển đủ người", "chúc cty ngày càng phát triển",
-        "chủ kênh sớm tìm được người nha", "chúc a/c tuyển dụng suôn sẻ",
-        "chúc may mắn", "mau tìm đc nhân viên nhé", "sớm chốt đc người nha sốp",
-        "làm ăn phát đạt nhé", "chúc xưởng đắt hàng", "nhanh tuyển đủ slot nhé",
-        "chúc sếp mau kiếm đc lính"
+        "chúc shop mau tuyển đủ người", "chúc công ty ngày càng phát triển", "chúc sớm tìm được nhân viên",
+        "chúc sếp mau kiếm được lính", "chúc kênh ngày càng phát triển"
     ),
     "interaction_bait" to listOf(
-        "tương tác nhé", "tt tốt nha", "qua lại uy tín", "trả fl nhé",
-        "chúc ngày mới năng lượng", "đẩy bài giúp ad", "lên xu hướng nào",
-        "tim chéo nha", "chấm tương tác", "ủn mông cho sốp", "tt chéo k m.n",
-        "hỗ trợ nhau lên xu hướng", "chào ngày mới m.n", "ủng hộ kênh", "chấm mút trả tim"
+        "tương tác chéo nha cả nhà", "đẩy bài giúp ad", "thả tim chéo uy tín",
+        "trả tương tác giúp em", "lên xu hướng nào", "chúc ngày mới năng lượng"
     ),
-    "teen_code_filler" to listOf(
-        "z", "zậy", "ko", "k", "dc k", "đc k", "nà", "ạ",
-        "nek", "nhaaa", "đó chời", "á", "dới", "ik",
+    "fillers" to listOf(
+        "nha", "ạ", "nhé", "với ạ", "được không", "với"
+    ),
+    "emojis" to listOf(
+        "👍", "😊", "🙏", "💪", "🔥", "💯", "😅", "👌", "🤝", "👀", "❤️"
     )
 )
 
+// Các mẫu câu templates thiết kế chặt chẽ
 val templates = listOf(
-    "{short_questions}",
-    "{short_questions} {abbrev_actions}",
-    "Còn tuyển ko a",
-    "{abbrev_actions} {emojis}",
+    // Nhóm hỏi còn tuyển không
+    "{greetings} còn tuyển không {fillers}",
+    "Còn tuyển không {greetings}",
+    "Còn nhận người không {greetings}",
+    "Cho em hỏi {job_target} còn tuyển không {fillers}",
+    "Inbox mình thông tin {job_target} nhé {greetings}",
+    "{greetings} còn nhận hồ sơ {job_target} nữa không {fillers}",
+    "Bên mình còn slot làm {job_target} không {greetings} ơi",
+    "Thời điểm này còn nhận người nữa không {greetings}",
+    "Nữ {candidate_status_young} có nhận làm {job_target} không ạ",
+    "Còn tuyển lao động thời vụ không {greetings}",
+    "Cho em xin thông tin tuyển dụng {job_target} với {greetings}",
+    
+    // Nhóm hỏi chi tiết lương & chế độ
+    "{greetings} cho em hỏi {ask_salary} {fillers}",
+    "Làm {job_target} thì {ask_salary} {fillers}",
+    "Lương lậu của {job_target} thế nào vậy {greetings}",
+    "Có bao ăn ở hay phụ cấp gì không {greetings}",
+    "Làm {job_target} có tăng ca nhiều không {greetings}",
+    "Lương cơ bản của {job_target} là bao nhiêu vậy ạ",
+    "Tháng đầu tiên có được ứng lương không {greetings}",
+    "Bên mình đóng bảo hiểm sau bao lâu thế {greetings}",
+    "{job_target} này tính theo sản phẩm hay thời gian thế ạ",
+    "Tổng thu nhập trung bình một tháng được bao nhiêu vậy shop",
+
+    // Nhóm hỏi yêu cầu & độ tuổi
+    "Em {candidate_status_young}, {ask_requirements} {fillers}",
+    "Tầm {candidate_status_adult}, {ask_requirements} {fillers}",
+    "{greetings} ơi em {candidate_status_young} có nhận không {fillers}",
+    "Không biết xăm mình hay cận thị {ask_requirements} {greetings}",
+    "Em có con nhỏ, {ask_requirements} {fillers}",
+    "Không có bằng cấp 2 {ask_requirements} {greetings}",
+    "Chưa có kinh nghiệm gì, {ask_requirements} {fillers}",
+    "Em cận nhẹ {ask_requirements} {greetings}",
+    "Hồ sơ cần công chứng không {greetings}",
+    "Nhuộm tóc sáng màu {ask_requirements} {greetings}",
+
+    // Nhóm muốn xin đi làm ngay
+    "Em muốn đăng ký làm {job_target}, {actions_apply}",
+    "{greetings} check inbox {actions_apply}",
+    "Đang cần việc gấp ở {location}, {actions_apply}",
+    "Cho em {actions_apply} để trao đổi trực tiếp",
+    "Em {candidate_status_young} muốn xin làm luôn, {actions_apply}",
+    "Mình ở {location}, cần tìm việc làm ngay, {actions_apply}",
+    "Có gì {greetings} liên hệ mình số này nha, {actions_apply}",
+    "Mai em qua nộp hồ sơ được không ạ, {actions_apply}",
+    "Cho em xin thông tin để mai qua nhận việc luôn {greetings}",
+
+    // Nhóm địa điểm
+    "{job_target} làm ở {location} đúng không {greetings}",
+    "Khu vực {location} còn tuyển {job_target} không {fillers}",
+    "Có xe đưa đón từ khu vực khác đến {location} không",
+    "{job_target} này làm ở chi nhánh {location} hay đâu thế {greetings}",
+    "Em ở gần {location}, {job_target} này làm gần đó không",
+    "Có chỗ ở lại cho người từ xa đến làm ở {location} không ạ",
+    "Ở {location} có hỗ trợ tìm phòng trọ không shop",
+
+    // Nhóm khen ngợi & chúc mừng
+    "{praises}. {wishes}",
+    "Thấy {praises} quá. {wishes} nha shop",
+    "Việc tốt quá. {wishes} {emojis}",
+    "Môi trường có vẻ tốt. {wishes} {emojis}",
+    "Nghe review bên mình rất ok. {wishes} ạ",
+    "{praises}. Mong cty ngày càng phát triển {emojis}",
+    "Chúc shop buôn may bán đắt và mau tuyển đủ người {emojis}",
+
+    // Nhóm nghi ngờ / cảnh giác
+    "Cho em hỏi thật là {skeptical_questions} {fillers}",
+    "Xin việc bên mình {skeptical_questions}",
+    "Làm {job_target} có chắc là {skeptical_questions} không",
+    "{greetings} cho em hỏi có giam lương hay giữ cccd không {fillers}",
+    "Vào làm có bắt đóng tiền đồng phục gì không thế {greetings}",
+    "Nghe bảo {skeptical_questions}, có thật không ạ",
+    "Chỉ sợ {skeptical_questions} thui chứ đi làm ngại gì cực",
+
+    // Nhóm bình luận tương tác
+    "{interaction_bait} {emojis}",
+    "Chấm hóng {job_target}. {interaction_bait}",
+    "Ủng hộ kênh. {wishes}",
+    "Thả tim chéo nha shop. {interaction_bait}",
+    "Chúc ngày mới may mắn nhé cả nhà. {interaction_bait}",
+
+    // Nhóm ngắn gọn / Chỉ dùng Emoji
     ".",
-    "Chấm mút",
     "Quan tâm",
-    "{greetings} {short_questions} {emojis}",
-    "{greetings}, {abbrev_actions} {teen_code_filler}",
-    "Làm {job_role} {questions_salary}",
-    "E {young_status}. {short_questions}",
-    "{short_questions} E {age_status} làm đc ko?",
-    "Cho xin {abbrev_actions} đi {emojis}",
-    "{greetings}, em {age_status}, {questions_requirements} {filler} {emojis}",
-    "{greetings} e làm đc {job_role}. Cho e {abbrev_actions} {teen_code_filler} {emojis}",
-    "Dạ {job_role} còn tuyển không ạ? E {young_status} {actions} {emojis}",
-    "{praise} {teen_code_filler}. E {age_status}, {actions} {emojis}",
-    "{greetings}, em {age_status} nhưng chưa có kinh nghiệm. {questions_requirements} Nếu được {actions} {emojis}",
-    "Nhìn {praise} quá a ơi. Dạ {questions_salary} Em {young_status} {actions} {filler} {emojis}",
-    "Em {age_status} đang tìm việc gấp. {job_role} này {questions_requirements} Được thì {abbrev_actions} đi làm luôn {emojis}",
-    "Làm ở {location} {short_questions}",
-    "{greetings} ở {location} có tuyển {job_role} k {teen_code_filler}",
-    "Có ai làm ở {location} chưa cho e xin review {filler} {emojis}",
-    "{greetings} e {young_status} muốn xin làm {job_role} ở {location} {actions}",
-    "Kho ở {location} {questions_salary}",
-    "E {age_status} mún mần {job_role} tại {location}. {questions_salary}",
-    "{skeptical_questions} {emojis}",
-    "{job_role} này {skeptical_questions}",
-    "Thấy hoang mang quá, {skeptical_questions} {emojis}",
-    "Cho e hỏi {skeptical_questions} {teen_code_filler}",
-    "E {young_status} đag tìm việc. {abbrev_actions} {emojis}",
-    "Lương {job_role} dạo này s a? Đc {abbrev_actions} {teen_code_filler}",
-    "{questions_requirements} {abbrev_actions} nha shop",
-    "Cho {abbrev_actions}. E {young_status} {actions}",
-    "E {age_status} {questions_requirements} {actions}",
-
-    // --- CÁC TEMPLATES BỔ SUNG MỚI ---
-    "Đang cần việc gấp, {greetings} {actions} {emojis}",
-    "{greetings} cho e hỏi {skeptical_questions} Ok thì {actions}",
-    "{praise} nhưng mà {skeptical_questions} {teen_code_filler}",
-    "Mình ở {location}, {age_status}, {short_questions} {emojis}",
-    "Cần tìm việc ở {location}. {age_status} làm {job_role} {questions_requirements}",
-    "Nếu {questions_requirements} thì {actions} nha {filler}",
-    "{short_questions} {questions_salary} Được thì {abbrev_actions} {emojis}",
-    "Ai từng làm {job_role} ở {location} chưa, cho xin review với. {skeptical_questions}",
-    "Nghe nói {praise} mà k biết {skeptical_questions} {emojis}",
-    "Công việc {job_role} này {questions_salary} {filler} {abbrev_actions}",
-    "Xin hỏi {questions_requirements} E {age_status} {actions} {emojis}",
-    "{job_role} ở {location} {questions_salary} {questions_requirements}",
-    "{greetings} check tin nhắn e với, e {young_status} muốn hỏi {job_role} {emojis}",
-    "Làm {job_role} thì {questions_requirements} {emojis} Cho e {abbrev_actions} {filler}",
-    "{skeptical_questions} Nếu làm ăn đàng hoàng thì {actions} nha {emojis}",
-    "Đang rảnh, e mún làm {job_role} ở {location}. {questions_salary} {emojis}",
-    "Từng làm ở {location} rồi, {job_role} ở đây {questions_salary} {emojis}",
-    "Mọi người cho e hỏi {job_role} {questions_salary} {skeptical_questions} {emojis}",
-
-    // --- CÁC TEMPLATES CHÚC MAY MẮN VÀ CHỈ DÙNG EMOJI ---
-    "{wishes} {emojis}",
-    "{wishes} {filler} {emojis}",
-    "{praise}, {wishes} {emojis}",
-    "{greetings} {wishes} {emojis}",
-    "Tuyệt vời. {wishes} {emojis}",
+    "Chấm",
+    "Hóng",
     "{emojis}",
     "{emojis} {emojis}",
-    "{emojis} {emojis} {emojis}",
-
-    // --- CÁC TEMPLATES TƯƠNG TÁC DẠO (CÀY VIEW, CHÉO FOLLOW) ---
-    "{interaction_bait}",
-    "{interaction_bait} {emojis}",
-    "{greetings} {interaction_bait} {emojis}",
-    "{interaction_bait} nha {filler} {emojis}",
-    "{praise}, {interaction_bait} {emojis}",
-    "Vào thả tim cho video. {interaction_bait} {emojis}",
-    "Đang rảnh đi {interaction_bait} {emojis}",
-    "Lên xu hướng. {interaction_bait} {emojis}",
-    "Cmt dạo. {interaction_bait} {emojis}"
+    "{emojis} {emojis} {emojis}"
 )
 
 // Từ điển các lỗi sai phổ biến
 val exactTypos = mapOf(
-    "việc" to listOf("ziệc"),
+    "việc" to listOf("ziệc", "viêc"),
     "chỗ" to listOf("chổ"),
     "nghỉ" to listOf("nghĩ"),
     "nghĩ" to listOf("ngĩ"),
     "tuổi" to listOf("tủi", "tuỗi"),
-    "tuyển" to listOf("tuyễn", "tuyển"),
+    "tuyển" to listOf("tuyễn"),
     "lương" to listOf("lươg"),
     "kinh" to listOf("kih"),
     "nghiệm" to listOf("ngiệm"),
@@ -208,7 +180,7 @@ val exactTypos = mapOf(
     "gì" to listOf("j", "zì"),
     "thì" to listOf("thỳ"),
     "quá" to listOf("wá", "qá"),
-    "được" to listOf("đươc", "được", "dc", "đc"),
+    "được" to listOf("đươc", "dc", "đc"),
     "làm" to listOf("lm", "lam"),
     "cũ" to listOf("củ"),
     "kỹ" to listOf("kỉ", "kĩ"),
@@ -235,47 +207,50 @@ val typoRules = listOf(
 fun applyTypos(text: String, isTypoEnabled: Boolean): String {
     if (!isTypoEnabled) return text
 
-    val words = text.split(" ")
-    val modifiedWords = words.map { word ->
-        // Xác suất 20% bị sai chính tả ở mỗi từ
-        if (Random.nextDouble() < 0.20) {
-            val isFirstCharUpper = word.isNotEmpty() && word[0].isUpperCase()
+    // Tỉ lệ câu có lỗi chính tả là 30%
+    if (Random.nextDouble() > 0.30) return text
 
-            // Tách dấu câu ra khỏi từ
-            val matchResult = Regex("^([a-zA-ZÀ-ỹ]+)([.,!?]*)$").find(word)
+    val words = text.split(" ").toMutableList()
+    if (words.isEmpty()) return text
 
-            if (matchResult != null) {
-                val pureWord = matchResult.groupValues[1].lowercase()
-                val punctuation = matchResult.groupValues[2]
-                var newWord = pureWord
+    // Chọn ngẫu nhiên tối đa 1 hoặc 2 vị trí từ để tạo lỗi
+    val typoCount = if (words.size > 5) Random.nextInt(1, 3) else 1
+    val indicesToModify = words.indices.shuffled().take(typoCount)
 
-                // Kiểm tra trong từ điển lỗi kinh điển
-                if (exactTypos.containsKey(pureWord)) {
-                    newWord = exactTypos[pureWord]!!.random()
-                } else {
-                    // Áp dụng quy tắc Regex
-                    val applicableRules = typoRules.filter { it.first.containsMatchIn(pureWord) }
-                    if (applicableRules.isNotEmpty()) {
-                        val rule = applicableRules.random()
-                        newWord = pureWord.replace(rule.first, rule.second)
-                    }
-                }
+    for (index in indicesToModify) {
+        val word = words[index]
+        val isFirstCharUpper = word.isNotEmpty() && word[0].isUpperCase()
 
-                // Khôi phục viết hoa và dấu câu
-                if (isFirstCharUpper) {
-                    newWord = newWord.replaceFirstChar {
-                        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-                    }
-                }
-                newWord + punctuation
+        // Tách dấu câu ra khỏi từ
+        val matchResult = Regex("^([a-zA-ZÀ-ỹ]+)([.,!?]*)$").find(word)
+
+        if (matchResult != null) {
+            val pureWord = matchResult.groupValues[1].lowercase()
+            val punctuation = matchResult.groupValues[2]
+            var newWord = pureWord
+
+            // Kiểm tra trong từ điển lỗi kinh điển
+            if (exactTypos.containsKey(pureWord)) {
+                newWord = exactTypos[pureWord]!!.random()
             } else {
-                word // Trả lại nếu không khớp định dạng
+                // Áp dụng quy tắc Regex
+                val applicableRules = typoRules.filter { it.first.containsMatchIn(pureWord) }
+                if (applicableRules.isNotEmpty()) {
+                    val rule = applicableRules.random()
+                    newWord = pureWord.replace(rule.first, rule.second)
+                }
             }
-        } else {
-            word // 80% giữ nguyên từ gốc
+
+            // Khôi phục viết hoa và dấu câu
+            if (isFirstCharUpper) {
+                newWord = newWord.replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+                }
+            }
+            words[index] = newWord + punctuation
         }
     }
-    return modifiedWords.joinToString(" ")
+    return words.joinToString(" ")
 }
 
 // Hàm tạo bình luận
@@ -294,11 +269,28 @@ fun generateComment(enableTypos: Boolean = true): String {
         }
     }
 
-    // Viết hoa chữ cái đầu tiên của câu
-    if (template.isNotEmpty()) {
-        template = template.replaceFirstChar {
-            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+    // Tự động chuẩn hóa dấu câu ở cuối câu hỏi
+    val isQuestion = template.contains("không") || template.contains("chưa") || 
+            template.contains("nào") || template.contains("bao nhiêu") || 
+            template.contains("sao") || template.contains("thế nào")
+            
+    if (isQuestion && !template.endsWith("?") && !template.endsWith(".") && !template.endsWith("!")) {
+        // Tỷ lệ thêm dấu chấm hỏi là 80% đối với câu hỏi
+        if (Random.nextDouble() < 0.80) {
+            template += "?"
         }
+    }
+
+    // Giả lập viết thường toàn bộ (40% cơ hội)
+    template = if (Random.nextDouble() < 0.40) {
+        template.lowercase()
+    } else {
+        // Viết hoa chữ cái đầu tiên của câu
+        if (template.isNotEmpty()) {
+            template.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+            }
+        } else template
     }
 
     return applyTypos(template, enableTypos)

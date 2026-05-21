@@ -2,6 +2,7 @@ package com.aki.akiwarmup
 
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.type
 import androidx.test.uiautomator.uiAutomator
 import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
@@ -28,16 +29,23 @@ class AkiFrameworkTest {
 
             val keyWorlds = listOf(
                 "ttnhr",
-                "Việc làm bình dương",
-                "Việc làm thời vụ Bình dương",
-                "Tìm việc Vsip 2A",
-                "Việc làm ở Mỹ Phước",
+                "việc làm bình dương",
+                "việc làm thời vụ bình dương",
+                "tìm việc vsip 2a",
+                "việc làm ở mỹ phước",
                 "tìm việc ttnhr",
                 "việc làm nam tân uyên",
                 "việc làm kcn sóng thần 3",
                 "việc làm ở kcn vsip 2a",
-                "việc làm mỹ phước 1234",
-                "việc làm mỹ phước ttnhr"
+                "việc làm mỹ phước tuyển dụng",
+                "việc làm mỹ phước ttnhr",
+                "tìm việc làm bến cát",
+                "việc làm kcn đồng an 2",
+                "việc làm vĩnh tân bình dương",
+                "tìm việc làm ở tân uyên",
+                "việc làm thời vụ st 3",
+                "tuyển dụng ttnhr",
+                "việc làm bình dương ttnhr"
             )
 
             handleUnknowScreen {
@@ -198,7 +206,7 @@ class AkiFrameworkTest {
                                                 swipeUp()
                                             }
                                             find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                                humanType(textField, generateComment(enableTypos = false))
+                                                humanType(textField, generateComment(enableTypos = true))
                                                 wait(random(100, 1500))
                                                 pressBack()
                                                 wait(random(100, 1500))
@@ -236,11 +244,14 @@ class AkiFrameworkTest {
 
             screen("Unknow") {
                 detect {
-                    any(text("Đã hiểu"))
+                    any(text("Đã hiểu"), text("Không cho phép"))
                 }
 
                 action("Click") {
                     find(text("Đã hiểu"))?.let {
+                        tap(it)
+                    }
+                    find(text("Không cho phép"))?.let {
                         tap(it)
                     }
                 }
@@ -264,7 +275,7 @@ class AkiFrameworkTest {
                                         wait(random(100, 1500))
                                     }
                                     find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                        humanType(textField, generateComment(enableTypos = false))
+                                        humanType(textField, generateComment(enableTypos = true))
                                         wait(random(100, 1500))
                                         pressBack()
                                         wait(random(100, 1500))
@@ -516,7 +527,7 @@ class AkiFrameworkTest {
                             endAction()
                         }
                     }
-                    findAll(id("com.ss.android.ugc.trill:id/yi8")).findLast { it.text == keyword!!.trim() }.let {
+                    findAll(id("com.ss.android.ugc.trill:id/yi8")).findLast { it.text.trim() == keyword!!.trim() }.let {
                         if (it == null) {
                             pressHome()
                             stop("Không tìm thấy User")
@@ -563,7 +574,7 @@ class AkiFrameworkTest {
                                             swipeUp()
                                         }
                                         find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                            humanType(textField, generateComment(enableTypos = false))
+                                            humanType(textField, generateComment(enableTypos = true))
                                             wait(random(100, 1500))
                                             pressBack()
                                             wait(random(100, 1500))
@@ -618,11 +629,152 @@ class AkiFrameworkTest {
 
             screen("Unknow") {
                 detect {
-                    any(text("Đã hiểu"))
+                    any(text("Đã hiểu"), text("Không cho phép"))
                 }
 
                 action("Click") {
                     find(text("Đã hiểu"))?.let {
+                        tap(it)
+                    }
+                    find(text("Không cho phép"))?.let {
+                        tap(it)
+                    }
+                }
+            }
+        }
+
+        loop {
+
+        }
+    }
+
+    @Test
+    fun rePost() = runScene {
+        scene("tiktok_rePost") {
+            config {
+                targetPackage = "com.ss.android.ugc.trill"
+                onUnknownScreen = UnknownScreenPolicy.PRESS_BACK
+                recoveryTimeoutMs = 15000L
+            }
+
+            handleUnknowScreen {
+                Log.i("AkiFramework", "${context.restartCount}")
+                if(this.context.restartCount > 3) {
+                    this.context.stop("lỖI APP")
+                }
+            }
+
+
+            screen("Profile") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/hdm"))
+                }
+
+                action("Choose Video") {
+                    find(id("com.ss.android.ugc.trill:id/hdm"))?.findObjects(id("com.ss.android.ugc.trill:id/z9y").toBySelector()).let {
+                        if (it?.isEmpty() ?: true) {
+                            stop("No Videos")
+                        }
+                        for (i in 0..(it?.size ?: 0)) {
+                            val videoText = it!![i]
+                            if (videoText.text.trim().toInt() < 2) {
+                                tap(videoText)
+                                wait(random(1000, 3000))
+                                return@action
+                            }
+                            if (i >= (it.size)) {
+                                stop("Không tìm thấy video 0 View nào")
+                                return@action
+                            }
+                        }
+                        endAction()
+                    }
+                }
+            }
+
+            screen("Video Search") {
+                detect { has(text("Tìm kiếm") and id("com.ss.android.ugc.trill:id/user_avatar")) }
+
+                action("Lướt xem Video Search") {
+                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                        tap(it)
+                        wait(random(1000, 1500))
+                        endAction()
+                    }
+                }
+            }
+
+            screen("Share Screen") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/znd"))
+                }
+                action("Swipe to choose delete") {
+                    find(id("com.ss.android.ugc.trill:id/vv"))?.scroll(Direction.RIGHT, 0.8f)
+                    wait(random(1000, 1500))
+                    find(text("Xóa"))?.let {
+                        tap(it)
+                        wait(random(1000, 1500))
+                    }
+                    endAction()
+                }
+            }
+
+            screen("Delete Popup") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/ofw"))
+                }
+
+                action("Repost") {
+                    find(id("com.ss.android.ugc.trill:id/sbo")).let {
+                        if (it != null) {
+                            tap(it)
+                        } else {
+                            find(text("Xóa"))?.let { deleteButon ->
+                                tap(deleteButon)
+                                wait(random(2000, 5000))
+                                stop()
+                            }
+                        }
+                        wait(random(2000, 5000))
+                        endAction()
+                    }
+                }
+            }
+
+            screen("Edit video screen") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/xgp"))
+                }
+
+                action("CLick continue") {
+                    tap(find(id("com.ss.android.ugc.trill:id/ond")))
+                    wait(random(2000, 5000))
+                    endAction()
+                }
+            }
+
+            screen("Post video screen") {
+                detect {
+                    has(id("com.ss.android.ugc.trill:id/jy1"))
+                }
+
+                action("CLick post") {
+                    tap(find(text("Đăng")))
+                    wait(random(20000, 40000))
+                    stop()
+                }
+            }
+
+            screen("Unknow") {
+                detect {
+                    any(text("Đã hiểu"), text("Không cho phép"))
+                }
+
+                action("Click") {
+                    find(text("Đã hiểu"))?.let {
+                        tap(it)
+                    }
+                    find(text("Không cho phép"))?.let {
                         tap(it)
                     }
                 }
