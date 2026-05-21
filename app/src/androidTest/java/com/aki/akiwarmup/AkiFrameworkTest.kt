@@ -148,7 +148,7 @@ class AkiFrameworkTest {
                                     endAction()
                                 }
                             },
-                            1f to {
+                            0.5f to {
                                 find("com.ss.android.ugc.trill:id/jb1")?.let {
                                     tap(it)
                                     wait(300)
@@ -233,6 +233,9 @@ class AkiFrameworkTest {
                             },
                             commentRate to {
                                 find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                    if (!it.text.contains("ttnhr")) {
+                                        endAction()
+                                    }
                                     find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
                                         tap(commentButon)
                                         wait(random(100, 1500))
@@ -285,7 +288,7 @@ class AkiFrameworkTest {
                                 }
                             },
 
-                            2f to {
+                            1f to {
                                 pressHome()
                                 this@scene.killApp()
                                 stop()
@@ -653,6 +656,9 @@ class AkiFrameworkTest {
                             },
                             commentRate to {
                                 find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                    if (!it.text.contains("ttnhr")) {
+                                        endAction()
+                                    }
                                     find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
                                         tap(commentButon)
                                         wait(random(100, 1500))
