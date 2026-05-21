@@ -610,6 +610,7 @@ class AkiFrameworkTest {
                 action("Chọn tap người dùng") {
                     find(text("Người dùng"))?.let {
                         tap(it)
+                        wait(random(3000, 5000))
                         if (!it.isSelected) {
                             endAction()
                         }
