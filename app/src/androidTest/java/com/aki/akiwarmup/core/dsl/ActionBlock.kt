@@ -31,7 +31,7 @@ class ActionBuilder(sceneExecutionContext: SceneExecutionContext) {
 
     fun find(selector: Selector): UiObject2? = selector.find(device)
 
-    fun on(selector: Selector, block: (UiObject2) -> Unit) = find(selector)?.let { block(it) }
+    suspend fun on(selector: Selector, block: suspend (UiObject2?) -> Unit) = block(find(selector))
 
     fun has(selector: Selector): Boolean = selector.exists(device)
 

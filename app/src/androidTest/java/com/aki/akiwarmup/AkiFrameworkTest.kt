@@ -68,34 +68,43 @@ class AkiFrameworkTest {
 
                 action("Lướt xem") {
                     loop {
-                        wait(random(500, 20000))
-                        choose(
-                            rate.swipeRate to {
-                                rate.reset()
+                        on(text("Quảng bá đề xuất")) {
+                            if (it != null) {
                                 swipeUp()
-                            },
-                            rate.likeRate to {
-                                find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                    rate.onLike()
-                                    if (!it.isSelected) {
-                                        tap(it)
-                                        wait(random(min = 1000, max = 3000))
+                                endAction()
+                            }
+                        }
+                        on(id("com.ss.android.ugc.trill:id/desc")) { desc ->
+                            desc?.let {
+                                Log.i("AkiFramework", "Desc: ${desc.text}")
+                            }
+                            wait(random(500, 20000))
+                            choose(
+                                rate.swipeRate to {
+                                    rate.reset()
+                                    swipeUp()
+                                },
+                                rate.likeRate to {
+                                    find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                        rate.onLike()
+                                        if (!it.isSelected) {
+                                            tap(it)
+                                            wait(random(min = 1000, max = 3000))
+                                        }
                                     }
-                                }
-                            },
-                            rate.favoriteRate to {
-                                find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                    rate.onFavorite()
-                                    if (!it.isSelected) {
-                                        tap(it)
-                                        wait(random(min = 1000, max = 3000))
+                                },
+                                rate.favoriteRate to {
+                                    find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                        rate.onFavorite()
+                                        if (!it.isSelected) {
+                                            tap(it)
+                                            wait(random(min = 1000, max = 3000))
+                                        }
                                     }
-                                }
-                            },
-                            rate.commentRate to {
-                                find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                },
+                                rate.commentRate to {
                                     rate.onComment()
-                                    if (it.text.contains("#ttnhr")) {
+                                    if (desc?.text?.contains("#ttnhr") ?: false) {
                                         find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
                                             tap(commentButon)
                                             wait(random(100, 1500))
@@ -114,49 +123,49 @@ class AkiFrameworkTest {
                                             }
                                             pressBack()
                                         }
-                                    } else if (it.text.contains("…thêm")) {
-                                        tap(it)
+                                    } else if (desc?.text?.contains("…thêm") ?: false) {
+                                        tap(desc)
                                     }
                                     endAction()
-                                }
-                            },
-                            rate.rePostRate to {
-                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                    rate.onRePost()
-                                    tap(it)
-                                    wait(random(1000, 1500))
-                                    find(text("Đăng lại")).let { repost ->
-                                        if (repost == null) {
-                                            pressBack()
-                                        } else {
+                                },
+                                rate.rePostRate to {
+                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                        rate.onRePost()
+                                        tap(it)
+                                        wait(random(1000, 1500))
+                                        find(text("Đăng lại")).let { repost ->
+                                            if (repost == null) {
+                                                pressBack()
+                                            } else {
+                                                tap(repost)
+                                                wait(random(1000, 1500))
+                                            }
+                                        }
+                                        endAction()
+                                    }
+                                },
+                                rate.copyLinkRate to {
+                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                        rate.onCopyLink()
+                                        tap(it)
+                                        wait(random(1000, 1500))
+                                        find(text("Sao chép Liên kết"))?.let { repost ->
                                             tap(repost)
                                             wait(random(1000, 1500))
                                         }
+                                        endAction()
                                     }
-                                    endAction()
-                                }
-                            },
-                            rate.copyLinkRate to {
-                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                    rate.onCopyLink()
-                                    tap(it)
-                                    wait(random(1000, 1500))
-                                    find(text("Sao chép Liên kết"))?.let { repost ->
-                                        tap(repost)
-                                        wait(random(1000, 1500))
+                                },
+                                rate.exitRate to {
+                                    find("com.ss.android.ugc.trill:id/jb1")?.let {
+                                        tap(it)
+                                        rate.reset()
+                                        wait(300)
+                                        endAction()
                                     }
-                                    endAction()
                                 }
-                            },
-                            rate.exitRate to {
-                                find("com.ss.android.ugc.trill:id/jb1")?.let {
-                                    tap(it)
-                                    rate.reset()
-                                    wait(300)
-                                    endAction()
-                                }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
 
@@ -209,34 +218,34 @@ class AkiFrameworkTest {
 
                 action("Lướt xem Video Search") {
                     loop {
-                        wait(random(1000, 20000))
-                        choose(
-                            rate.swipeRate to {
-                                rate.reset()
-                                swipeUp()
-                            },
-                            rate.likeRate to {
-                                find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                    rate.onLike()
-                                    if (!it.isSelected) {
-                                        tap(it)
-                                        wait(random(min = 1000, max = 3000))
+                        on(id("com.ss.android.ugc.trill:id/desc")) { desc ->
+                            wait(random(1000, 20000))
+                            choose(
+                                rate.swipeRate to {
+                                    rate.reset()
+                                    swipeUp()
+                                },
+                                rate.likeRate to {
+                                    find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                        rate.onLike()
+                                        if (!it.isSelected) {
+                                            tap(it)
+                                            wait(random(min = 1000, max = 3000))
+                                        }
                                     }
-                                }
-                            },
-                            rate.favoriteRate to {
-                                find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                    rate.onFavorite()
-                                    if (!it.isSelected) {
-                                        tap(it)
-                                        wait(random(min = 1000, max = 3000))
+                                },
+                                rate.favoriteRate to {
+                                    find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                        rate.onFavorite()
+                                        if (!it.isSelected) {
+                                            tap(it)
+                                            wait(random(min = 1000, max = 3000))
+                                        }
                                     }
-                                }
-                            },
-                            rate.commentRate to {
-                                find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                },
+                                rate.commentRate to {
                                     rate.onComment()
-                                    if (!it.text.contains("ttnhr")) {
+                                    if (!(desc?.text?.contains("ttnhr") ?: false)) {
                                         endAction()
                                     }
                                     find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
@@ -258,46 +267,46 @@ class AkiFrameworkTest {
                                         pressBack()
                                     }
                                     endAction()
-                                }
-                            },
+                                },
 
-                            rate.rePostRate to {
-                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                    rate.onRePost()
-                                    tap(it)
-                                    wait(random(1000, 1500))
-                                    find(text("Đăng lại")).let { repost ->
-                                        if (repost == null) {
-                                            pressBack()
-                                        } else {
+                                rate.rePostRate to {
+                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                        rate.onRePost()
+                                        tap(it)
+                                        wait(random(1000, 1500))
+                                        find(text("Đăng lại")).let { repost ->
+                                            if (repost == null) {
+                                                pressBack()
+                                            } else {
+                                                tap(repost)
+                                                wait(random(1000, 1500))
+                                            }
+                                        }
+                                        endAction()
+                                    }
+                                },
+
+                                rate.copyLinkRate to {
+                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                        rate.onCopyLink()
+                                        tap(it)
+                                        wait(random(1000, 1500))
+                                        find(text("Sao chép Liên kết"))?.let { repost ->
                                             tap(repost)
                                             wait(random(1000, 1500))
                                         }
+                                        endAction()
                                     }
-                                    endAction()
-                                }
-                            },
+                                },
 
-                            rate.copyLinkRate to {
-                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                    rate.onCopyLink()
-                                    tap(it)
-                                    wait(random(1000, 1500))
-                                    find(text("Sao chép Liên kết"))?.let { repost ->
-                                        tap(repost)
-                                        wait(random(1000, 1500))
-                                    }
-                                    endAction()
+                                rate.exitRate to {
+                                    pressHome()
+                                    rate.reset()
+                                    this@scene.killApp()
+                                    stop()
                                 }
-                            },
-
-                            rate.exitRate to {
-                                pressHome()
-                                rate.reset()
-                                this@scene.killApp()
-                                stop()
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
@@ -483,34 +492,40 @@ class AkiFrameworkTest {
                 }
                 action("Lướt xem") {
                     loop {
-                        wait(random(500, 20000))
-                        choose(
-                            rate.swipeRate to {
-                                rate.reset()
+                        on(text("Quảng bá đề xuất")) {
+                            if (it != null) {
                                 swipeUp()
-                            },
-                            rate.likeRate to {
-                                find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                    rate.onLike()
-                                    if (!it.isSelected) {
-                                        tap(it)
-                                        wait(random(min = 1000, max = 3000))
+                                endAction()
+                            }
+                        }
+                        on(id("com.ss.android.ugc.trill:id/desc")) { desc ->
+                            wait(random(500, 20000))
+                            choose(
+                                rate.swipeRate to {
+                                    rate.reset()
+                                    swipeUp()
+                                },
+                                rate.likeRate to {
+                                    find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                        rate.onLike()
+                                        if (!it.isSelected) {
+                                            tap(it)
+                                            wait(random(min = 1000, max = 3000))
+                                        }
                                     }
-                                }
-                            },
-                            rate.favoriteRate to {
-                                find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                    rate.onFavorite()
-                                    if (!it.isSelected) {
-                                        tap(it)
-                                        wait(random(min = 1000, max = 3000))
+                                },
+                                rate.favoriteRate to {
+                                    find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                        rate.onFavorite()
+                                        if (!it.isSelected) {
+                                            tap(it)
+                                            wait(random(min = 1000, max = 3000))
+                                        }
                                     }
-                                }
-                            },
-                            rate.commentRate to {
-                                find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                },
+                                rate.commentRate to {
                                     rate.onComment()
-                                    if (it.text.contains("#ttnhr")) {
+                                    if (desc?.text?.contains("#ttnhr") ?: false) {
                                         find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
                                             tap(commentButon)
                                             wait(random(100, 1500))
@@ -529,49 +544,49 @@ class AkiFrameworkTest {
                                             }
                                             pressBack()
                                         }
-                                    } else if (it.text.contains("…thêm")) {
-                                        tap(it)
+                                    } else if (desc?.text?.contains("…thêm") ?: false) {
+                                        tap(desc)
                                     }
                                     endAction()
-                                }
-                            },
-                            rate.rePostRate to {
-                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                    rate.onRePost()
-                                    tap(it)
-                                    wait(random(1000, 1500))
-                                    find(text("Đăng lại")).let { repost ->
-                                        if (repost == null) {
-                                            pressBack()
-                                        } else {
+                                },
+                                rate.rePostRate to {
+                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                        rate.onRePost()
+                                        tap(it)
+                                        wait(random(1000, 1500))
+                                        find(text("Đăng lại")).let { repost ->
+                                            if (repost == null) {
+                                                pressBack()
+                                            } else {
+                                                tap(repost)
+                                                wait(random(1000, 1500))
+                                            }
+                                        }
+                                        endAction()
+                                    }
+                                },
+                                rate.copyLinkRate to {
+                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                        rate.onCopyLink()
+                                        tap(it)
+                                        wait(random(1000, 1500))
+                                        find(text("Sao chép Liên kết"))?.let { repost ->
                                             tap(repost)
                                             wait(random(1000, 1500))
                                         }
+                                        endAction()
                                     }
-                                    endAction()
-                                }
-                            },
-                            rate.copyLinkRate to {
-                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                    rate.onCopyLink()
-                                    tap(it)
-                                    wait(random(1000, 1500))
-                                    find(text("Sao chép Liên kết"))?.let { repost ->
-                                        tap(repost)
-                                        wait(random(1000, 1500))
+                                },
+                                rate.exitRate to {
+                                    find("com.ss.android.ugc.trill:id/jb1")?.let {
+                                        tap(it)
+                                        rate.reset()
+                                        wait(300)
+                                        endAction()
                                     }
-                                    endAction()
                                 }
-                            },
-                            rate.exitRate to {
-                                find("com.ss.android.ugc.trill:id/jb1")?.let {
-                                    tap(it)
-                                    rate.reset()
-                                    wait(300)
-                                    endAction()
-                                }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
@@ -638,34 +653,34 @@ class AkiFrameworkTest {
 
                 action("Lướt xem Video Search") {
                     loop {
-                        wait(random(1000, 20000))
-                        choose(
-                            rate.swipeRate to {
-                                rate.reset()
-                                swipeUp()
-                            },
-                            rate.likeRate to {
-                                find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                    rate.onLike()
-                                    if (!it.isSelected) {
-                                        tap(it)
-                                        wait(random(min = 1000, max = 3000))
+                        on(id("com.ss.android.ugc.trill:id/desc")) { desc ->
+                            wait(random(1000, 20000))
+                            choose(
+                                rate.swipeRate to {
+                                    rate.reset()
+                                    swipeUp()
+                                },
+                                rate.likeRate to {
+                                    find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                        rate.onLike()
+                                        if (!it.isSelected) {
+                                            tap(it)
+                                            wait(random(min = 1000, max = 3000))
+                                        }
                                     }
-                                }
-                            },
-                            rate.favoriteRate to {
-                                find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                    rate.onFavorite()
-                                    if (!it.isSelected) {
-                                        tap(it)
-                                        wait(random(min = 1000, max = 3000))
+                                },
+                                rate.favoriteRate to {
+                                    find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                        rate.onFavorite()
+                                        if (!it.isSelected) {
+                                            tap(it)
+                                            wait(random(min = 1000, max = 3000))
+                                        }
                                     }
-                                }
-                            },
-                            rate.commentRate to {
-                                find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                },
+                                rate.commentRate to {
                                     rate.onComment()
-                                    if (it.text.contains("#ttnhr")) {
+                                    if (desc?.text?.contains("#ttnhr") ?: false) {
                                         find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
                                             tap(commentButon)
                                             wait(random(100, 1500))
@@ -684,48 +699,48 @@ class AkiFrameworkTest {
                                             }
                                             pressBack()
                                         }
-                                    } else if (it.text.contains("…thêm")) {
-                                        tap(it)
+                                    } else if (desc?.text?.contains("…thêm") ?: false) {
+                                        tap(desc)
                                     }
                                     endAction()
-                                }
-                            },
-                            rate.rePostRate to {
-                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                    rate.onRePost()
-                                    tap(it)
-                                    wait(random(1000, 1500))
-                                    find(text("Đăng lại")).let { repost ->
-                                        if (repost == null) {
-                                            pressBack()
-                                        } else {
+                                },
+                                rate.rePostRate to {
+                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                        rate.onRePost()
+                                        tap(it)
+                                        wait(random(1000, 1500))
+                                        find(text("Đăng lại")).let { repost ->
+                                            if (repost == null) {
+                                                pressBack()
+                                            } else {
+                                                tap(repost)
+                                                wait(random(1000, 1500))
+                                            }
+                                        }
+                                        endAction()
+                                    }
+                                },
+                                rate.copyLinkRate to {
+                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                        rate.onCopyLink()
+                                        tap(it)
+                                        wait(random(1000, 1500))
+                                        find(text("Sao chép Liên kết"))?.let { repost ->
                                             tap(repost)
                                             wait(random(1000, 1500))
                                         }
+                                        endAction()
                                     }
-                                    endAction()
-                                }
-                            },
-                            rate.copyLinkRate to {
-                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                    rate.onCopyLink()
-                                    tap(it)
-                                    wait(random(1000, 1500))
-                                    find(text("Sao chép Liên kết"))?.let { repost ->
-                                        tap(repost)
-                                        wait(random(1000, 1500))
-                                    }
-                                    endAction()
-                                }
-                            },
+                                },
 
-                            2f to {
-                                pressHome()
-                                rate.reset()
-                                this@scene.killApp()
-                                stop()
-                            }
-                        )
+                                2f to {
+                                    pressHome()
+                                    rate.reset()
+                                    this@scene.killApp()
+                                    stop()
+                                }
+                            )
+                        }
                     }
                 }
             }
