@@ -20,15 +20,13 @@ import org.junit.runner.RunWith
 class AkiFrameworkTest {
     @Test
     fun warmUp() = runScene {
+        val rate = AutoRate(_exitRate = 0.5f)
         scene("tiktok_warmup") {
             config {
                 targetPackage = "com.ss.android.ugc.trill"
                 onUnknownScreen = UnknownScreenPolicy.PRESS_BACK
                 recoveryTimeoutMs = 15000L
             }
-
-            var likeRate = 1f
-            var commentRate = 1f
 
             val keyWorlds = listOf(
                 "ttnhr",
@@ -72,29 +70,31 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(500, 20000))
                         choose(
-                            4f to {
+                            rate.swipeRate to {
+                                rate.reset()
                                 swipeUp()
-                                likeRate = 1f
-                                commentRate = 1f
                             },
-                            likeRate to {
+                            rate.likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                    rate.onLike()
                                     if (!it.isSelected) {
                                         tap(it)
                                         wait(random(min = 1000, max = 3000))
                                     }
                                 }
                             },
-                            likeRate to {
+                            rate.favoriteRate to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                    rate.onFavorite()
                                     if (!it.isSelected) {
                                         tap(it)
                                         wait(random(min = 1000, max = 3000))
                                     }
                                 }
                             },
-                            commentRate to {
+                            rate.commentRate to {
                                 find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                    rate.onComment()
                                     if (it.text.contains("#ttnhr")) {
                                         find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
                                             tap(commentButon)
@@ -110,8 +110,6 @@ class AkiFrameworkTest {
                                                 find(desc("@2131953937"))?.let { postButton ->
                                                     tap(postButton)
                                                     wait(random(100, 1500))
-                                                    likeRate += 1f
-                                                    commentRate = 0f
                                                 }
                                             }
                                             pressBack()
@@ -122,8 +120,9 @@ class AkiFrameworkTest {
                                     endAction()
                                 }
                             },
-                            likeRate to {
+                            rate.rePostRate to {
                                 find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    rate.onRePost()
                                     tap(it)
                                     wait(random(1000, 1500))
                                     find(text("Đăng lại")).let { repost ->
@@ -137,8 +136,9 @@ class AkiFrameworkTest {
                                     endAction()
                                 }
                             },
-                            likeRate to {
+                            rate.copyLinkRate to {
                                 find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    rate.onCopyLink()
                                     tap(it)
                                     wait(random(1000, 1500))
                                     find(text("Sao chép Liên kết"))?.let { repost ->
@@ -148,9 +148,10 @@ class AkiFrameworkTest {
                                     endAction()
                                 }
                             },
-                            0.5f to {
+                            rate.exitRate to {
                                 find("com.ss.android.ugc.trill:id/jb1")?.let {
                                     tap(it)
+                                    rate.reset()
                                     wait(300)
                                     endAction()
                                 }
@@ -210,29 +211,31 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(1000, 20000))
                         choose(
-                            3f to {
-                                likeRate = 1f
-                                commentRate = 1f
+                            rate.swipeRate to {
+                                rate.reset()
                                 swipeUp()
                             },
-                            likeRate to {
+                            rate.likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                    rate.onLike()
                                     if (!it.isSelected) {
                                         tap(it)
                                         wait(random(min = 1000, max = 3000))
                                     }
                                 }
                             },
-                            likeRate to {
+                            rate.favoriteRate to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                    rate.onFavorite()
                                     if (!it.isSelected) {
                                         tap(it)
                                         wait(random(min = 1000, max = 3000))
                                     }
                                 }
                             },
-                            commentRate to {
+                            rate.commentRate to {
                                 find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                    rate.onComment()
                                     if (!it.text.contains("ttnhr")) {
                                         endAction()
                                     }
@@ -250,8 +253,6 @@ class AkiFrameworkTest {
                                             find(desc("@2131953937"))?.let { postButton ->
                                                 tap(postButton)
                                                 wait(random(100, 1500))
-                                                likeRate = 2f
-                                                commentRate = 0f
                                             }
                                         }
                                         pressBack()
@@ -260,8 +261,9 @@ class AkiFrameworkTest {
                                 }
                             },
 
-                            likeRate to {
+                            rate.rePostRate to {
                                 find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    rate.onRePost()
                                     tap(it)
                                     wait(random(1000, 1500))
                                     find(text("Đăng lại")).let { repost ->
@@ -276,8 +278,9 @@ class AkiFrameworkTest {
                                 }
                             },
 
-                            likeRate to {
+                            rate.copyLinkRate to {
                                 find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    rate.onCopyLink()
                                     tap(it)
                                     wait(random(1000, 1500))
                                     find(text("Sao chép Liên kết"))?.let { repost ->
@@ -288,8 +291,9 @@ class AkiFrameworkTest {
                                 }
                             },
 
-                            1f to {
+                            rate.exitRate to {
                                 pressHome()
+                                rate.reset()
                                 this@scene.killApp()
                                 stop()
                             }
@@ -450,8 +454,7 @@ class AkiFrameworkTest {
 
     @Test
     fun seeding() = runScene {
-        var likeRate = 1f
-        var commentRate = 1f
+        val rate = AutoRate(_swipeRate = 3f, _likeRate = 2f)
         scene("tiktok_seeding") {
             config {
                 targetPackage = "com.ss.android.ugc.trill"
@@ -482,29 +485,31 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(500, 20000))
                         choose(
-                            4f to {
+                            rate.swipeRate to {
+                                rate.reset()
                                 swipeUp()
-                                likeRate = 1f
-                                commentRate = 1f
                             },
-                            likeRate to {
+                            rate.likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                    rate.onLike()
                                     if (!it.isSelected) {
                                         tap(it)
                                         wait(random(min = 1000, max = 3000))
                                     }
                                 }
                             },
-                            likeRate to {
+                            rate.favoriteRate to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                    rate.onFavorite()
                                     if (!it.isSelected) {
                                         tap(it)
                                         wait(random(min = 1000, max = 3000))
                                     }
                                 }
                             },
-                            commentRate to {
+                            rate.commentRate to {
                                 find(id("com.ss.android.ugc.trill:id/desc"))?.let {
+                                    rate.onComment()
                                     if (it.text.contains("#ttnhr")) {
                                         find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
                                             tap(commentButon)
@@ -520,8 +525,6 @@ class AkiFrameworkTest {
                                                 find(desc("@2131953937"))?.let { postButton ->
                                                     tap(postButton)
                                                     wait(random(100, 1500))
-                                                    likeRate += 1f
-                                                    commentRate = 0f
                                                 }
                                             }
                                             pressBack()
@@ -532,8 +535,9 @@ class AkiFrameworkTest {
                                     endAction()
                                 }
                             },
-                            likeRate to {
+                            rate.rePostRate to {
                                 find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    rate.onRePost()
                                     tap(it)
                                     wait(random(1000, 1500))
                                     find(text("Đăng lại")).let { repost ->
@@ -547,8 +551,9 @@ class AkiFrameworkTest {
                                     endAction()
                                 }
                             },
-                            likeRate to {
+                            rate.copyLinkRate to {
                                 find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    rate.onCopyLink()
                                     tap(it)
                                     wait(random(1000, 1500))
                                     find(text("Sao chép Liên kết"))?.let { repost ->
@@ -558,9 +563,10 @@ class AkiFrameworkTest {
                                     endAction()
                                 }
                             },
-                            1f to {
+                            rate.exitRate to {
                                 find("com.ss.android.ugc.trill:id/jb1")?.let {
                                     tap(it)
+                                    rate.reset()
                                     wait(300)
                                     endAction()
                                 }
@@ -634,74 +640,75 @@ class AkiFrameworkTest {
                     loop {
                         wait(random(1000, 20000))
                         choose(
-                            3f to {
-                                likeRate = 1f
-                                commentRate = 1f
+                            rate.swipeRate to {
+                                rate.reset()
                                 swipeUp()
                             },
-                            likeRate to {
+                            rate.likeRate to {
                                 find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                                    rate.onLike()
                                     if (!it.isSelected) {
                                         tap(it)
                                         wait(random(min = 1000, max = 3000))
                                     }
                                 }
                             },
-                            likeRate to {
+                            rate.favoriteRate to {
                                 find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                                    rate.onFavorite()
                                     if (!it.isSelected) {
                                         tap(it)
                                         wait(random(min = 1000, max = 3000))
                                     }
                                 }
                             },
-                            commentRate to {
+                            rate.commentRate to {
                                 find(id("com.ss.android.ugc.trill:id/desc"))?.let {
-                                    if (!it.text.contains("ttnhr")) {
-                                        endAction()
-                                    }
-                                    find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
-                                        tap(commentButon)
-                                        wait(random(100, 1500))
-                                        sometimes(5f) {
-                                            swipeUp()
-                                        }
-                                        find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                            humanType(textField, generateComment(enableTypos = true))
+                                    rate.onComment()
+                                    if (it.text.contains("#ttnhr")) {
+                                        find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
+                                            tap(commentButon)
                                             wait(random(100, 1500))
-                                            pressBack()
-                                            wait(random(100, 1500))
-                                            find(desc("@2131953937"))?.let { postButton ->
-                                                tap(postButton)
-                                                wait(random(100, 1500))
-                                                likeRate = 2f
-                                                commentRate = 0f
+                                            sometimes(5f) {
+                                                swipeUp()
                                             }
+                                            find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
+                                                humanType(textField, generateComment(enableTypos = true))
+                                                wait(random(100, 1500))
+                                                pressBack()
+                                                wait(random(100, 1500))
+                                                find(desc("@2131953937"))?.let { postButton ->
+                                                    tap(postButton)
+                                                    wait(random(100, 1500))
+                                                }
+                                            }
+                                            pressBack()
                                         }
-                                        pressBack()
+                                    } else if (it.text.contains("…thêm")) {
+                                        tap(it)
                                     }
                                     endAction()
                                 }
                             },
-
-                            likeRate to {
-                              find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                  tap(it)
-                                  wait(random(1000, 1500))
-                                  find(text("Đăng lại")).let { repost ->
-                                      if (repost == null) {
-                                          pressBack()
-                                      } else {
-                                          tap(repost)
-                                          wait(random(1000, 1500))
-                                      }
-                                  }
-                                  endAction()
-                              }
-                            },
-
-                            likeRate to {
+                            rate.rePostRate to {
                                 find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    rate.onRePost()
+                                    tap(it)
+                                    wait(random(1000, 1500))
+                                    find(text("Đăng lại")).let { repost ->
+                                        if (repost == null) {
+                                            pressBack()
+                                        } else {
+                                            tap(repost)
+                                            wait(random(1000, 1500))
+                                        }
+                                    }
+                                    endAction()
+                                }
+                            },
+                            rate.copyLinkRate to {
+                                find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                                    rate.onCopyLink()
                                     tap(it)
                                     wait(random(1000, 1500))
                                     find(text("Sao chép Liên kết"))?.let { repost ->
@@ -714,6 +721,7 @@ class AkiFrameworkTest {
 
                             2f to {
                                 pressHome()
+                                rate.reset()
                                 this@scene.killApp()
                                 stop()
                             }
@@ -1008,5 +1016,89 @@ class AkiFrameworkTest {
         loop {
 
         }
+    }
+}
+
+class AutoRate(
+    private val _swipeRate: Float = 4f,
+    private val _likeRate: Float = 1f,
+    private val _commentRate: Float = 1f,
+    private val _favoriteRate: Float = 1f,
+    private val _rePostRate: Float = 1f,
+    private val _copyLinkRate: Float = 1f,
+    private val _exitRate: Float = 1f
+) {
+
+    private var __swipeRate: Float = _swipeRate
+    private var __likeRate: Float = _likeRate
+
+    private var __commentRate: Float = _commentRate
+
+    private var __favoriteRate: Float = _favoriteRate
+
+    private var __rePostRate: Float = _rePostRate
+
+    private var __copyLinkRate: Float = _copyLinkRate
+
+    private var __exitRate: Float = _exitRate
+
+    val swipeRate: Float
+        get() = __swipeRate
+    val likeRate: Float
+        get() = __likeRate
+    val commentRate: Float
+        get() = __commentRate
+    val favoriteRate: Float
+        get() = __favoriteRate
+    val rePostRate: Float
+        get() = __rePostRate
+    val copyLinkRate: Float
+        get() = __copyLinkRate
+    val exitRate: Float
+        get() = __exitRate
+
+    fun onSwipe() {
+        if (__swipeRate < 1f) return
+        __swipeRate -= 1f
+    }
+
+    fun onLike() {
+        if (__likeRate < 1f) return
+        __likeRate -= 1f
+    }
+
+    fun onComment() {
+        if (__commentRate < 1f) return
+        __commentRate -= 1f
+    }
+
+    fun onFavorite() {
+        if (__favoriteRate < 1f) return
+        __favoriteRate -= 1f
+    }
+
+    fun onRePost() {
+        if (__rePostRate < 1f) return
+        __rePostRate -= 1f
+    }
+
+    fun onCopyLink() {
+        if (__copyLinkRate < 1f) return
+        __copyLinkRate -= 1f
+    }
+
+    fun onExit() {
+        if (__exitRate < 1f) return
+        __exitRate -= 1f
+    }
+
+    fun reset() {
+        __swipeRate = _swipeRate
+        __likeRate = _likeRate
+        __commentRate = _commentRate
+        __favoriteRate = _favoriteRate
+        __rePostRate = _rePostRate
+        __copyLinkRate = _copyLinkRate
+        __exitRate = _exitRate
     }
 }
