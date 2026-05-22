@@ -680,27 +680,23 @@ class AkiFrameworkTest {
                                 },
                                 rate.commentRate to {
                                     rate.onComment()
-                                    if (desc?.text?.contains("#ttnhr") ?: false) {
-                                        find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
-                                            tap(commentButon)
-                                            wait(random(100, 1500))
-                                            sometimes(5f) {
-                                                swipeUp()
-                                            }
-                                            find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                                humanType(textField, generateComment(enableTypos = true))
-                                                wait(random(100, 1500))
-                                                pressBack()
-                                                wait(random(100, 1500))
-                                                find(desc("@2131953937"))?.let { postButton ->
-                                                    tap(postButton)
-                                                    wait(random(100, 1500))
-                                                }
-                                            }
-                                            pressBack()
+                                    find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
+                                        tap(commentButon)
+                                        wait(random(100, 1500))
+                                        sometimes(5f) {
+                                            swipeUp()
                                         }
-                                    } else if (desc?.text?.contains("…thêm") ?: false) {
-                                        tap(desc)
+                                        find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
+                                            humanType(textField, generateComment(enableTypos = true))
+                                            wait(random(100, 1500))
+                                            pressBack()
+                                            wait(random(100, 1500))
+                                            find(desc("@2131953937"))?.let { postButton ->
+                                                tap(postButton)
+                                                wait(random(100, 1500))
+                                            }
+                                        }
+                                        pressBack()
                                     }
                                     endAction()
                                 },
