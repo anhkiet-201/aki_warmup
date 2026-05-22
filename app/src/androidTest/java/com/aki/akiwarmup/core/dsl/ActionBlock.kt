@@ -158,20 +158,25 @@ class ActionBuilder(sceneExecutionContext: SceneExecutionContext) {
     }
 
     /**
-     * Chọn ngẫu nhiên một trong các khối lệnh dựa trên trọng số (tổng trọng số nên là 1.0)
+     * Chọn ngẫu nhiên một trong các khối lệnh dựa trên trọng số nguyên.
+     *
+     * Thuật toán "subtract-and-check" với Int:
+     * - Lọc bỏ các nhánh có weight <= 0 trước khi xử lý.
+     * - Sinh 1 số rand duy nhất trong [0, totalWeight) bằng nextInt — không có floating-point.
+     * - Trừ dần trọng số ra khỏi rand; khi rand < 0 thì chọn nhánh đó.
+     * - Điều kiện là `< 0` (không phải `<= 0`) vì rand nguyên có thể đúng bằng 0 tại biên.
      */
-    suspend fun choose(vararg possibilities: Pair<Float, suspend ActionBuilder.() -> Unit>) {
-        val totalWeight = possibilities.sumOf { it.first.toDouble() }
-        if (totalWeight <= 0.0) return
+    suspend fun choose(vararg possibilities: Pair<Int, suspend ActionBuilder.() -> Unit>) {
+        val valid = possibilities.filter { it.first > 0 }
+        if (valid.isEmpty()) return
 
-        val rand = random.nextDouble() * totalWeight
-        var accumulated = 0.0
-        
-        for (i in possibilities.indices) {
-            val (weight, block) = possibilities[i]
-            accumulated += weight
-            if (rand < accumulated || i == possibilities.size - 1) {
-                Log.v("AkiFramework", "\tchoose: selected branch index $i (weight $weight)")
+        val totalWeight = valid.sumOf { it.first }
+        var rand = random.nextInt(totalWeight)
+
+        for ((weight, block) in valid) {
+            rand -= weight
+            if (rand < 0) {
+                Log.v("AkiFramework", "\tchoose: selected branch (weight=$weight, remaining=${rand + weight})")
                 this.block()
                 return
             }

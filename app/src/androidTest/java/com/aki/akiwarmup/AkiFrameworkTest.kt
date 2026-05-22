@@ -20,7 +20,7 @@ import org.junit.runner.RunWith
 class AkiFrameworkTest {
     @Test
     fun warmUp() = runScene {
-        val rate = AutoRate(_exitRate = 0.5f)
+        val rate = AutoRate(_swipeRate = 8, _likeRate = 2, _favoriteRate = 2)
         scene("tiktok_warmup") {
             config {
                 targetPackage = "com.ss.android.ugc.trill"
@@ -335,10 +335,10 @@ class AkiFrameworkTest {
                     find(id("com.ss.android.ugc.trill:id/dzt"))?.let {
                         if (it.text.contains("ttnhr")) {
                             choose(
-                                5f to {
+                                5 to {
                                     swipeUp()
                                 },
-                                5f to {
+                                5 to {
                                     find(id("com.ss.android.ugc.trill:id/kcz"))?.let { comment ->
                                         tap(comment)
                                         wait(random(100, 1500))
@@ -463,7 +463,7 @@ class AkiFrameworkTest {
 
     @Test
     fun seeding() = runScene {
-        val rate = AutoRate(_swipeRate = 3f, _likeRate = 2f)
+        val rate = AutoRate(_swipeRate = 3, _likeRate = 2)
         scene("tiktok_seeding") {
             config {
                 targetPackage = "com.ss.android.ugc.trill"
@@ -729,7 +729,7 @@ class AkiFrameworkTest {
                                     }
                                 },
 
-                                2f to {
+                                2 to {
                                     pressHome()
                                     rate.reset()
                                     this@scene.killApp()
@@ -1031,76 +1031,77 @@ class AkiFrameworkTest {
 }
 
 class AutoRate(
-    private val _swipeRate: Float = 4f,
-    private val _likeRate: Float = 1f,
-    private val _commentRate: Float = 1f,
-    private val _favoriteRate: Float = 1f,
-    private val _rePostRate: Float = 1f,
-    private val _copyLinkRate: Float = 1f,
-    private val _exitRate: Float = 1f
+    private val _swipeRate: Int = 4,
+    private val _likeRate: Int = 1,
+    private val _commentRate: Int = 1,
+    private val _favoriteRate: Int = 1,
+    private val _rePostRate: Int = 1,
+    private val _copyLinkRate: Int = 1,
+    private val _exitRate: Int = 1,
+    private val step: Int = 1
 ) {
 
-    private var __swipeRate: Float = _swipeRate
-    private var __likeRate: Float = _likeRate
+    private var __swipeRate: Int = _swipeRate
+    private var __likeRate: Int = _likeRate
 
-    private var __commentRate: Float = _commentRate
+    private var __commentRate: Int = _commentRate
 
-    private var __favoriteRate: Float = _favoriteRate
+    private var __favoriteRate: Int = _favoriteRate
 
-    private var __rePostRate: Float = _rePostRate
+    private var __rePostRate: Int = _rePostRate
 
-    private var __copyLinkRate: Float = _copyLinkRate
+    private var __copyLinkRate: Int = _copyLinkRate
 
-    private var __exitRate: Float = _exitRate
+    private var __exitRate: Int = _exitRate
 
-    val swipeRate: Float
+    val swipeRate: Int
         get() = __swipeRate
-    val likeRate: Float
+    val likeRate: Int
         get() = __likeRate
-    val commentRate: Float
+    val commentRate: Int
         get() = __commentRate
-    val favoriteRate: Float
+    val favoriteRate: Int
         get() = __favoriteRate
-    val rePostRate: Float
+    val rePostRate: Int
         get() = __rePostRate
-    val copyLinkRate: Float
+    val copyLinkRate: Int
         get() = __copyLinkRate
-    val exitRate: Float
+    val exitRate: Int
         get() = __exitRate
 
     fun onSwipe() {
-        if (__swipeRate < 1f) return
-        __swipeRate -= 1f
+        if (__swipeRate < step) return
+        __swipeRate -= step
     }
 
     fun onLike() {
-        if (__likeRate < 1f) return
-        __likeRate -= 1f
+        if (__likeRate < step) return
+        __likeRate -= step
     }
 
     fun onComment() {
-        if (__commentRate < 1f) return
-        __commentRate -= 1f
+        if (__commentRate < step) return
+        __commentRate -= step
     }
 
     fun onFavorite() {
-        if (__favoriteRate < 1f) return
-        __favoriteRate -= 1f
+        if (__favoriteRate < step) return
+        __favoriteRate -= step
     }
 
     fun onRePost() {
-        if (__rePostRate < 1f) return
-        __rePostRate -= 1f
+        if (__rePostRate < step) return
+        __rePostRate -= step
     }
 
     fun onCopyLink() {
-        if (__copyLinkRate < 1f) return
-        __copyLinkRate -= 1f
+        if (__copyLinkRate < step) return
+        __copyLinkRate -= step
     }
 
     fun onExit() {
-        if (__exitRate < 1f) return
-        __exitRate -= 1f
+        if (__exitRate < step) return
+        __exitRate -= step
     }
 
     fun reset() {
