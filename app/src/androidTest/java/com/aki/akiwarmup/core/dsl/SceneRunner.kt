@@ -59,6 +59,10 @@ class SceneRunner(
     fun scene(name: String, block: SceneBuilder.() -> Unit) {
         _scene = SceneBuilder(name, context).apply(block).build()
     }
+
+    fun scene(block: () -> Scene) {
+        _scene = block()
+    }
 }
 
 /**
