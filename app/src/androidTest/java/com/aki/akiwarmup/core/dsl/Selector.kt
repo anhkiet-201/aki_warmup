@@ -37,17 +37,35 @@ class SimpleSelector : Selector {
     var descendant: Selector? = null
 
     fun toBySelector(): BySelector {
-        // Khởi tạo một selector cơ bản. UI Automator yêu cầu ít nhất 1 tiêu chí.
-        // Chúng ta dùng package name hiện tại làm mặc định nếu không có gì khác.
-        val s = By.pkg(Pattern.compile(".*"))
+        // Xác định field nào được dùng để khởi tạo BySelector.
+        // Quan trọng: KHÔNG được gọi setter cho field này thêm lần nữa,
+        // UIAutomator sẽ throw IllegalStateException: "already defined".
+        val initField = when {
+            resourceId != null -> "resourceId"
+            text != null       -> "text"
+            desc != null       -> "desc"
+            className != null  -> "className"
+            else               -> "none"
+        }
 
-        resourceId?.let { s.res(it) }
-        text?.let { s.text(it) }
+        val s: BySelector = when (initField) {
+            "resourceId" -> By.res(resourceId!!)
+            "text"       -> By.text(text!!)
+            "desc"       -> By.desc(desc!!)
+            "className"  -> By.clazz(className!!)
+            else         -> By.pkg(Pattern.compile(".*"))
+        }
+
+        // Áp các tiêu chí phụ — bỏ qua field đã dùng khởi tạo
+        if (initField != "resourceId") resourceId?.let { s.res(it) }
+        if (initField != "text") {
+            text?.let { s.text(it) }
+            textMatches?.let { s.text(Pattern.compile(it)) }
+        }
         textContains?.let { s.textContains(it) }
-        textMatches?.let { s.text(Pattern.compile(it)) }
-        desc?.let { s.desc(it) }
+        if (initField != "desc") desc?.let { s.desc(it) }
         descContains?.let { s.descContains(it) }
-        className?.let { s.clazz(it) }
+        if (initField != "className") className?.let { s.clazz(it) }
         pkg?.let { s.pkg(it) }
         clickable?.let { s.clickable(it) }
         enabled?.let { s.enabled(it) }

@@ -111,20 +111,4 @@ open class SceneExecutionContext(
     }
 }
 
-class ActionExecutionContext(
-    val sceneContext: SceneExecutionContext
-) {
-    val baseContext get() = sceneContext.baseContext
-    val device get() = sceneContext.device
-    val isStopped get() = sceneContext.isStopped
-    val sceneConfig get() = sceneContext.sceneConfig
-    val instrumentation get() = sceneContext.instrumentation
-    val androidContext get() = sceneContext.androidContext
-    val humanBehaviorEngine get() = sceneContext.humanBehaviorEngine
-    val stopSignal get() = sceneContext.stopSignal
-    val args get() = baseContext.args
-    
-    fun stop(reason: String = "", resultCode: Int = 0) {
-        sceneContext.stop(reason, resultCode)
-    }
-}
+

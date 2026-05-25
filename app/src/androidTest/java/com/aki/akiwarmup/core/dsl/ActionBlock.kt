@@ -13,8 +13,7 @@ enum class ScrollDirection {
     Left,
     Right
 }
-class ActionBuilder(sceneExecutionContext: SceneExecutionContext) {
-    val context = ActionExecutionContext(sceneExecutionContext)
+class ActionBuilder(val context: SceneExecutionContext) {
     private val humanEngine = context.humanBehaviorEngine
     private val device = context.device
     private val random = Random()
@@ -137,9 +136,12 @@ class ActionBuilder(sceneExecutionContext: SceneExecutionContext) {
         }
     }
 
-    suspend fun sometimes(chance: Float, block: suspend () -> Unit) {
-        Log.d("AkiFramework", "[Action] sometimes(chance=$chance)")
-        if (random.nextFloat() < chance) {
+    /**
+     * Thực thi [block] với xác suất [chancePercent]% (0..100).
+     */
+    suspend fun sometimes(chancePercent: Int, block: suspend () -> Unit) {
+        require(chancePercent in 0..100) { "chancePercent must be in [0, 100], got $chancePercent" }
+        if (random.nextInt(100) < chancePercent) {
             block()
         }
     }
@@ -218,7 +220,8 @@ class ActionBuilder(sceneExecutionContext: SceneExecutionContext) {
     fun random(min: Int = 1, max: Int): Int = if (max > min) random.nextInt(max - min + 1) + min else min
 
     /**
-     * Lấy số ngẫu nhiên Long trong khoảng [min] đến [max]
+     * Lấy số ngẫu nhiên Long trong khoảng [min] đến [max].
      */
-    fun random(min: Long = 1L, max: Long): Long = if (max > min) min + (random.nextLong().run { if (this < 0) -this else this } % (max - min + 1)) else min
+    fun random(min: Long = 1L, max: Long): Long =
+        if (max > min) (min..max).random() else min
 }

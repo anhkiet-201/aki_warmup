@@ -2,8 +2,8 @@ package com.aki.akiwarmup.core.dsl
 
 import com.aki.akiwarmup.core.human.HumanBehaviorEngine
 import com.aki.akiwarmup.core.logger.SessionLogger
-import com.aki.akiwarmup.core.loop.ActionLoop
-import com.aki.akiwarmup.core.screen.ScreenDetector
+import com.aki.akiwarmup.core.engine.ActionLoop
+import com.aki.akiwarmup.core.engine.ScreenDetector
 import kotlinx.coroutines.runBlocking
 
 /**
