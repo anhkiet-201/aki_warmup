@@ -15,6 +15,9 @@ import com.aki.akiwarmup.core.dsl.text
 import com.aki.akiwarmup.random.generateComment
 import com.aki.akiwarmup.tiktok.model.AutoRate
 import com.aki.akiwarmup.tiktok.model.RateType
+import com.aki.akiwarmup.tiktok.screen.TiktokDesc
+import com.aki.akiwarmup.tiktok.screen.TiktokId
+import com.aki.akiwarmup.tiktok.screen.TiktokText
 
 typealias Action = suspend ActionBuilder.() -> Unit
 
@@ -71,7 +74,7 @@ fun watchVideo(
 ) = defineAction(id, context) {
     var loopCount = 1
     loop {
-        on(id("com.ss.android.ugc.trill:id/desc")) { desc ->
+        on(id(TiktokId.VIDEO_DESC)) { desc ->
             // Cache text một lần duy nhất — UiObject2.text là IPC call tốn kém,
             // tránh gọi lặp lại trong captionKeyword.none{} và nhánh COMMENT.
             val descText = desc?.text
@@ -85,7 +88,7 @@ fun watchVideo(
                     wait(random(3000, 30000 / loopCount))
                 }
             }
-            on(text("Quảng bá đề xuất")) {
+            on(text(TiktokText.RECOMMENDED_PROMOTION)) {
                 if (it != null) {
                     swipeUp()
                     endAction()
@@ -98,7 +101,7 @@ fun watchVideo(
                     swipeUp()
                 },
                 rate[RateType.LIKE] to {
-                    find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
+                    find(id(TiktokId.LIKE_BUTTON))?.let {
                         rate.consume(RateType.LIKE)
                         if (!it.isSelected) {
                             tap(it)
@@ -107,7 +110,7 @@ fun watchVideo(
                     }
                 },
                 rate[RateType.FAVORITE] to {
-                    find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
+                    find(id(TiktokId.FAVORITE_BUTTON))?.let {
                         rate.consume(RateType.FAVORITE)
                         if (!it.isSelected) {
                             tap(it)
@@ -118,18 +121,18 @@ fun watchVideo(
                 rate[RateType.COMMENT] to {
                     rate.consume(RateType.COMMENT)
                     if (descText?.contains("#ttnhr") == true) {
-                        find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButton ->
+                        find(id(TiktokId.COMMENT_BUTTON))?.let { commentButton ->
                             tap(commentButton)
                             wait(random(100, 1500))
                             sometimes(20) {
                                 swipeUp()
                             }
-                            find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
+                            find(id(TiktokId.COMMENT_INPUT))?.let { textField ->
                                 humanType(textField, generateComment(enableTypos = true))
                                 wait(random(100, 1500))
                                 pressBack()
                                 wait(random(100, 1500))
-                                find(desc("@2131953937"))?.let { postButton ->
+                                find(desc(TiktokDesc.POST_COMMENT_BUTTON))?.let { postButton ->
                                     tap(postButton)
                                     wait(random(100, 1500))
                                 }
@@ -140,11 +143,11 @@ fun watchVideo(
                     endAction()
                 },
                 rate[RateType.RE_POST] to {
-                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                    find(id(TiktokId.SHARE_BUTTON))?.let {
                         rate.consume(RateType.RE_POST)
                         tap(it)
                         wait(random(1000, 1500))
-                        find(text("Đăng lại")).let { repost ->
+                        find(text(TiktokText.REPOST)).let { repost ->
                             if (repost == null) {
                                 pressBack()
                             } else {
@@ -156,11 +159,11 @@ fun watchVideo(
                     }
                 },
                 rate[RateType.COPY_LINK] to {
-                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+                    find(id(TiktokId.SHARE_BUTTON))?.let {
                         rate.consume(RateType.COPY_LINK)
                         tap(it)
                         wait(random(1000, 1500))
-                        find(text("Sao chép Liên kết"))?.let { repost ->
+                        find(text(TiktokText.COPY_LINK))?.let { repost ->
                             tap(repost)
                             wait(random(1000, 1500))
                         }
@@ -183,13 +186,13 @@ fun watchVideo(
  */
 fun typeSearchKeyword(context: SceneExecutionContext, keyword: String) =
     defineAction("Typing keyword", context) {
-        find(id("com.ss.android.ugc.trill:id/gz8"))?.let {
+        find(id(TiktokId.SEARCH_BAR))?.let {
             tap(it)
             wait(500)
             humanType(it, keyword)
             wait(200)
         }
-        find(id("com.ss.android.ugc.trill:id/trq"))?.let {
+        find(id(TiktokId.SEARCH_BUTTON))?.let {
             tap(it)
             wait(1000)
         }
@@ -200,7 +203,7 @@ fun typeSearchKeyword(context: SceneExecutionContext, keyword: String) =
  * Mở tab **Video** và chọn ngẫu nhiên video để phát.
  */
 fun selectVideoAfterSearch(context: SceneExecutionContext) = defineAction("Select Video", context) {
-    find(text("Video"))?.let {
+    find(text(TiktokText.VIDEO_TAB))?.let {
         tap(it)
         if (!it.isSelected) {
             endAction()
@@ -209,7 +212,7 @@ fun selectVideoAfterSearch(context: SceneExecutionContext) = defineAction("Selec
     sometimes(20) {
         swipeUp()
     }
-    find(id("com.ss.android.ugc.trill:id/m_7"))?.findObjects(clazz("android.view.View").toBySelector())
+    find(id(TiktokId.SEARCH_RESULT_LIST))?.findObjects(clazz("android.view.View").toBySelector())
         .run {
             this?.take(4)?.let {
                 tap(it.random())
@@ -224,10 +227,10 @@ fun selectVideoAfterSearch(context: SceneExecutionContext) = defineAction("Selec
  */
 fun onUnknowViewAction(context: SceneExecutionContext) =
     defineAction("Unknown View Action", context) {
-        find(text("Đã hiểu"))?.let {
+        find(text(TiktokText.UNDERSTOOD))?.let {
             tap(it)
         }
-        find(text("Không cho phép"))?.let {
+        find(text(TiktokText.NOT_ALLOWED))?.let {
             tap(it)
         }
         endAction()
@@ -238,7 +241,7 @@ fun onUnknowViewAction(context: SceneExecutionContext) =
  */
 fun onTiktokSharePostAction(context: SceneExecutionContext) =
     defineAction("Tiktok Share Post Action", context) {
-        find(text("Video"))?.let {
+        find(text(TiktokText.VIDEO_TAB))?.let {
             tap(it)
             wait(random(3000, 5000))
             endAction()
@@ -251,14 +254,14 @@ fun onTiktokSharePostAction(context: SceneExecutionContext) =
  * Nếu đã có nhạc thì nhấn **Tiếp**.
  */
 fun tapToAddMusic(context: SceneExecutionContext) = defineAction("Tap To Add Music", context) {
-    find(id("com.ss.android.ugc.trill:id/zo6"))?.let {
-        if (it.text == "Thêm âm thanh") {
+    find(id(TiktokId.ADD_SOUND_TEXT))?.let {
+        if (it.text == TiktokText.ADD_SOUND) {
             tap(it)
             wait(5000)
             endAction()
         }
     }
-    find(id("com.ss.android.ugc.trill:id/ond"))?.let {
+    find(id(TiktokId.NEXT_BUTTON))?.let {
         tap(it)
         wait(random(3000, 5000))
     }
@@ -271,7 +274,7 @@ fun tapToAddMusic(context: SceneExecutionContext) = defineAction("Tap To Add Mus
  */
 fun tapToUpload(context: SceneExecutionContext, action: Action) =
     defineAction("Tap To Upload", context) {
-        tap(find(text("Đăng")))
+        tap(find(text(TiktokText.POST)))
         action()
         endAction()
     }
@@ -281,7 +284,7 @@ fun tapToUpload(context: SceneExecutionContext, action: Action) =
  */
 fun selectRandomMusic(context: SceneExecutionContext) =
     defineAction("Select random music", context) {
-        find(id("com.ss.android.ugc.trill:id/t96"))?.findObjects(clazz("android.widget.LinearLayout").toBySelector())
+        find(id(TiktokId.MUSIC_LIST))?.findObjects(clazz("android.widget.LinearLayout").toBySelector())
             .run {
                 tap(this?.random())
                 wait(random(3000, 5000))
@@ -295,10 +298,10 @@ fun selectRandomMusic(context: SceneExecutionContext) =
  */
 fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", context) {
     val caption = context.args.getString("caption")!!
-    find(id("com.ss.android.ugc.trill:id/gfw"))?.let {
+    find(id(TiktokId.CAPTION_INPUT))?.let {
         humanType(it, "$caption ")
         wait(random(3000, 5000))
-        find(text("Đăng"))?.let { post ->
+        find(text(TiktokText.POST))?.let { post ->
             tap(post)
             wait(random(20000, 40000))
             pressHome()
@@ -316,14 +319,14 @@ fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", c
 fun selectUser(
     context: SceneExecutionContext, username: String, onNoUser: Action
 ) = defineAction("Select User", context) {
-    find(text("Người dùng"))?.let {
+    find(text(TiktokText.USER_TAB))?.let {
         tap(it)
         wait(random(3000, 5000))
         if (!it.isSelected) {
             endAction()
         }
     }
-    findAll(id("com.ss.android.ugc.trill:id/yi8")).findLast { it.text.trim() == username.trim() }
+    findAll(id(TiktokId.SEARCH_USERNAME)).findLast { it.text.trim() == username.trim() }
         .let {
             if (it == null) {
                 onNoUser()
@@ -345,7 +348,7 @@ fun onChooseVideo(
     onNoVideos: Action,
     action: suspend ActionBuilder.(List<UiObject2>) -> Unit
 ) = defineAction("Choose Video", context) {
-    find(id("com.ss.android.ugc.trill:id/hdm"))?.findObjects(id("com.ss.android.ugc.trill:id/z9y").toBySelector())
+    find(id(TiktokId.PROFILE_VIDEO_GRID))?.findObjects(id(TiktokId.PROFILE_VIDEO_ITEM).toBySelector())
         .let {
             if (it?.isEmpty() != false) {
                 onNoVideos()
@@ -362,7 +365,7 @@ fun onChooseVideo(
 fun openVideoMenu(
     context: SceneExecutionContext
 ) = defineAction("Open Video Menu", context) {
-    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
+    find(id(TiktokId.SHARE_BUTTON))?.let {
         tap(it)
         wait(random(1000, 1500))
     }
@@ -375,9 +378,9 @@ fun openVideoMenu(
 fun swipeToChooseDelete(
     context: SceneExecutionContext
 ) = defineAction("Swipe to choose delete", context) {
-    find(id("com.ss.android.ugc.trill:id/vv"))?.scroll(Direction.RIGHT, 0.8f)
+    find(id(TiktokId.SHARE_OPTIONS_LIST))?.scroll(Direction.RIGHT, 0.8f)
     wait(random(1000, 1500))
-    find(text("Xóa"))?.let {
+    find(text(TiktokText.DELETE))?.let {
         tap(it)
         wait(random(1000, 1500))
     }
@@ -390,7 +393,7 @@ fun swipeToChooseDelete(
 fun tapDeleteAndRepost(
     context: SceneExecutionContext
 ) = defineAction("Delete and repost", context) {
-    find(id("com.ss.android.ugc.trill:id/sbo")).let {
+    find(id(TiktokId.DELETE_AND_REPOST_BUTTON)).let {
         if (it != null) {
             tap(it)
         }
@@ -406,7 +409,7 @@ fun tapDeleteInRepostPopup(
     context: SceneExecutionContext,
     action: Action
 ) = defineAction("Delete in repost popup", context) {
-    find(id("com.ss.android.ugc.trill:id/f9z"))?.let {
+    find(id(TiktokId.DELETE_IN_REPOST_POPUP))?.let {
         tap(it)
         action()
     }
@@ -420,7 +423,7 @@ fun tapDeleteVideo(
     context: SceneExecutionContext,
     action: Action
 ) = defineAction("Delete post", context) {
-    find(id("com.ss.android.ugc.trill:id/wk"))?.let { deleteButton ->
+    find(id(TiktokId.CONFIRM_DELETE_BUTTON))?.let { deleteButton ->
         tap(deleteButton)
         wait(random(2000, 5000))
         action()
