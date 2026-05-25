@@ -15,6 +15,7 @@ import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.runScene
 import com.aki.akiwarmup.core.dsl.text
 import com.aki.akiwarmup.core.dsl.textContains
+import com.aki.akiwarmup.onChooseVideo
 import com.aki.akiwarmup.random.generateComment
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,286 +36,54 @@ class AkiFrameworkTest {
 
                 launchApp()
 
-                this.screen {
+                screen {
                     onHome(context) {
-                        onWatchVideoAction(context, AutoRate(_swipeRate = 8, _likeRate = 2, _favoriteRate = 2)) {
-                            find("com.ss.android.ugc.trill:id/jb1")?.let {
-                                tap(it)
-                                wait(300)
+                        action {
+                            watchVideo(context, AutoRate(_swipeRate = 8, _likeRate = 2, _favoriteRate = 2)) {
+                                find("com.ss.android.ugc.trill:id/jb1")?.let {
+                                    tap(it)
+                                    wait(300)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                screen {
+                    onSearch(context) {
+                        action {
+                            typeSearchKeyword(context, keyWorlds.random())
+                        }
+                    }
+                }
+
+                screen {
+                    onSearchResult(context) {
+                        action {
+                            selectVideoAfterSearch(context)
+                        }
+                    }
+                }
+
+                screen {
+                    onVideoView(context) {
+                        action {
+                            watchVideo(context, AutoRate(_swipeRate = 8, _likeRate = 2, _favoriteRate = 2)) {
+                                pressHome()
+                                this@tiktokSceneDefine.killApp()
                             }
                         }
                     }
                 }
-            }
-        }
 
-        scene("tiktok_warmup") {
-            config {
-                targetPackage = "com.ss.android.ugc.trill"
-                onUnknownScreen = UnknownScreenPolicy.PRESS_BACK
-                recoveryTimeoutMs = 15000L
-            }
-
-            val keyWorlds = listOf(
-                "ttnhr",
-                "việc làm bình dương",
-                "việc làm thời vụ bình dương",
-                "tìm việc vsip 2a",
-                "việc làm ở mỹ phước",
-                "tìm việc ttnhr",
-                "việc làm nam tân uyên",
-                "việc làm kcn sóng thần 3",
-                "việc làm ở kcn vsip 2a",
-                "việc làm mỹ phước tuyển dụng",
-                "việc làm mỹ phước ttnhr",
-                "tìm việc làm bến cát",
-                "việc làm kcn đồng an 2",
-                "việc làm vĩnh tân bình dương",
-                "tìm việc làm ở tân uyên",
-                "việc làm thời vụ st 3",
-                "tuyển dụng ttnhr",
-                "việc làm bình dương ttnhr"
-            )
-
-            handleUnknowScreen {
-                Log.i("AkiFramework", "${context.restartCount}")
-                if(this.context.restartCount > 3) {
-                    this.context.stop("lỖI APP")
-                }
-            }
-
-            launchApp()
-
-            screen {
-                onHome(context) {
-                    onWatchVideoAction(context) {
-                        find("com.ss.android.ugc.trill:id/jb1")?.let {
-                            tap(it)
-                            wait(300)
+                screen {
+                    onUnknowView(context) {
+                        action {
+                            onUnknowViewAction(context)
                         }
                     }
                 }
             }
-
-//            screen("Home") {
-//                detect {
-//                    all(
-//                        text("Trang chủ"),
-//                        id("com.ss.android.ugc.trill:id/user_avatar")
-//                    )
-//                }
-//
-//                action {
-//                    onWatchVideoAction(context) {
-//                        find("com.ss.android.ugc.trill:id/jb1")?.let {
-//                            tap(it)
-//                            wait(300)
-//                        }
-//                    }
-//                }
-//
-//            }
-
-            screen("Search Screen") {
-                detect {
-                    has( id("com.ss.android.ugc.trill:id/gz8") and text("Tìm kiếm"))
-                }
-                action("Nhập từ khóa mặc định") {
-                    find(id("com.ss.android.ugc.trill:id/gz8"))?.let {
-                        tap(it)
-                        wait(500)
-                        val keyword = context.args.getString("keyword")
-                        humanType(it, keyword ?: keyWorlds.random())
-                        wait(200)
-                    }
-                    find(id("com.ss.android.ugc.trill:id/trq"))?.let {
-                        tap(it)
-                        wait(1000)
-                        endAction()
-                    }
-                }
-            }
-
-            screen("Search Result") {
-                detect { has(id("com.ss.android.ugc.trill:id/viewpager_search")) }
-                action("sd") {
-                    find(text("Video"))?.let {
-                        tap(it)
-                        if (!it.isSelected) {
-                            endAction()
-                        }
-                    }
-                    sometimes(0.2f) {
-                        swipeUp()
-                    }
-                    find(id("com.ss.android.ugc.trill:id/m_7"))?.findObjects(clazz("android.view.View").toBySelector()).run {
-                        this?.take(4)?.let {
-                            tap(it.random())
-                            wait(3000)
-                            endAction()
-                        }
-                    }
-                }
-            }
-
-            screen("Video Search") {
-                detect { has(text("Tìm kiếm") and id("com.ss.android.ugc.trill:id/user_avatar")) }
-
-                action("Lướt xem Video Search") {
-                    loop {
-                        on(id("com.ss.android.ugc.trill:id/desc")) { desc ->
-                            desc?.let { element ->
-                                Log.i("AkiFramework", "Desc: ${element.text}")
-                                if (captionKeyword.none { element.text.contains(it) }) {
-                                    rate.swipeBias()
-                                }
-                            }
-                            wait(random(1000, 20000))
-                            choose(
-                                rate.swipeRate to {
-                                    rate.reset()
-                                    swipeUp()
-                                },
-                                rate.likeRate to {
-                                    find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                        rate.onLike()
-                                        if (!it.isSelected) {
-                                            tap(it)
-                                            wait(random(min = 1000, max = 3000))
-                                        }
-                                    }
-                                },
-                                rate.favoriteRate to {
-                                    find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                        rate.onFavorite()
-                                        if (!it.isSelected) {
-                                            tap(it)
-                                            wait(random(min = 1000, max = 3000))
-                                        }
-                                    }
-                                },
-                                rate.commentRate to {
-                                    rate.onComment()
-                                    if (!(desc?.text?.contains("ttnhr") ?: false)) {
-                                        endAction()
-                                    }
-                                    find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
-                                        tap(commentButon)
-                                        wait(random(100, 1500))
-                                        sometimes(5f) {
-                                            swipeUp()
-                                        }
-                                        find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                            humanType(textField, generateComment(enableTypos = true))
-                                            wait(random(100, 1500))
-                                            pressBack()
-                                            wait(random(100, 1500))
-                                            find(desc("@2131953937"))?.let { postButton ->
-                                                tap(postButton)
-                                                wait(random(100, 1500))
-                                            }
-                                        }
-                                        pressBack()
-                                    }
-                                    endAction()
-                                },
-
-                                rate.rePostRate to {
-                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                        rate.onRePost()
-                                        tap(it)
-                                        wait(random(1000, 1500))
-                                        find(text("Đăng lại")).let { repost ->
-                                            if (repost == null) {
-                                                pressBack()
-                                            } else {
-                                                tap(repost)
-                                                wait(random(1000, 1500))
-                                            }
-                                        }
-                                        endAction()
-                                    }
-                                },
-
-                                rate.copyLinkRate to {
-                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                        rate.onCopyLink()
-                                        tap(it)
-                                        wait(random(1000, 1500))
-                                        find(text("Sao chép Liên kết"))?.let { repost ->
-                                            tap(repost)
-                                            wait(random(1000, 1500))
-                                        }
-                                        endAction()
-                                    }
-                                },
-
-                                rate.exitRate to {
-                                    pressHome()
-                                    rate.reset()
-                                    this@scene.killApp()
-                                    stop()
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
-            screen("Unknow") {
-                detect {
-                    any(text("Đã hiểu"), text("Không cho phép"))
-                }
-
-                action("Click") {
-                    find(text("Đã hiểu"))?.let {
-                        tap(it)
-                    }
-                    find(text("Không cho phép"))?.let {
-                        tap(it)
-                    }
-                }
-            }
-
-            screen("expand comment") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/dzt"))
-                }
-
-                action("comment") {
-                    find(id("com.ss.android.ugc.trill:id/dzt"))?.let {
-                        if (it.text.contains("ttnhr")) {
-                            choose(
-                                5 to {
-                                    swipeUp()
-                                },
-                                5 to {
-                                    find(id("com.ss.android.ugc.trill:id/kcz"))?.let { comment ->
-                                        tap(comment)
-                                        wait(random(100, 1500))
-                                    }
-                                    find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                        humanType(textField, generateComment(enableTypos = true))
-                                        wait(random(100, 1500))
-                                        pressBack()
-                                        wait(random(100, 1500))
-                                        find(desc("@2131953937"))?.let { postButton ->
-                                            tap(postButton)
-                                            wait(random(100, 1500))
-                                        }
-                                        pressBack()
-                                        endAction()
-                                    }
-                                }
-                            )
-                        } else {
-                            pressBack()
-                            endAction()
-                        }
-                    }
-                }
-            }
-
         }
 
         loop {
@@ -324,88 +93,49 @@ class AkiFrameworkTest {
 
     @Test
     fun autoPost() = runScene {
-        scene("Auto Post") {
-            config {
-                targetPackage = "com.ss.android.ugc.trill"
-                onUnknownScreen = UnknownScreenPolicy.PRESS_BACK
-                recoveryTimeoutMs = 15000L
-            }
 
-            handleUnknowScreen {
-                if(this.context.consecutiveUnknownScreens > 8) {
-                    context.stop("Failure", -2)
-                }
-            }
-
-            screen("Share on tiktok") {
-                detect {
-                    has(text("Chia sẻ lên TikTok"))
-                }
-               action("Click Video") {
-                   find(text("Video"))?.let {
-                       tap(it)
-                       wait(random(3000, 5000))
-                       endAction()
-                   }
-               }
-            }
-
-            screen("Video Edit") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/zo6"))
+        scene {
+            tiktokSceneDefine("Auto Post", context) {
+                handleUnknowScreen {
+                    if(this.context.consecutiveUnknownScreens > 8) {
+                        context.stop("Failure", -2)
+                    }
                 }
 
-                action("Select Music") {
-                    find(id("com.ss.android.ugc.trill:id/zo6"))?.let {
-                        if (it.text == "Thêm âm thanh") {
-                            tap(it)
-                            wait(5000)
-                            endAction()
+                screen {
+                    onTiktokSharePost(context) {
+                        action {
+                            onTiktokSharePostAction(context)
                         }
                     }
-                    find(id("com.ss.android.ugc.trill:id/ond"))?.let {
-                        tap(it)
-                        wait(random(3000, 5000))
-                    }
-                    endAction()
-                }
-            }
-
-            screen("Select Music") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/t96"))
                 }
 
-                action("Choose Music") {
-                    find(id("com.ss.android.ugc.trill:id/t96"))?.findObjects(clazz("android.widget.LinearLayout").toBySelector()).run {
-                        tap(this?.random())
-                        wait(random(3000, 5000))
-                        pressBack()
-                        endAction()
+                screen {
+                    onVideoPreview(context) {
+                        action {
+                            tapToAddMusic(context)
+                        }
                     }
                 }
-            }
 
-            screen("Type Caption") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/gfw"))
+                screen {
+                    onSelectMusicSheet(context) {
+                        action {
+                            selectRandomMusic(context)
+                        }
+                    }
                 }
 
-                action("Post") {
-                    val caption = context.args.getString("caption")!!
-                    find(id("com.ss.android.ugc.trill:id/gfw"))?.let {
-                        humanType(it, "$caption ")
-                        wait(random(3000,5000))
-                        find(text("Đăng"))?.let { post ->
-                            tap(post)
-                            wait(random(20000, 40000))
-                            pressHome()
-                            stop()
+                screen {
+                    onAddInfoView(context) {
+                        action {
+                            typeCaption(context)
                         }
                     }
                 }
             }
         }
+
         loop {
 
         }
@@ -414,308 +144,87 @@ class AkiFrameworkTest {
     @Test
     fun seeding() = runScene {
         val rate = AutoRate(_swipeRate = 5, _likeRate = 3, _favoriteRate = 3, _commentRate = 2)
-        scene("tiktok_seeding") {
-            config {
-                targetPackage = "com.ss.android.ugc.trill"
-                onUnknownScreen = UnknownScreenPolicy.PRESS_BACK
-                recoveryTimeoutMs = 15000L
-            }
 
-            handleUnknowScreen {
-                Log.i("AkiFramework", "${context.consecutiveUnknownScreens}")
-                if(this.context.consecutiveUnknownScreens > 8) {
-                    context.device.pressHome()
-                    this.context.stop("lỖI APP")
+        scene {
+            tiktokSceneDefine("Seeding", context) {
+                handleUnknowScreen {
+                    Log.i("AkiFramework", "${context.consecutiveUnknownScreens}")
+                    if(this.context.consecutiveUnknownScreens > 8) {
+                        context.device.pressHome()
+                        this.context.stop("lỖI APP")
+                    }
                 }
-            }
 
-            launchApp()
-            val keyword = context.args.getString("keyword")
-            if (keyword == null) {
-                context.stop("Wrong Keyword")
-            }
-            screen("Home") {
-                detect {
-                    all(
-                        text("Trang chủ"),
-                        id("com.ss.android.ugc.trill:id/user_avatar")
-                    )
+                val keyword = context.args.getString("keyword")
+                if (keyword == null) {
+                    context.stop("Wrong Keyword")
                 }
-                action("Lướt xem") {
-                    loop {
-                        on(text("Quảng bá đề xuất")) {
-                            if (it != null) {
-                                swipeUp()
-                                endAction()
-                            }
-                        }
-                        on(id("com.ss.android.ugc.trill:id/desc")) { desc ->
-                            desc?.let { element ->
-                                Log.i("AkiFramework", "Desc: ${element.text}")
-                                if (captionKeyword.none { element.text.contains(it) }) {
-                                    rate.swipeBias()
+
+                launchApp()
+
+                screen {
+                    onHome(context) {
+                        action {
+                            watchVideo(context, rate) {
+                                find("com.ss.android.ugc.trill:id/jb1")?.let {
+                                    tap(it)
+                                    wait(300)
                                 }
                             }
-                            wait(random(500, 20000))
-                            choose(
-                                rate.swipeRate to {
-                                    rate.reset()
-                                    swipeUp()
-                                },
-                                rate.likeRate to {
-                                    find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                        rate.onLike()
-                                        if (!it.isSelected) {
-                                            tap(it)
-                                            wait(random(min = 1000, max = 3000))
-                                        }
-                                    }
-                                },
-                                rate.favoriteRate to {
-                                    find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                        rate.onFavorite()
-                                        if (!it.isSelected) {
-                                            tap(it)
-                                            wait(random(min = 1000, max = 3000))
-                                        }
-                                    }
-                                },
-                                rate.commentRate to {
-                                    rate.onComment()
-                                    if (desc?.text?.contains("#ttnhr") ?: false) {
-                                        find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
-                                            tap(commentButon)
-                                            wait(random(100, 1500))
-                                            sometimes(5f) {
-                                                swipeUp()
-                                            }
-                                            find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                                humanType(textField, generateComment(enableTypos = true))
-                                                wait(random(100, 1500))
-                                                pressBack()
-                                                wait(random(100, 1500))
-                                                find(desc("@2131953937"))?.let { postButton ->
-                                                    tap(postButton)
-                                                    wait(random(100, 1500))
-                                                }
-                                            }
-                                            pressBack()
-                                        }
-                                    }
-                                    endAction()
-                                },
-                                rate.rePostRate to {
-                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                        rate.onRePost()
-                                        tap(it)
-                                        wait(random(1000, 1500))
-                                        find(text("Đăng lại")).let { repost ->
-                                            if (repost == null) {
-                                                pressBack()
-                                            } else {
-                                                tap(repost)
-                                                wait(random(1000, 1500))
-                                            }
-                                        }
-                                        endAction()
-                                    }
-                                },
-                                rate.copyLinkRate to {
-                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                        rate.onCopyLink()
-                                        tap(it)
-                                        wait(random(1000, 1500))
-                                        find(text("Sao chép Liên kết"))?.let { repost ->
-                                            tap(repost)
-                                            wait(random(1000, 1500))
-                                        }
-                                        endAction()
-                                    }
-                                },
-                                rate.exitRate to {
-                                    find("com.ss.android.ugc.trill:id/jb1")?.let {
-                                        tap(it)
-                                        rate.reset()
-                                        wait(300)
-                                        endAction()
-                                    }
-                                }
-                            )
                         }
                     }
                 }
-            }
 
-            screen("Search Screen") {
-                detect {
-                    has( id("com.ss.android.ugc.trill:id/gz8") and text("Tìm kiếm"))
-                }
-                action("Nhập từ khóa mặc định") {
-                    find(id("com.ss.android.ugc.trill:id/gz8"))?.let {
-                        tap(it)
-                        wait(500)
-                        humanType(it, keyword!!)
-                        wait(200)
-                    }
-                    find(id("com.ss.android.ugc.trill:id/trq"))?.let {
-                        tap(it)
-                        wait(1000)
-                        endAction()
-                    }
-                }
-            }
-
-            screen("Profile") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/hdm"))
-                }
-
-                action("Choose Video") {
-                    find(id("com.ss.android.ugc.trill:id/hdm"))?.findObjects(id("com.ss.android.ugc.trill:id/efq").toBySelector()).let {
-                        if (it?.isEmpty() ?: true) {
-                            stop("No Videos")
-                        }
-                        tap(it?.first())
-                    }
-                    endAction()
-                }
-            }
-
-            screen("Search Result") {
-                detect { has(id("com.ss.android.ugc.trill:id/viewpager_search")) }
-                action("Chọn tap người dùng") {
-                    find(text("Người dùng"))?.let {
-                        tap(it)
-                        wait(random(3000, 5000))
-                        if (!it.isSelected) {
-                            endAction()
+                screen {
+                    onSearch(context) {
+                        action {
+                            typeSearchKeyword(context, keyword!!)
                         }
                     }
-                    findAll(id("com.ss.android.ugc.trill:id/yi8")).findLast { it.text.trim() == keyword!!.trim() }.let {
-                        if (it == null) {
-                            pressHome()
-                            stop("Không tìm thấy User")
-                        } else {
-                            tap(it)
-                            wait(random(1000, 3000))
-                        }
-                    }
-                    endAction()
                 }
-            }
 
-            screen("Video Search") {
-                detect { has(text("Tìm kiếm") and id("com.ss.android.ugc.trill:id/user_avatar")) }
-
-                action("Lướt xem Video Search") {
-                    loop {
-                        on(id("com.ss.android.ugc.trill:id/desc")) { desc ->
-                            desc?.let { element ->
-                                Log.i("AkiFramework", "Desc: ${element.text}")
-                                if (captionKeyword.none { element.text.contains(it) }) {
-                                    rate.swipeBias()
-                                }
+                screen {
+                    onProfile(context) {
+                        action {
+                            onChooseVideo(context, {
+                                stop("No Videos")
+                            }) { videos ->
+                                tap(videos.first())
                             }
-                            wait(random(1000, 20000))
-                            choose(
-                                rate.swipeRate to {
-                                    rate.reset()
-                                    swipeUp()
-                                },
-                                rate.likeRate to {
-                                    find(id("com.ss.android.ugc.trill:id/fhc"))?.let {
-                                        rate.onLike()
-                                        if (!it.isSelected) {
-                                            tap(it)
-                                            wait(random(min = 1000, max = 3000))
-                                        }
-                                    }
-                                },
-                                rate.favoriteRate to {
-                                    find(id("com.ss.android.ugc.trill:id/h_9"))?.let {
-                                        rate.onFavorite()
-                                        if (!it.isSelected) {
-                                            tap(it)
-                                            wait(random(min = 1000, max = 3000))
-                                        }
-                                    }
-                                },
-                                rate.commentRate to {
-                                    rate.onComment()
-                                    find(id("com.ss.android.ugc.trill:id/e0m"))?.let { commentButon ->
-                                        tap(commentButon)
-                                        wait(random(100, 1500))
-                                        sometimes(5f) {
-                                            swipeUp()
-                                        }
-                                        find(id("com.ss.android.ugc.trill:id/e02"))?.let { textField ->
-                                            humanType(textField, generateComment(enableTypos = true))
-                                            wait(random(100, 1500))
-                                            pressBack()
-                                            wait(random(100, 1500))
-                                            find(desc("@2131953937"))?.let { postButton ->
-                                                tap(postButton)
-                                                wait(random(100, 1500))
-                                            }
-                                        }
-                                        pressBack()
-                                    }
-                                    endAction()
-                                },
-                                rate.rePostRate to {
-                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                        rate.onRePost()
-                                        tap(it)
-                                        wait(random(1000, 1500))
-                                        find(text("Đăng lại")).let { repost ->
-                                            if (repost == null) {
-                                                pressBack()
-                                            } else {
-                                                tap(repost)
-                                                wait(random(1000, 1500))
-                                            }
-                                        }
-                                        endAction()
-                                    }
-                                },
-                                rate.copyLinkRate to {
-                                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                                        rate.onCopyLink()
-                                        tap(it)
-                                        wait(random(1000, 1500))
-                                        find(text("Sao chép Liên kết"))?.let { repost ->
-                                            tap(repost)
-                                            wait(random(1000, 1500))
-                                        }
-                                        endAction()
-                                    }
-                                },
-
-                                rate.exitRate to {
-                                    pressHome()
-                                    rate.reset()
-                                    this@scene.killApp()
-                                    stop()
-                                }
-                            )
                         }
                     }
                 }
-            }
 
-            screen("Unknow") {
-                detect {
-                    any(text("Đã hiểu"), text("Không cho phép"))
-                }
-
-                action("Click") {
-                    find(text("Đã hiểu"))?.let {
-                        tap(it)
-                    }
-                    find(text("Không cho phép"))?.let {
-                        tap(it)
+                screen {
+                    onSearchResult(context) {
+                        action {
+                            selectUser(context, keyword!!) {
+                                pressHome()
+                                stop("Không tìm thấy User")
+                            }
+                        }
                     }
                 }
+
+                screen {
+                    onVideoView(context) {
+                        action {
+                            watchVideo(context, rate) {
+                                pressHome()
+                                stop("Hoàn thành seeding: $keyword")
+                            }
+                        }
+                    }
+                }
+
+                screen {
+                    onUnknowView(context) {
+                        action {
+                            onUnknowViewAction(context)
+                        }
+                    }
+                }
+
             }
         }
 
@@ -726,138 +235,96 @@ class AkiFrameworkTest {
 
     @Test
     fun rePost() = runScene {
-        scene("tiktok_rePost") {
-            config {
-                targetPackage = "com.ss.android.ugc.trill"
-                onUnknownScreen = UnknownScreenPolicy.PRESS_BACK
-                recoveryTimeoutMs = 15000L
-            }
 
-            handleUnknowScreen {
-                if(this.context.consecutiveUnknownScreens > 8) {
-                    context.stop("Failure", -2)
-                }
-            }
-
-
-            screen("Profile") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/hdm"))
+        scene {
+            tiktokSceneDefine("Tiktok repost", context) {
+                handleUnknowScreen {
+                    if(this.context.consecutiveUnknownScreens > 8) {
+                        context.stop("Failure", -2)
+                    }
                 }
 
-                action("Choose Video") {
-                    find(id("com.ss.android.ugc.trill:id/hdm"))?.findObjects(id("com.ss.android.ugc.trill:id/z9y").toBySelector()).let {
-                        if (it?.isEmpty() ?: true) {
-                            stop("No Videos")
-                        }
-                        for (i in 0..(it?.size ?: 0)) {
-                            val videoText = it!![i]
-                            if (videoText.text.trim().toInt() < 10) {
-                                tap(videoText)
-                                wait(random(1000, 3000))
-                                return@action
-                            }
-                            if (i >= (it.size - 1)) {
-                                stop("Không tìm thấy video 0 View nào")
+                screen {
+                    onProfile(context) {
+                        action {
+                            onChooseVideo(context, {
+                                stop("No Videos")
+                            }) { videos ->
+                                for (i in 0..(videos.size ?: 0)) {
+                                    val videoText = videos[i]
+                                    if (videoText.text.trim().toInt() < 10) {
+                                        tap(videoText)
+                                        wait(random(1000, 3000))
+                                        return@onChooseVideo
+                                    }
+                                    if (i >= (videos.size - 1)) {
+                                        stop("Không tìm thấy video 0 View nào")
+                                    }
+                                }
                             }
                         }
-                        endAction()
                     }
                 }
-            }
 
-            screen("Video Search") {
-                detect { has(text("Tìm kiếm") and id("com.ss.android.ugc.trill:id/user_avatar")) }
-
-                action("Lướt xem Video Search") {
-                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                        tap(it)
-                        wait(random(1000, 1500))
-                        endAction()
-                    }
-                }
-            }
-
-            screen("Share Screen") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/znd"))
-                }
-                action("Swipe to choose delete") {
-                    find(id("com.ss.android.ugc.trill:id/vv"))?.scroll(Direction.RIGHT, 0.8f)
-                    wait(random(1000, 1500))
-                    find(text("Xóa"))?.let {
-                        tap(it)
-                        wait(random(1000, 1500))
-                    }
-                    endAction()
-                }
-            }
-
-            screen("RePost Popup") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/ofw"))
-                }
-
-                action("Repost") {
-                    find(id("com.ss.android.ugc.trill:id/sbo")).let {
-                        if (it != null) {
-                            tap(it)
+                screen {
+                    onVideoView(context) {
+                        action {
+                            openVideoMenu(context)
                         }
-                        wait(random(2000, 5000))
-                        endAction()
                     }
                 }
-            }
 
-            screen("Delete Popup") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/xd"))
-                }
-
-                action("Repost") {
-                    find(id("com.ss.android.ugc.trill:id/wk"))?.let { deleteButon ->
-                        tap(deleteButon)
-                        wait(random(2000, 5000))
-                        stop("Đã xóa video")
+                screen {
+                    onShare(context) {
+                        action {
+                            swipeToChooseDelete(context)
+                        }
                     }
                 }
-            }
 
-            screen("Edit video screen") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/xgp"))
-                }
-
-                action("CLick continue") {
-                    tap(find(id("com.ss.android.ugc.trill:id/ond")))
-                    wait(random(2000, 5000))
-                    endAction()
-                }
-            }
-
-            screen("Post video screen") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/jy1"))
-                }
-
-                action("CLick post") {
-                    tap(find(text("Đăng")))
-                    wait(random(20000, 40000))
-                    stop("Đã đăng lại video")
-                }
-            }
-
-            screen("Unknow") {
-                detect {
-                    any(text("Đã hiểu"), text("Không cho phép"))
-                }
-
-                action("Click") {
-                    find(text("Đã hiểu"))?.let {
-                        tap(it)
+                screen {
+                    onRepostPopup(context) {
+                        action {
+                            tapDeleteAndRepost(context)
+                        }
                     }
-                    find(text("Không cho phép"))?.let {
-                        tap(it)
+                }
+
+                screen {
+                    onDeletePopup(context) {
+                        action {
+                            tapDeleteVideo(context) {
+                                pressHome()
+                                stop("Đã xóa video")
+                            }
+                        }
+                    }
+                }
+
+                screen {
+                    onVideoPreview(context) {
+                        action {
+                            tapToAddMusic(context)
+                        }
+                    }
+                }
+
+                screen {
+                    onAddInfoView(context) {
+                        action {
+                            tapToUpload(context) {
+                                wait(random(20000, 40000))
+                                stop("Đã đăng lại video")
+                            }
+                        }
+                    }
+                }
+
+                screen {
+                    onUnknowView(context) {
+                        action {
+                            onUnknowViewAction(context)
+                        }
                     }
                 }
             }
@@ -871,116 +338,82 @@ class AkiFrameworkTest {
     @Test
     fun delete0() = runScene {
         var hasDeleteVideo = false
-        scene("tiktok_rePost") {
-            config {
-                targetPackage = "com.ss.android.ugc.trill"
-                onUnknownScreen = UnknownScreenPolicy.PRESS_BACK
-                recoveryTimeoutMs = 15000L
-            }
 
-            handleUnknowScreen {
-                if(this.context.consecutiveUnknownScreens > 8) {
-                    context.stop("Failure", -2)
-                }
-            }
-
-
-            screen("Profile") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/hdm"))
+        scene {
+            tiktokSceneDefine("Delete zero view video", context) {
+                handleUnknowScreen {
+                    if(this.context.consecutiveUnknownScreens > 8) {
+                        context.stop("Failure", -2)
+                    }
                 }
 
-                action("Choose Video") {
-                    find(id("com.ss.android.ugc.trill:id/hdm"))?.findObjects(id("com.ss.android.ugc.trill:id/z9y").toBySelector()).let {
-                        if (it?.isEmpty() ?: true) {
-                            stop("No Videos")
-                        }
-                        for (i in 0..(it?.size ?: 0)) {
-                            val videoText = it!![i]
-                            if (videoText.text.trim().toInt() < 10) {
-                                tap(videoText)
-                                wait(random(1000, 3000))
-                                return@action
-                            }
-                            if (i >= (it.size - 1)) {
-                                stop(if (hasDeleteVideo) "Đã xóa tất cả video 0 View" else "Không tìm thấy video 0 View nào")
+                screen {
+                    onProfile(context) {
+                        action {
+                            onChooseVideo(context, {
+                                stop("No Videos")
+                            }) { videos ->
+                                for (i in 0..(videos.size ?: 0)) {
+                                    val videoText = videos[i]
+                                    if (videoText.text.trim().toInt() < 10) {
+                                        tap(videoText)
+                                        wait(random(1000, 3000))
+                                        return@onChooseVideo
+                                    }
+                                    if (i >= (videos.size - 1)) {
+                                        stop(if (hasDeleteVideo) "Đã xóa tất cả video 0 View" else "Không tìm thấy video 0 View nào")
+                                    }
+                                }
                             }
                         }
-                        endAction()
                     }
                 }
-            }
 
-            screen("Video Search") {
-                detect { has(text("Tìm kiếm") and id("com.ss.android.ugc.trill:id/user_avatar")) }
-
-                action("Lướt xem Video Search") {
-                    find(id("com.ss.android.ugc.trill:id/ubv"))?.let {
-                        tap(it)
-                        wait(random(1000, 1500))
-                        endAction()
+                screen {
+                    onVideoView(context) {
+                        action {
+                            openVideoMenu(context)
+                        }
                     }
                 }
-            }
 
-            screen("Share Screen") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/znd"))
-                }
-                action("Swipe to choose delete") {
-                    find(id("com.ss.android.ugc.trill:id/vv"))?.scroll(Direction.RIGHT, 0.8f)
-                    wait(random(1000, 1500))
-                    find(text("Xóa"))?.let {
-                        tap(it)
-                        wait(random(1000, 1500))
-                    }
-                    endAction()
-                }
-            }
-
-            screen("RePost Popup") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/ofw"))
-                }
-
-                action("Repost") {
-                    find(id("com.ss.android.ugc.trill:id/f9z"))?.let {
-                        tap(it)
-                        hasDeleteVideo = true
-                        wait(random(2000, 5000))
-                        pressBack()
-                        endAction()
+                screen {
+                    onShare(context) {
+                        action {
+                            swipeToChooseDelete(context)
+                        }
                     }
                 }
-            }
 
-            screen("Delete Popup") {
-                detect {
-                    has(id("com.ss.android.ugc.trill:id/xd"))
-                }
-
-                action("Repost") {
-                    find(text("Xóa"))?.let { deleteButon ->
-                        tap(deleteButon)
-                        hasDeleteVideo = true
-                        wait(random(2000, 5000))
-                        pressBack()
-                        endAction()
+                screen {
+                    onRepostPopup(context) {
+                        action {
+                            tapDeleteInRepostPopup(context) {
+                                hasDeleteVideo = true
+                                wait(random(2000, 5000))
+                                pressBack()
+                            }
+                        }
                     }
                 }
-            }
 
-            screen("Unknow") {
-                detect {
-                    any(text("Đã hiểu"), text("Không cho phép"))
+                screen {
+                    onDeletePopup(context) {
+                        action {
+                            tapDeleteVideo(context) {
+                                hasDeleteVideo = true
+                                wait(random(2000, 5000))
+                                pressBack()
+                            }
+                        }
+                    }
                 }
 
-                action("Click") {
-                    find(text("Đã hiểu"))?.let {
-                        tap(it)
-                    }
-                    find(text("Không cho phép"))?.let {
-                        tap(it)
+                screen {
+                    onUnknowView(context) {
+                        action {
+                            onUnknowViewAction(context)
+                        }
                     }
                 }
             }
