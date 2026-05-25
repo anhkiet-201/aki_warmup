@@ -39,9 +39,35 @@ import com.aki.akiwarmup.tiktok.screen.onVideoView
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/**
+ * Lớp chứa các kịch bản kiểm thử tích hợp giao diện người dùng E2E cho ứng dụng TikTok 
+ * dựa trên Aki Framework DSL.
+ */
 @RunWith(AndroidJUnit4::class)
 class AkiFrameworkTest {
 
+    /**
+     * Kịch bản Khởi động (Warm-up) tài khoản TikTok.
+     * 
+     * Kịch bản này nhằm thực hiện các tương tác tự nhiên ban đầu (lướt xem, tìm kiếm ngẫu nhiên) để tạo độ tin cậy (trust) cho tài khoản.
+     * 
+     * Luồng kịch bản chi tiết:
+     * 1. Khởi chạy ứng dụng TikTok (`launchApp`).
+     * 2. Xử lý màn hình Trang chủ (`onHome`):
+     *    - Thực hiện hành động lướt xem video (`watchVideo`) với các tương tác ngẫu nhiên.
+     *    - Khi hoàn thành xem video, tìm và nhấn vào biểu tượng Tìm kiếm trên thanh tiêu đề để chuyển sang màn hình tìm kiếm.
+     * 3. Xử lý màn hình Tìm kiếm (`onSearch`):
+     *    - Chọn ngẫu nhiên một từ khóa từ danh sách từ khóa mồi [keyWorlds] và thực hiện gõ tìm kiếm (`typeSearchKeyword`).
+     * 4. Xử lý màn hình Kết quả tìm kiếm (`onSearchResult`):
+     *    - Nhấn chọn tab "Video" và tap ngẫu nhiên vào 1 trong các video đầu tiên để mở trình phát video (`selectVideoAfterSearch`).
+     * 5. Xử lý màn hình Trình phát video (`onVideoView`):
+     *    - Tiếp tục chạy hành động xem video (`watchVideo`).
+     *    - Khi hoàn tất kịch bản xem video, nhấn nút Home (`pressHome`), buộc dừng ứng dụng (`killApp`) và kết thúc kịch bản (`stop("Hoàn thành")`).
+     * 6. Xử lý các màn hình cảnh báo không xác định (`onUnknowView`):
+     *    - Tự động đóng/bỏ qua các dialog thông báo (`onUnknowViewAction`).
+     * 7. Cơ chế phục hồi lỗi (`handleUnknowScreen`):
+     *    - Nếu gặp liên tiếp quá 3 lần màn hình không xác định, tiến hành dừng kịch bản kiểm thử với lý do lỗi ứng dụng.
+     */
     @Test
     fun warmUp() = runScene {
         scene {
@@ -111,6 +137,23 @@ class AkiFrameworkTest {
         }
     }
 
+    /**
+     * Kịch bản Đăng bài tự động (Auto Post) từ luồng chia sẻ ngoài ứng dụng.
+     * 
+     * Kịch bản này được kích hoạt khi hệ thống chia sẻ một tệp video từ bên ngoài (hoặc thư viện) vào TikTok.
+     * 
+     * Luồng kịch bản chi tiết:
+     * 1. Xử lý màn hình Chia sẻ bài viết (`onTiktokSharePost`):
+     *    - Chuyển tiếp sang màn hình chỉnh sửa video bằng cách nhấn chọn tab Video (`onTiktokSharePostAction`).
+     * 2. Xử lý màn hình Xem trước video (`onVideoPreview`):
+     *    - Thực hiện nhấn nút Thêm âm thanh (`tapToAddMusic`) để chuyển sang sheet chọn nhạc nền.
+     * 3. Xử lý sheet Chọn nhạc (`onSelectMusicSheet`):
+     *    - Lựa chọn ngẫu nhiên một bài hát từ danh sách đề xuất (`selectRandomMusic`) để chèn vào video, sau đó quay lại.
+     * 4. Xử lý màn hình Soạn thảo thông tin (`onAddInfoView`):
+     *    - Thực hiện nhập văn bản caption lấy từ đối số kịch bản (`typeCaption`) và bấm nút Đăng, đợi quá trình upload hoàn tất rồi dừng.
+     * 5. Cơ chế phục hồi lỗi (`handleUnknowScreen`):
+     *    - Nếu gặp liên tiếp quá 8 lần màn hình không xác định hoặc lỗi không nhận dạng được giao diện, dừng kịch bản kiểm thử với mã lỗi thất bại.
+     */
     @Test
     fun autoPost() = runScene {
 
@@ -161,6 +204,32 @@ class AkiFrameworkTest {
         }
     }
 
+    /**
+     * Kịch bản Seeding (Tương tác mồi) tài khoản dựa trên từ khóa chỉ định.
+     * 
+     * Kịch bản này dùng để tìm kiếm một từ khóa/username cụ thể, đi vào trang cá nhân của họ và thực hiện tương tác (like, comment, favorite) 
+     * trên các video của họ dựa trên tỷ lệ xác suất tùy biến.
+     * 
+     * Luồng kịch bản chi tiết:
+     * 1. Kiểm tra đối số đầu vào: Lấy từ khóa `keyword` từ đối số ngữ cảnh (`context.args.getString("keyword")`). Nếu không có, dừng kịch bản.
+     * 2. Khởi chạy ứng dụng TikTok (`launchApp`).
+     * 3. Xử lý màn hình Trang chủ (`onHome`):
+     *    - Lướt xem video ngẫu nhiên theo tỷ lệ seeding cấu hình sẵn (`watchVideo`).
+     *    - Khi hoàn tất, bấm vào biểu tượng Tìm kiếm để chuyển sang trang tìm kiếm.
+     * 4. Xử lý màn hình Tìm kiếm (`onSearch`):
+     *    - Nhập từ khóa `keyword` và bấm tìm kiếm (`typeSearchKeyword`).
+     * 5. Xử lý màn hình Kết quả tìm kiếm (`onSearchResult`):
+     *    - Bấm chuyển qua tab Người dùng, tìm kiếm user trùng khớp với `keyword` (`selectUser`). Nếu không tìm thấy, bấm Home và dừng kịch bản.
+     * 6. Xử lý màn hình Trang cá nhân (`onProfile`):
+     *    - Tìm lưới danh sách video, chọn video đầu tiên (`onChooseVideo`) và tap vào để bắt đầu phát video.
+     * 7. Xử lý màn hình Trình phát video (`onVideoView`):
+     *    - Chạy hành động xem video (`watchVideo`) kèm theo tỷ lệ tương tác seeding.
+     *    - Khi kết thúc, nhấn Home và kết thúc kịch bản kiểm thử.
+     * 8. Xử lý các màn hình cảnh báo không xác định (`onUnknowView`):
+     *    - Tự động đóng các pop-up/dialog hướng dẫn (`onUnknowViewAction`).
+     * 9. Cơ chế phục hồi lỗi (`handleUnknowScreen`):
+     *    - Nếu gặp liên tiếp quá 8 màn hình lỗi không xác định, nhấn Home và kết thúc kịch bản với lý do lỗi ứng dụng.
+     */
     @Test
     fun seeding() = runScene {
         val rate = AutoRate(mapOf(
@@ -256,6 +325,34 @@ class AkiFrameworkTest {
         }
     }
 
+    /**
+     * Kịch bản Đăng lại tự động (Repost) đối với các video có lượt xem thấp.
+     * 
+     * Kịch bản này truy cập trang cá nhân của tài khoản, tìm kiếm các video có lượt xem dưới 10 (thường là 0 View do bóp tương tác), 
+     * thực hiện xóa video đó và đăng lại chính video đó để cải thiện lượt tiếp cận.
+     * 
+     * Luồng kịch bản chi tiết:
+     * 1. Xử lý màn hình Trang cá nhân (`onProfile`):
+     *    - Duyệt qua danh sách các video đã đăng.
+     *    - Tìm video đầu tiên có lượt xem nhỏ hơn 10. Nếu tìm thấy, thực hiện tap vào video đó để mở.
+     *    - Nếu duyệt hết danh sách mà không có video nào dưới 10 lượt xem, dừng kịch bản kiểm thử.
+     * 2. Xử lý màn hình Trình phát video (`onVideoView`):
+     *    - Bấm nút chia sẻ/xem thêm (`openVideoMenu`) để mở bảng tùy chọn.
+     * 3. Xử lý màn hình Tùy chọn chia sẻ (`onShare`):
+     *    - Cuộn ngang sang phải để tìm và bấm nút Xóa video (`swipeToChooseDelete`).
+     * 4. Xử lý popup Repost (`onRepostPopup`):
+     *    - Bấm nút xác nhận "Xóa và Đăng lại" (`tapDeleteAndRepost`).
+     * 5. Xử lý popup xác nhận Xóa (`onDeletePopup`):
+     *    - Xác nhận xóa video (`tapDeleteVideo`), lúc này TikTok sẽ tự động mở màn hình chỉnh sửa video đã đăng để đăng lại.
+     * 6. Xử lý màn hình Xem trước video (`onVideoPreview`):
+     *    - Thực hiện quy trình thêm âm thanh cho video mới đăng lại (`tapToAddMusic`).
+     * 7. Xử lý màn hình Soạn thảo thông tin (`onAddInfoView`):
+     *    - Tiến hành đăng video (`tapToUpload`), chờ video tải lên hoàn tất trong 20-40 giây rồi kết thúc kịch bản.
+     * 8. Xử lý các màn hình cảnh báo không xác định (`onUnknowView`):
+     *    - Tự động đóng các pop-up/dialog hướng dẫn (`onUnknowViewAction`).
+     * 9. Cơ chế phục hồi lỗi (`handleUnknowScreen`):
+     *    - Nếu gặp liên tiếp quá 8 màn hình lỗi không xác định, dừng kịch bản với mã lỗi thất bại.
+     */
     @Test
     fun rePost() = runScene {
 
@@ -358,6 +455,32 @@ class AkiFrameworkTest {
         }
     }
 
+    /**
+     * Kịch bản Xóa tự động các video có lượt xem thấp (Delete Zero View).
+     * 
+     * Kịch bản này truy cập trang cá nhân của tài khoản, tìm kiếm các video có lượt xem dưới 10 lượt xem 
+     * và thực hiện xóa hoàn toàn các video này để dọn dẹp kênh.
+     * 
+     * Luồng kịch bản chi tiết:
+     * 1. Xử lý màn hình Trang cá nhân (`onProfile`):
+     *    - Duyệt qua danh sách các video đã đăng.
+     *    - Tìm video đầu tiên có lượt xem dưới 10. Nếu tìm thấy, thực hiện tap vào video đó để mở.
+     *    - Nếu đã duyệt hết mà không còn video nào dưới 10 lượt xem, dừng kịch bản kiểm thử (báo cáo đã xóa xong hoặc không tìm thấy).
+     * 2. Xử lý màn hình Trình phát video (`onVideoView`):
+     *    - Bấm mở menu tùy chọn/chia sẻ của video (`openVideoMenu`).
+     * 3. Xử lý màn hình Tùy chọn chia sẻ (`onShare`):
+     *    - Cuộn ngang sang phải để tìm và bấm nút Xóa video (`swipeToChooseDelete`).
+     * 4. Xử lý popup Repost (`onRepostPopup`):
+     *    - Thực hiện bấm nút Xóa đơn thuần (chỉ xóa, không đăng lại) thông qua (`tapDeleteInRepostPopup`), 
+     *      đánh dấu biến trạng thái `hasDeleteVideo = true`, chờ 2-5 giây rồi bấm Back quay lại trang cá nhân.
+     * 5. Xử lý popup xác nhận Xóa (`onDeletePopup`):
+     *    - Thực hiện xác nhận xóa video (`tapDeleteVideo`), đánh dấu biến trạng thái `hasDeleteVideo = true`, 
+     *      chờ 2-5 giây rồi bấm Back quay lại trang cá nhân để tiếp tục tìm và xóa video tiếp theo.
+     * 6. Xử lý các màn hình cảnh báo không xác định (`onUnknowView`):
+     *    - Tự động đóng các pop-up/dialog hướng dẫn (`onUnknowViewAction`).
+     * 7. Cơ chế phục hồi lỗi (`handleUnknowScreen`):
+     *    - Nếu gặp liên tiếp quá 8 màn hình lỗi không xác định, dừng kịch bản với mã lỗi thất bại.
+     */
     @Test
     fun delete0() = runScene {
         var hasDeleteVideo = false
