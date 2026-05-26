@@ -81,8 +81,8 @@ class ActionBuilder(val context: SceneExecutionContext) {
         Log.d("AkiFramework", "[Action] swipeUp(humanized=$humanized)")
         val width = device.displayWidth
         val height = device.displayHeight
-        val from = Point(width / 2 + random.nextInt(100) - 50, (height * 0.7).toInt())
-        val to = Point(width / 2 + random.nextInt(100) - 50, (height * 0.3).toInt())
+        val from = Point(width / 2 + random.nextInt(100) - 50, (height * 0.6).toInt())
+        val to = Point(width / 2 + random.nextInt(100) - 50, (height * 0.2).toInt())
         
         if (humanized) {
             humanEngine.humanSwipe(device, from, to)
