@@ -19,7 +19,7 @@ val keywordPool = mapOf(
         "công việc này", "việc thời vụ", "việc y như video", "việc bên mình",
         "công việc", "việc này",
         "việc làm chính thức", "việc lắp ráp linh kiện", "việc đóng gói bánh kẹo", "công việc dán nhãn", "việc kiểm hàng",
-        "công việc đứng máy", "việc làm xoay ca", "công việc hành chính", "việc làm chuyên ca ngày", "việc làm chuyên ca đêm",
+        "công việc đứng máy", "công việc hành chính", "việc làm chuyên ca ngày", "việc làm chuyên ca đêm",
         "công việc phụ kho", "việc phân loại hàng hóa", "việc may mặc thời vụ", "công việc đóng hộp", "việc làm bưu cục",
         "công việc giao nhận", "việc làm nhẹ nhàng này", "công việc trong phòng máy lạnh", "việc ngồi làm ghế tựa", "việc dán tem nhãn",
         "công việc xếp hộp giấy", "việc phụ xưởng đóng gói", "công việc tại xưởng may", "việc lắp ráp tai nghe", "việc sản xuất nhựa",
@@ -165,7 +165,7 @@ val templates = listOf(
     "Nữ {candidate_status_young} có nhận làm {job_target} không ạ",
     "Còn tuyển lao động thời vụ không {greetings}",
     "Cho em xin thông tin tuyển dụng {job_target} với {greetings}",
-    
+
     // Nhóm hỏi chi tiết lương & chế độ
     "{greetings} cho em hỏi {ask_salary} {fillers}",
     "Làm {job_target} thì {ask_salary} {fillers}",
@@ -247,7 +247,7 @@ val templates = listOf(
     // Nhóm hỏi còn tuyển hay không & hình thức (Chính thức/Thời vụ) (15 templates)
     "Bên cty còn nhận hso làm {job_target} ko {fillers}",
     "Còn nhận đăng ký {job_target} ca đêm ko {greetings} ơi",
-    "{greetings} tuyển dụng ơi, cho hỏi {job_target} còn nhận người ko {fillers}",
+    "{greetings} , cho hỏi {job_target} còn nhận người ko {fillers}",
     "Cho hỏi {job_target} còn tuyển lao động phổ thông ko {fillers}",
     "{job_target} này là tuyển chính thức hay thời vụ vậy {greetings}",
     "Thời vụ với chính thức bên cty chênh lệch lương thế nào {fillers}",
@@ -336,7 +336,7 @@ val templates = listOf(
     "Không tăng ca có bị phạt hay ảnh hưởng gì ko sếp",
     "{job_target} này tăng ca nhiều ko, tháng trung bình bao nhiêu tiếng sếp",
     "Tăng ca có đều ko hay tùy đợt hàng vậy ad",
-    "Thời gian làm việc của {job_target} là từ mấy giờ đến mấy giờ vậy {greetings}",
+    "Thời gian làm việc là từ mấy giờ đến mấy giờ vậy {greetings} {emojis}{emojis}{emojis}",
     "Làm {job_target} này thời gian làm việc thế nào {fillers}",
     "Ở gần {location} có nhiều trọ cho công nhân thuê ko shop",
 
@@ -366,7 +366,7 @@ val exactTypos = mapOf(
     "chỗ" to listOf("chổ"),
     "nghỉ" to listOf("nghĩ"),
     "nghĩ" to listOf("ngĩ"),
-    "tuổi" to listOf("tủi", "tuỗi"),
+    "tuổi" to listOf("tủi", "tuỗi", "t"),
     "tuyển" to listOf("tuyễn"),
     "lương" to listOf("lươg"),
     "kinh" to listOf("kih"),
@@ -378,12 +378,18 @@ val exactTypos = mapOf(
     "thì" to listOf("thỳ"),
     "quá" to listOf("wá", "qá"),
     "được" to listOf("đươc", "dc", "đc"),
-    "làm" to listOf("lm", "lam"),
+    "làm" to listOf("lm", "lam", "mần"),
     "cũ" to listOf("củ"),
     "kỹ" to listOf("kỉ", "kĩ"),
     "sao" to listOf("s"),
     "rồi" to listOf("rùi", "dồi", "r", "ròi"),
-    "dạ" to listOf("zạ")
+    "dạ" to listOf("zạ"),
+    "thời vụ" to listOf("tv", "thời vu"),
+    "chính thức" to listOf("9 thức", "chíh thức", "ct"),
+    "xoay ca" to listOf("x.ca", "xay ca"),
+    "căn cước công dân" to listOf("cccd"),
+    "tăng ca" to listOf("tca"),
+
 )
 
 // Các quy tắc thay thế chữ cái (dùng Regex)
