@@ -10,15 +10,15 @@ enum class RateType {
  */
 class AutoRate(
     private val initial: Map<RateType, Int> = mapOf(
-        RateType.SWIPE to 4,
-        RateType.LIKE to 2,
-        RateType.COMMENT to 1,
-        RateType.FAVORITE to 2,
-        RateType.RE_POST to 1,
-        RateType.COPY_LINK to 1,
-        RateType.EXIT to 1
+        RateType.SWIPE to 40,
+        RateType.LIKE to 20,
+        RateType.COMMENT to 10,
+        RateType.FAVORITE to 20,
+        RateType.RE_POST to 10,
+        RateType.COPY_LINK to 10,
+        RateType.EXIT to 5
     ),
-    private val step: Int = 1
+    private val step: Int = 5
 ) {
     private val current = initial.toMutableMap()
 

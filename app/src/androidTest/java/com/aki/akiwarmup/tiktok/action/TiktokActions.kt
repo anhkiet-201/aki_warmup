@@ -93,23 +93,26 @@ fun watchVideo(
 ) = defineAction(id, context) {
     var loopCount = 1
     loop {
+        var hasDoAction = false
         on(id(TiktokId.VIDEO_DESC)) { desc ->
             // Cache text một lần duy nhất — UiObject2.text là IPC call tốn kém,
             // tránh gọi lặp lại trong captionKeyword.none{} và nhánh COMMENT.
             val descText = desc?.text
+            val beTTNHR = descText?.contains("#ttnhr") ?: false
             descText?.let {
                 Log.i("AkiFramework", "Desc: $descText")
-                if (captionKeyword.none { kw -> it.toLowerCase(Locale.current).contains(kw.toLowerCase(Locale.current)) }) {
+                if (captionKeyword.none { kw -> it.lowercase().contains(kw.lowercase()) }) {
                     Log.i("AkiFramework", "Không đúng nội dung")
                     rate.swipeBias()
                 } else {
                     Log.i("AkiFramework", "Đúng nội dung")
-                    wait(random(3000, 30000 / loopCount))
+                    wait(random(1990, 30000 / loopCount))
                 }
             }
             on(text(TiktokText.RECOMMENDED_PROMOTION)) {
                 if (it != null) {
                     swipeUp()
+                    hasDoAction = true
                     endAction()
                 }
             }
@@ -118,6 +121,7 @@ fun watchVideo(
                     rate.reset()
                     loopCount = 1
                     swipeUp()
+                    hasDoAction = true
                 },
                 rate[RateType.LIKE] to {
                     find(id(TiktokId.LIKE_BUTTON))?.let {
@@ -126,6 +130,7 @@ fun watchVideo(
                             tap(it)
                             wait(random(min = 1000, max = 3000))
                         }
+                        hasDoAction = true
                     }
                 },
                 rate[RateType.FAVORITE] to {
@@ -135,11 +140,12 @@ fun watchVideo(
                             tap(it)
                             wait(random(min = 1000, max = 3000))
                         }
+                        hasDoAction = true
                     }
                 },
                 rate[RateType.COMMENT] to {
                     rate.consume(RateType.COMMENT)
-                    if (descText?.contains("#ttnhr") == true) {
+                    if (beTTNHR) {
                         find(id(TiktokId.COMMENT_BUTTON))?.let { commentButton ->
                             tap(commentButton)
                             wait(random(100, 1500))
@@ -157,9 +163,9 @@ fun watchVideo(
                                 }
                             }
                             pressBack()
+                            hasDoAction = true
                         }
                     }
-                    endAction()
                 },
                 rate[RateType.RE_POST] to {
                     find(id(TiktokId.SHARE_BUTTON))?.let {
@@ -174,7 +180,7 @@ fun watchVideo(
                                 wait(random(1000, 1500))
                             }
                         }
-                        endAction()
+                        hasDoAction = true
                     }
                 },
                 rate[RateType.COPY_LINK] to {
@@ -186,7 +192,7 @@ fun watchVideo(
                             tap(repost)
                             wait(random(1000, 1500))
                         }
-                        endAction()
+                        hasDoAction = true
                     }
                 },
                 rate[RateType.EXIT] to {
@@ -195,6 +201,9 @@ fun watchVideo(
                     endAction()
                 }
             )
+        }
+        if (!hasDoAction) {
+            endAction()
         }
         loopCount++
     }
@@ -244,17 +253,22 @@ fun selectVideoAfterSearch(context: SceneExecutionContext) = defineAction("Selec
             endAction()
         }
     }
-    sometimes(20) {
-        swipeUp()
+    loop {
+        choose(5 to {
+            swipeUp()
+            wait(random(430, 1230))
+        }, 5 to {
+            find(id(TiktokId.SEARCH_RESULT_LIST))?.findObjects(clazz("android.view.View").toBySelector())
+                .run {
+                    this?.let {
+                        tap(it.random())
+                        wait(3000)
+                    }
+                }
+            endAction()
+        })
+
     }
-    find(id(TiktokId.SEARCH_RESULT_LIST))?.findObjects(clazz("android.view.View").toBySelector())
-        .run {
-            this?.take(4)?.let {
-                tap(it.random())
-                wait(3000)
-            }
-        }
-    endAction()
 }
 
 /**

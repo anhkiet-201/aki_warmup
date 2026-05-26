@@ -5,7 +5,7 @@ import android.os.Message
 import android.util.Log
 import androidx.test.uiautomator.UiObject2
 import kotlinx.coroutines.delay
-import java.util.Random
+import kotlin.random.Random
 
 enum class ScrollDirection {
     Up,
@@ -16,7 +16,7 @@ enum class ScrollDirection {
 class ActionBuilder(val context: SceneExecutionContext) {
     private val humanEngine = context.humanBehaviorEngine
     private val device = context.device
-    private val random = Random()
+    private val random = Random
 
     suspend fun wait(ms: Long) {
         Log.d("AkiFramework", "[Action] wait(ms=$ms)")
@@ -81,8 +81,8 @@ class ActionBuilder(val context: SceneExecutionContext) {
         Log.d("AkiFramework", "[Action] swipeUp(humanized=$humanized)")
         val width = device.displayWidth
         val height = device.displayHeight
-        val from = Point(width / 2 + random.nextInt(100) - 50, (height * 0.8).toInt())
-        val to = Point(width / 2 + random.nextInt(100) - 50, (height * 0.2).toInt())
+        val from = Point(width / 2 + random.nextInt(100) - 50, (height * 0.7).toInt())
+        val to = Point(width / 2 + random.nextInt(100) - 50, (height * 0.3).toInt())
         
         if (humanized) {
             humanEngine.humanSwipe(device, from, to)
@@ -212,12 +212,12 @@ class ActionBuilder(val context: SceneExecutionContext) {
     /**
      * Lấy số ngẫu nhiên từ 1 đến [max]
      */
-    fun random(max: Int): Int = if (max > 0) random.nextInt(max) + 1 else 1
+    fun random(max: Int): Int = if (max > 0) random.nextInt(1, max + 1) else 1
 
     /**
      * Lấy số ngẫu nhiên trong khoảng [min] đến [max]
      */
-    fun random(min: Int = 1, max: Int): Int = if (max > min) random.nextInt(max - min + 1) + min else min
+    fun random(min: Int = 1, max: Int): Int = if (max > min) random.nextInt(min, max + 1) else min
 
     /**
      * Lấy số ngẫu nhiên Long trong khoảng [min] đến [max].

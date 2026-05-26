@@ -6,7 +6,7 @@ import com.aki.akiwarmup.core.dsl.Scene
 import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
 import com.aki.akiwarmup.core.logger.SessionLogger
 import kotlinx.coroutines.delay
-import java.util.Random
+import kotlin.random.Random
 
 class ActionLoop(
     private val scene: Scene,
@@ -16,7 +16,7 @@ class ActionLoop(
     private val context = scene.context
     private val device = context.device
     private val humanEngine = context.humanBehaviorEngine
-    private val random = Random()
+    private val random = Random
 
     fun stop(reason: String = "", resultCode: Int = android.app.Activity.RESULT_OK) {
         if (reason.isNotEmpty()) {
