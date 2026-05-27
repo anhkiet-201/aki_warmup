@@ -18,7 +18,7 @@ class AutoRate(
         RateType.COPY_LINK to 10,
         RateType.EXIT to 5
     ),
-    private val step: Int = 5
+    private val step: Int = 10
 ) {
     private val current = initial.toMutableMap()
 
@@ -26,7 +26,7 @@ class AutoRate(
 
     fun consume(type: RateType) {
         val v = current[type] ?: return
-        if (v >= step) current[type] = v - step
+        if (v >= step) current[type] = v - step else 0
     }
 
     /**
