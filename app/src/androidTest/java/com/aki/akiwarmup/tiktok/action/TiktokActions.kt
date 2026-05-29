@@ -95,10 +95,8 @@ fun watchVideo(
     loop {
         var hasDoAction = false
         on(id(TiktokId.VIDEO_DESC)) { desc ->
-            // Cache text một lần duy nhất — UiObject2.text là IPC call tốn kém,
-            // tránh gọi lặp lại trong captionKeyword.none{} và nhánh COMMENT.
             val descText = desc?.text
-            val beTTNHR = descText?.contains("#ttnhr") ?: false
+            val beTTNHR = descText?.contains("#ttnhr") ?: false || descText?.contains("#vieclamttn") ?: false
             descText?.let {
                 Log.i("AkiFramework", "Desc: $descText")
                 if (captionKeyword.none { kw -> it.lowercase().contains(kw.lowercase()) }) {
@@ -149,21 +147,8 @@ fun watchVideo(
                         find(id(TiktokId.COMMENT_BUTTON))?.let { commentButton ->
                             tap(commentButton)
                             wait(random(100, 1500))
-                            sometimes(20) {
-                                swipeUp()
-                            }
-                            find(id(TiktokId.COMMENT_INPUT))?.let { textField ->
-                                humanType(textField, generateComment(enableTypos = true))
-                                wait(random(100, 1500))
-                                pressBack()
-                                wait(random(100, 1500))
-                                find(desc(TiktokDesc.POST_COMMENT_BUTTON))?.let { postButton ->
-                                    tap(postButton)
-                                    wait(random(100, 1500))
-                                }
-                            }
-                            pressBack()
                             hasDoAction = true
+                            endAction()
                         }
                     }
                 },
@@ -207,6 +192,75 @@ fun watchVideo(
         }
         loopCount++
     }
+}
+
+/**
+ * Xem các bình luận của video hiện tại và thực hiện tương tác ngẫu nhiên.
+ *
+ * Quy trình thực hiện:
+ * 1. Kiểm tra nếu ô nhập liệu (`TiktokId.COMMENT_INPUT`) đã có sẵn text thì gửi bình luận đó (bấm nút gửi và quay lại).
+ * 2. Lấy danh sách bình luận (`TiktokId.COMMENT_LIST`), tìm các nút trả lời (`TiktokId.REPPLY_COMMENT_BUTTON`).
+ * 3. Nếu có nút trả lời, thực hiện cuộn ngẫu nhiên danh sách lên để xem các comment bên dưới.
+ * 4. Quyết định tương tác theo tỷ lệ 50-50:
+ *    - 50%: Bấm vào ô nhập bình luận để chuẩn bị viết.
+ *    - 50%: Bấm chọn ngẫu nhiên một nút trả lời của bình luận có sẵn.
+ * 5. Kết thúc hành động.
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ */
+fun viewComment(
+    context: SceneExecutionContext
+) = defineAction("View Comment", context) {
+    on(id(TiktokId.COMMENT_INPUT)) { textField ->
+        if (textField?.text?.trim()?.isNotEmpty() ?: false) {
+            find(desc(TiktokDesc.POST_COMMENT_BUTTON))?.let { postButton ->
+                tap(postButton)
+                wait(random(100, 1500))
+                pressBack()
+                endAction()
+            }
+        }
+        on(id(TiktokId.COMMENT_LIST)) { comments ->
+            comments?.findObjects(id(TiktokId.REPPLY_COMMENT_BUTTON).toBySelector()).let {
+                if (it?.isNotEmpty() ?: false) {
+                    sometimes(50) {
+                        comments?.swipe(Direction.UP, 0.6f)
+                        wait(random(100, 1500))
+                    }
+                }
+                choose(
+                    5 to {
+                        tap(textField)
+                        wait(random(500, 1000))
+                    },
+                    5 to {
+                        tap(it?.random())
+                    }
+                )
+                wait(random(930, 1620))
+            }
+        }
+    }
+    endAction()
+}
+
+/**
+ * Thêm một bình luận mới vào video.
+ *
+ * Hàm sẽ tìm tất cả các ô nhập liệu (`TiktokId.COMMENT_INPUT`), chọn ô cuối cùng (đang ở trạng thái có thể click).
+ * Sau đó, mô phỏng gõ một chuỗi nội dung ngẫu nhiên (có chứa lỗi chính tả để trông giống người dùng thực hơn) và thoát.
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ */
+fun addComment(
+    context: SceneExecutionContext
+) = defineAction("Add Comment", context) {
+    findAll(id(TiktokId.COMMENT_INPUT)).let { textFields ->
+        humanType(textFields.last {it.isClickable}, generateComment(enableTypos = true))
+        wait(random(100, 1500))
+        pressBack()
+    }
+    endAction()
 }
 
 /**

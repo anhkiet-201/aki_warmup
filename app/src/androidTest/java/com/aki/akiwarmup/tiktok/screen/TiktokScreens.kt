@@ -207,3 +207,33 @@ fun onDeletePopup(
     detect { has(id("com.ss.android.ugc.trill:id/xd")) }
     apply(block)
 }
+
+/**
+ * Định nghĩa bảng danh sách comment cho video
+ *
+ * Bảng được phát hiện bằng cách tìm sự hiện diện của view xác nhận với ID là `com.ss.android.ugc.trill:id/dz3`.
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
+ */
+fun onCommentView(
+    context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
+) = defineScreen("Comment View", context) {
+    detect { has(id(TiktokId.COMMENT_AVATAR) and id(TiktokId.ICON_LIST).not()) }
+    apply(block)
+}
+
+/**
+ * Định nghĩa màn hình Pop-up nhập bình luận.
+ *
+ * Màn hình này xuất hiện khi bấm vào ô nhập bình luận hoặc nút trả lời bình luận, hiển thị bàn phím và danh sách icon đề xuất (`TiktokId.ICON_LIST`).
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
+ */
+fun onAddComment(
+    context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
+) = defineScreen("Add Comment Popup", context) {
+    detect { has(id(TiktokId.ICON_LIST)) }
+    apply(block)
+}

@@ -132,6 +132,12 @@ class SimpleSelector : Selector {
     infix fun and(other: Selector): Selector = AndSelector(this, other)
 
     infix fun or(other: Selector): Selector = OrSelector(this, other)
+
+    /**
+     * Hỗ trợ đảo ngược điều kiện tìm kiếm (phủ định).
+     * Phục vụ cho việc kiểm tra element KHÔNG tồn tại (VD: Selector.not().exists()).
+     */
+    fun not(): Selector = NotSelector(this)
 }
 
 /**
@@ -173,6 +179,25 @@ class AndSelector(val left: Selector, val right: Selector) : Selector {
     override fun exists(device: UiDevice): Boolean = left.exists(device) && right.exists(device)
 
     override fun toString(): String = "($left AND $right)"
+}
+
+/**
+ * Hỗ trợ toán tử NOT (phủ định).
+ * Chủ yếu dùng để kiểm tra sự không tồn tại của một UI Element, do UIAutomator không có sẵn khái niệm phủ định cho việc tìm kiếm trực tiếp.
+ */
+class NotSelector(val selector: Selector): Selector {
+    override fun find(device: UiDevice): UiObject2? = null
+
+    override fun findAll(device: UiDevice): List<UiObject2> = emptyList()
+
+    override fun find(parent: UiObject2): UiObject2? = null
+
+    override fun findAll(parent: UiObject2): List<UiObject2> {
+        TODO("Not yet implemented")
+    }
+
+    override fun exists(device: UiDevice): Boolean = !selector.exists(device)
+
 }
 
 /**

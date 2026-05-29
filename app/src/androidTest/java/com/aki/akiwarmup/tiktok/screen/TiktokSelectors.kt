@@ -62,6 +62,18 @@ object TiktokId {
     /** Nút mở khung bình luận */
     const val COMMENT_BUTTON = "com.ss.android.ugc.trill:id/e0m"
 
+    /** List chứa các bình luận */
+    const val COMMENT_LIST = "com.ss.android.ugc.trill:id/sai"
+
+    /** View hiển thị Avatar khi comment*/
+    const val COMMENT_AVATAR = "com.ss.android.ugc.trill:id/dz3"
+
+    /** Nút trả lời bình luận*/
+    const val REPPLY_COMMENT_BUTTON = "com.ss.android.ugc.trill:id/e2i"
+
+    /** Danh sách các icon đề xuất*/
+    const val ICON_LIST = "com.ss.android.ugc.trill:id/h3d"
+
     /** Ô nhập nội dung bình luận */
     const val COMMENT_INPUT = "com.ss.android.ugc.trill:id/e02"
 

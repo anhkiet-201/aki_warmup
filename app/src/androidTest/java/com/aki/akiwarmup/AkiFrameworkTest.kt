@@ -3,6 +3,7 @@ package com.aki.akiwarmup
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.aki.akiwarmup.core.dsl.runScene
+import com.aki.akiwarmup.tiktok.action.addComment
 import com.aki.akiwarmup.tiktok.action.keyWorlds
 import com.aki.akiwarmup.tiktok.action.onChooseVideo
 import com.aki.akiwarmup.tiktok.action.onTiktokSharePostAction
@@ -19,11 +20,14 @@ import com.aki.akiwarmup.tiktok.action.tapToAddMusic
 import com.aki.akiwarmup.tiktok.action.tapToUpload
 import com.aki.akiwarmup.tiktok.action.typeCaption
 import com.aki.akiwarmup.tiktok.action.typeSearchKeyword
+import com.aki.akiwarmup.tiktok.action.viewComment
 import com.aki.akiwarmup.tiktok.action.watchVideo
 import com.aki.akiwarmup.tiktok.model.AutoRate
 import com.aki.akiwarmup.tiktok.model.RateType
 import com.aki.akiwarmup.tiktok.scene.tiktokSceneDefine
+import com.aki.akiwarmup.tiktok.screen.onAddComment
 import com.aki.akiwarmup.tiktok.screen.onAddInfoView
+import com.aki.akiwarmup.tiktok.screen.onCommentView
 import com.aki.akiwarmup.tiktok.screen.onDeletePopup
 import com.aki.akiwarmup.tiktok.screen.onHome
 import com.aki.akiwarmup.tiktok.screen.onProfile
@@ -123,6 +127,22 @@ class AkiFrameworkTest {
                 }
 
                 screen {
+                    onCommentView(context) {
+                        action {
+                            viewComment(context)
+                        }
+                    }
+                }
+
+                screen {
+                    onAddComment(context) {
+                        action {
+                            addComment(context)
+                        }
+                    }
+                }
+
+                screen {
                     onUnknowView(context) {
                         action {
                             onUnknowViewAction(context)
@@ -156,7 +176,6 @@ class AkiFrameworkTest {
      */
     @Test
     fun autoPost() = runScene {
-
         scene {
             tiktokSceneDefine("Auto Post", context) {
                 handleUnknowScreen {
@@ -232,11 +251,7 @@ class AkiFrameworkTest {
      */
     @Test
     fun seeding() = runScene {
-        val rate = AutoRate(mapOf(
-            RateType.SWIPE to 5, RateType.LIKE to 3,
-            RateType.FAVORITE to 3, RateType.COMMENT to 2,
-            RateType.EXIT to 2
-        ))
+        val rate = AutoRate()
 
         scene {
             tiktokSceneDefine("Seeding", context) {
@@ -248,10 +263,12 @@ class AkiFrameworkTest {
                     }
                 }
 
-                val keyword = context.args.getString("keyword")
-                if (keyword == null) {
+                val rawKeyword = context.args.getString("keyword")?.split("|")
+                if (rawKeyword == null) {
                     context.stop("Wrong Keyword")
                 }
+                val keyword = rawKeyword!!.first()
+                val numOfVideos = rawKeyword.last().toIntOrNull() ?: 0
 
                 launchApp()
 
@@ -271,7 +288,7 @@ class AkiFrameworkTest {
                 screen {
                     onSearch(context) {
                         action {
-                            typeSearchKeyword(context, keyword!!)
+                            typeSearchKeyword(context, keyword)
                         }
                     }
                 }
@@ -282,7 +299,7 @@ class AkiFrameworkTest {
                             onChooseVideo(context, {
                                 stop("No Videos")
                             }) { videos ->
-                                tap(videos.first())
+                                tap(videos[numOfVideos])
                             }
                         }
                     }
@@ -291,7 +308,7 @@ class AkiFrameworkTest {
                 screen {
                     onSearchResult(context) {
                         action {
-                            selectUser(context, keyword!!) {
+                            selectUser(context, keyword) {
                                 pressHome()
                                 stop("Không tìm thấy User")
                             }
@@ -306,6 +323,22 @@ class AkiFrameworkTest {
                                 pressHome()
                                 stop("Hoàn thành seeding: $keyword")
                             }
+                        }
+                    }
+                }
+
+                screen {
+                    onCommentView(context) {
+                        action {
+                            viewComment(context)
+                        }
+                    }
+                }
+
+                screen {
+                    onAddComment(context) {
+                        action {
+                            addComment(context)
                         }
                     }
                 }

@@ -24,9 +24,21 @@ class AutoRate(
 
     operator fun get(type: RateType): Int = current[type] ?: 0
 
+    /**
+     * Giảm dần xác suất của một loại hành động sau khi đã thực hiện thành công.
+     * Mục đích: Giảm tần suất lặp lại liên tục cùng một hành động trong suốt thời gian xem một video.
+     */
     fun consume(type: RateType) {
         val v = current[type] ?: return
-        if (v >= step) current[type] = v - step else 0
+        current[type] = if (v >= step) v - step else 0
+    }
+
+    /**
+     * Thiết lập hoặc điều chỉnh lại giá trị xác suất (rate) cố định cho một loại hành động.
+     * Hữu ích khi cần ép một hành động (như SWIPE hay EXIT) có xác suất cao hơn bình thường trong một số trường hợp cụ thể.
+     */
+    fun reserve(type: RateType, value: Int) {
+        current[type] = value
     }
 
     /**
