@@ -26,6 +26,9 @@ import com.aki.akiwarmup.tiktok.action.watchVideo
 import com.aki.akiwarmup.tiktok.model.AutoRate
 import com.aki.akiwarmup.tiktok.model.RateType
 import com.aki.akiwarmup.tiktok.scene.tiktokSceneDefine
+import com.aki.akiwarmup.tiktok.scene.TiktokBaseBehaviors
+import com.aki.akiwarmup.tiktok.scene.TiktokCommentBehaviors
+import com.aki.akiwarmup.tiktok.scene.TiktokDeleteVideoBehaviors
 import com.aki.akiwarmup.tiktok.screen.onAddComment
 import com.aki.akiwarmup.tiktok.screen.onAddInfoView
 import com.aki.akiwarmup.tiktok.screen.onCommentView
@@ -77,6 +80,9 @@ class AkiFrameworkTest {
     fun warmUp() = runScene {
         scene {
             tiktokSceneDefine("WarmUp", context) {
+                include(TiktokBaseBehaviors)
+                include(TiktokCommentBehaviors)
+
                 handleUnknowScreen {
                     AkiLog.w(LogTag.ENGINE, "restart #${context.restartCount}")
                     if (this.context.restartCount > 3) {
@@ -123,30 +129,6 @@ class AkiFrameworkTest {
                                 this@tiktokSceneDefine.killApp()
                                 stop("Hoàn thành")
                             }
-                        }
-                    }
-                }
-
-                screen {
-                    onCommentView(context) {
-                        action {
-                            viewComment(context)
-                        }
-                    }
-                }
-
-                screen {
-                    onAddComment(context) {
-                        action {
-                            addComment(context)
-                        }
-                    }
-                }
-
-                screen {
-                    onUnknowView(context) {
-                        action {
-                            onUnknowViewAction(context)
                         }
                     }
                 }
@@ -256,14 +238,9 @@ class AkiFrameworkTest {
 
         scene {
             tiktokSceneDefine("Seeding", context) {
-                handleUnknowScreen {
-                    AkiLog.w(LogTag.ENGINE, "unknown screen #${context.consecutiveUnknownScreens}")
-                    if (this.context.consecutiveUnknownScreens > 8) {
-                        context.device.pressHome()
-                        this.context.stop("lỖI APP")
-                    }
-                }
-
+                include(TiktokBaseBehaviors)
+                include(TiktokCommentBehaviors)
+                
                 val rawKeyword = context.args.getString("keyword")?.split("|")
                 if (rawKeyword == null) {
                     context.stop("Wrong Keyword")
@@ -328,29 +305,6 @@ class AkiFrameworkTest {
                     }
                 }
 
-                screen {
-                    onCommentView(context) {
-                        action {
-                            viewComment(context)
-                        }
-                    }
-                }
-
-                screen {
-                    onAddComment(context) {
-                        action {
-                            addComment(context)
-                        }
-                    }
-                }
-
-                screen {
-                    onUnknowView(context) {
-                        action {
-                            onUnknowViewAction(context)
-                        }
-                    }
-                }
             }
         }
 
@@ -392,12 +346,9 @@ class AkiFrameworkTest {
 
         scene {
             tiktokSceneDefine("Tiktok repost", context) {
-                handleUnknowScreen {
-                    if (this.context.consecutiveUnknownScreens > 8) {
-                        context.stop("Failure", -2)
-                    }
-                }
-
+                include(TiktokBaseBehaviors)
+                include(TiktokDeleteVideoBehaviors)
+                
                 screen {
                     onProfile(context) {
                         action {
@@ -416,22 +367,6 @@ class AkiFrameworkTest {
                                     }
                                 }
                             }
-                        }
-                    }
-                }
-
-                screen {
-                    onVideoView(context) {
-                        action {
-                            openVideoMenu(context)
-                        }
-                    }
-                }
-
-                screen {
-                    onShare(context) {
-                        action {
-                            swipeToChooseDelete(context)
                         }
                     }
                 }
@@ -474,13 +409,6 @@ class AkiFrameworkTest {
                     }
                 }
 
-                screen {
-                    onUnknowView(context) {
-                        action {
-                            onUnknowViewAction(context)
-                        }
-                    }
-                }
             }
         }
 
@@ -521,12 +449,9 @@ class AkiFrameworkTest {
 
         scene {
             tiktokSceneDefine("Delete zero view video", context) {
-                handleUnknowScreen {
-                    if (this.context.consecutiveUnknownScreens > 8) {
-                        context.stop("Failure", -2)
-                    }
-                }
-
+                include(TiktokBaseBehaviors)
+                include(TiktokDeleteVideoBehaviors)
+                
                 screen {
                     onProfile(context) {
                         action {
@@ -545,22 +470,6 @@ class AkiFrameworkTest {
                                     }
                                 }
                             }
-                        }
-                    }
-                }
-
-                screen {
-                    onVideoView(context) {
-                        action {
-                            openVideoMenu(context)
-                        }
-                    }
-                }
-
-                screen {
-                    onShare(context) {
-                        action {
-                            swipeToChooseDelete(context)
                         }
                     }
                 }
@@ -589,13 +498,6 @@ class AkiFrameworkTest {
                     }
                 }
 
-                screen {
-                    onUnknowView(context) {
-                        action {
-                            onUnknowViewAction(context)
-                        }
-                    }
-                }
             }
         }
 

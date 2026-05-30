@@ -44,6 +44,10 @@ class SceneBuilder(val name: String, val akiContext: AkiContext) {
     }
 
     fun build() = Scene(name, screens, unknownScreenHandler, context)
+    
+    fun include(behavior: SceneBuilder.() -> Unit) {
+        this.behavior()
+    }
 
 
     fun launchApp() {
