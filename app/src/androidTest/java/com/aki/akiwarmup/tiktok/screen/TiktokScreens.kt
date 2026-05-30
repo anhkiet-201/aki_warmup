@@ -219,7 +219,7 @@ fun onDeletePopup(
 fun onCommentView(
     context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
 ) = defineScreen("Comment View", context) {
-    detect { has(id(TiktokId.COMMENT_AVATAR) and id(TiktokId.ICON_LIST).not()) }
+    detect { has(id(TiktokId.COMMENT_AVATAR) and id(TiktokId.COMMENT_INPUT_POPUP).not()) }
     apply(block)
 }
 
@@ -234,6 +234,6 @@ fun onCommentView(
 fun onAddComment(
     context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
 ) = defineScreen("Add Comment Popup", context) {
-    detect { has(id(TiktokId.ICON_LIST)) }
+    detect { has(id(TiktokId.COMMENT_INPUT_POPUP)) }
     apply(block)
 }

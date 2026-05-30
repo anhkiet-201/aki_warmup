@@ -74,6 +74,9 @@ object TiktokId {
     /** Danh sách các icon đề xuất*/
     const val ICON_LIST = "com.ss.android.ugc.trill:id/h3d"
 
+    /** Popup nhập comment*/
+    const val COMMENT_INPUT_POPUP = "com.ss.android.ugc.trill:id/h3h"
+
     /** Ô nhập nội dung bình luận */
     const val COMMENT_INPUT = "com.ss.android.ugc.trill:id/e02"
 
