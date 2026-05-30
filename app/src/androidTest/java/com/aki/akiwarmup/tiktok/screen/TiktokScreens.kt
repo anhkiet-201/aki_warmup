@@ -17,7 +17,7 @@ import com.aki.akiwarmup.core.dsl.text
  * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
  */
 fun onHome(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
-    defineScreen("Home", context, priority = 9) {
+    defineScreen("Home", context, priority = 10) {
         detect {
             all(
                 text(TiktokText.HOME), id(TiktokId.USER_AVATAR)
@@ -72,7 +72,7 @@ fun onSearchResult(context: SceneExecutionContext, block: ScreenBuilder.() -> Un
  * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
  */
 fun onVideoView(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
-    defineScreen("Video View", context, priority = 10) {
+    defineScreen("Video View", context, priority = 9) {
         detect { has(text(TiktokText.SEARCH) and id(TiktokId.USER_AVATAR)) }
         apply(block)
     }
