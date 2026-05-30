@@ -201,6 +201,7 @@ class NotSelector(val selector: Selector): Selector {
 
     override fun exists(device: UiDevice): Boolean = !selector.exists(device)
 
+    override fun toString(): String = "NOT ($selector)"
 }
 
 /**
