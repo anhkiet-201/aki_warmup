@@ -12,8 +12,12 @@ fun defineAction(
 fun defineScreen(
     id: String,
     context: SceneExecutionContext,
+    priority: Int = 0,
     block: ScreenBuilder.() -> Unit
-): ScreenDef = ScreenBuilder(id, context).apply(block).build()
+): ScreenDef = ScreenBuilder(id, context).apply {
+    this.priority = priority
+    block()
+}.build()
 
 fun defineScene(id: String, context: AkiContext, block: SceneBuilder.() -> Unit): Scene =
     SceneBuilder(id, context).apply(block).build()

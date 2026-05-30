@@ -21,7 +21,11 @@ data class SceneConfig(
     var likeRate: Float = 0.15f,
     var followRate: Float = 0.05f,
     var searchRate: Float = 0.10f,
-    var keywords: List<String> = emptyList()
+    var keywords: List<String> = emptyList(),
+    /** Timeout khi detect màn hình — ngắn để không chờ quá lâu khi screen không match */
+    var detectTimeoutMs: Long = 700L,
+    /** Timeout khi thực hiện action (find, tap, v.v.) — dài hơn cho phép TikTok load */
+    var actionTimeoutMs: Long = 3000L
 )
 
 enum class UnknownScreenPolicy {
@@ -31,7 +35,9 @@ enum class UnknownScreenPolicy {
 data class ScreenDef(
     val id: String,
     val detectPredicate: DetectPredicate,
-    val actions: List<ActionDef>
+    val actions: List<ActionDef>,
+    /** Screens với priority cao hơn sẽ được detect trước — đặt cao cho screens xuất hiện thường xuyên */
+    val priority: Int = 0
 )
 
 class DetectPredicate(val check: (UiDevice) -> Boolean) {

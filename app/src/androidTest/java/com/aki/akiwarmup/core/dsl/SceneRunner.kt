@@ -26,7 +26,6 @@ class SceneRunner(
             waitForIdleTimeout = 2000L
             actionAcknowledgmentTimeout = 500L
             scrollAcknowledgmentTimeout = 500L
-            waitForSelectorTimeout = 3000L
         }
     }
 
@@ -37,7 +36,12 @@ class SceneRunner(
      */
     suspend fun loop(iterations: Int = -1, afterIteration: suspend () -> Unit = {}) {
         val scene = _scene ?: throw Exception("No Scenes are defined")
-        val detector = ScreenDetector(device, scene.screens)
+        val detector = ScreenDetector(
+            device = device, 
+            screens = scene.screens,
+            detectTimeoutMs = scene.context.sceneConfig.detectTimeoutMs,
+            actionTimeoutMs = scene.context.sceneConfig.actionTimeoutMs
+        )
         val loopManager = ActionLoop(scene, detector, logger)
         loopManager.run(iterations, afterIteration)
     }

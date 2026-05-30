@@ -35,6 +35,26 @@ class ActionBuilder(val context: SceneExecutionContext) {
 
     fun has(selector: Selector): Boolean = selector.exists(device)
 
+    /**
+     * Đợi linh hoạt cho đến khi UI element xuất hiện hoặc hết thời gian.
+     */
+    suspend fun waitUntil(
+        selector: Selector,
+        maxMs: Long = 5000L,
+        intervalMs: Long = 300L
+    ): UiObject2? {
+        AkiLog.d(LogTag.ACTION, "waitUntil($selector, max=${maxMs}ms)")
+        val start = System.currentTimeMillis()
+        while (System.currentTimeMillis() - start < maxMs && !context.isStopped()) {
+            if (selector.exists(device)) {
+                return find(selector)
+            }
+            delay(intervalMs)
+        }
+        AkiLog.w(LogTag.ACTION, "waitUntil timeout for $selector")
+        return null
+    }
+
     fun find(
         resourceId: String? = null,
         text: String? = null,

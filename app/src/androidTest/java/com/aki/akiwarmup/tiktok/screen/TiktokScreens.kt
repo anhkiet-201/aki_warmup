@@ -17,7 +17,7 @@ import com.aki.akiwarmup.core.dsl.text
  * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
  */
 fun onHome(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
-    defineScreen("Home", context) {
+    defineScreen("Home", context, priority = 9) {
         detect {
             all(
                 text(TiktokText.HOME), id(TiktokId.USER_AVATAR)
@@ -37,7 +37,7 @@ fun onHome(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
  * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
  */
 fun onSearch(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
-    defineScreen("Search", context) {
+    defineScreen("Search", context, priority = 7) {
         detect {
             has(id(TiktokId.SEARCH_BAR) and text(TiktokText.SEARCH))
         }
@@ -72,7 +72,7 @@ fun onSearchResult(context: SceneExecutionContext, block: ScreenBuilder.() -> Un
  * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
  */
 fun onVideoView(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
-    defineScreen("Video View", context) {
+    defineScreen("Video View", context, priority = 10) {
         detect { has(text(TiktokText.SEARCH) and id(TiktokId.USER_AVATAR)) }
         apply(block)
     }
@@ -218,7 +218,7 @@ fun onDeletePopup(
  */
 fun onCommentView(
     context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
-) = defineScreen("Comment View", context) {
+) = defineScreen("Comment View", context, priority = 8) {
     detect { has(id(TiktokId.COMMENT_AVATAR) and id(TiktokId.COMMENT_INPUT_POPUP).not()) }
     apply(block)
 }

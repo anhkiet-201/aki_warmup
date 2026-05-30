@@ -72,6 +72,7 @@ class SceneBuilder(val name: String, val akiContext: AkiContext) {
 class ScreenBuilder(val screenID: String, val context: SceneExecutionContext) {
     private var detectPredicate: DetectPredicate? = null
     private val actions = mutableListOf<ActionDef>()
+    var priority: Int = 0
 
     fun detect(block: DetectBuilder.() -> DetectPredicate) {
         detectPredicate = DetectBuilder().block()
@@ -86,5 +87,5 @@ class ScreenBuilder(val screenID: String, val context: SceneExecutionContext) {
     fun action(block: () -> ActionDef) = actions.add(block())
 
 
-    fun build() = ScreenDef(screenID, detectPredicate ?: DetectPredicate { false }, actions)
+    fun build() = ScreenDef(screenID, detectPredicate ?: DetectPredicate { false }, actions, priority)
 }

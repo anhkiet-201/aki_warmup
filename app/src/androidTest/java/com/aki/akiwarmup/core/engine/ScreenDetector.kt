@@ -8,45 +8,53 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
+import androidx.test.uiautomator.Configurator
+
 class ScreenDetector(
     private val device: UiDevice,
-    private val screens: List<ScreenDef>
+    screens: List<ScreenDef>,
+    private val detectTimeoutMs: Long = 700L,
+    private val actionTimeoutMs: Long = 3000L
 ) {
+    // Sắp xếp các màn hình theo priority giảm dần (cao nhất đứng trước)
+    private val sortedScreens = screens.sortedByDescending { it.priority }
 
     /**
-     * Nhận diện màn hình hiện tại bằng cách kiểm tra song song tất cả screens.
-     * Sử dụng coroutines để giảm thời gian detect từ O(n * t) xuống O(t) trong trường hợp lý tưởng.
-     *
-     * Lưu ý: UIAutomator không hoàn toàn thread-safe. Nếu phát sinh race condition
-     * trên thiết bị cụ thể, cân nhắc fallback về sequential detection.
+     * Nhận diện màn hình hiện tại bằng cách kiểm tra tuần tự.
+     * Áp dụng cơ chế Early-exit: trả về ngay lập tức khi tìm thấy match đầu tiên.
+     * Sử dụng detectTimeoutMs ngắn để tránh chờ lâu khi không có match.
      */
-    suspend fun detectCurrent(): ScreenDef? = coroutineScope {
+    suspend fun detectCurrent(): ScreenDef? {
         val start = System.currentTimeMillis()
-        AkiLog.v(LogTag.ENGINE, "detecting (${screens.size} screens)")
+        AkiLog.v(LogTag.ENGINE, "detecting (${sortedScreens.size} screens)")
 
-        val jobs = screens.map { screen ->
-            async(Dispatchers.IO) {
+        val configurator = Configurator.getInstance()
+        val originalTimeout = configurator.waitForSelectorTimeout
+
+        try {
+            // Ép timeout ngắn cho detect phase
+            configurator.waitForSelectorTimeout = detectTimeoutMs
+
+            for (screen in sortedScreens) {
                 val screenStart = System.currentTimeMillis()
                 val detected = screen.detectPredicate.evaluate(device)
                 val duration = System.currentTimeMillis() - screenStart
 
                 if (detected) {
                     AkiLog.v(LogTag.ENGINE, "match [${screen.id}] (${duration}ms)")
-                    screen
+                    return screen
                 } else {
                     AkiLog.v(LogTag.ENGINE, "miss  [${screen.id}] (${duration}ms)")
-                    null
                 }
             }
+        } finally {
+            // Phục hồi timeout dài cho action phase
+            configurator.waitForSelectorTimeout = actionTimeoutMs
         }
 
-        val result = jobs.map { it.await() }.filterNotNull().firstOrNull()
         val totalDuration = System.currentTimeMillis() - start
+        AkiLog.w(LogTag.ENGINE, "No screen matched (${totalDuration}ms)")
 
-        if (result == null) {
-            AkiLog.w(LogTag.ENGINE, "No screen matched (${totalDuration}ms)")
-        }
-
-        result
+        return null
     }
 }

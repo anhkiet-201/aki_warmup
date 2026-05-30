@@ -57,9 +57,11 @@ class ActionLoop(
             AkiLog.d(LogTag.ENGINE, "▶ [${action.id}]")
             AkiLog.enterScope()          // depth 2: body của action
 
+            val actionStart = System.currentTimeMillis()
             val result = runCatching {
                 action.block.invoke()
             }
+            val actionDuration = System.currentTimeMillis() - actionStart
 
             // Xử lý EndActionException như là kết quả thành công
             val finalResult = if (result.exceptionOrNull() is com.aki.akiwarmup.core.dsl.EndActionException) {
@@ -72,7 +74,9 @@ class ActionLoop(
             AkiLog.exitScope()           // depth 0
 
             logger.log(currentScreen.id, action.id, finalResult)
-            humanEngine.breathingPause()
+            if (actionDuration < 500) {
+                humanEngine.breathingPause()
+            }
 
             onIterationComplete()
             currentIteration++

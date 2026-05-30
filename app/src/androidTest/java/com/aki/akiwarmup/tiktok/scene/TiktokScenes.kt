@@ -9,7 +9,8 @@ import com.aki.akiwarmup.core.dsl.defineScene
 val tiktokConfig = SceneConfig(
     targetPackage = "com.ss.android.ugc.trill",
     onUnknownScreen = UnknownScreenPolicy.PRESS_BACK,
-    recoveryTimeoutMs = 15000L
+    recoveryTimeoutMs = 15000L,
+    detectTimeoutMs = 700L
 )
 
 /**

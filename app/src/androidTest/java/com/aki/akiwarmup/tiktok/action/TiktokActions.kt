@@ -317,7 +317,7 @@ fun selectVideoAfterSearch(context: SceneExecutionContext) = defineAction("Selec
                 .run {
                     this?.let {
                         tap(it.random())
-                        wait(3000)
+                        waitUntil(id(TiktokId.USER_AVATAR), maxMs = 3000L)
                     }
                 }
             endAction()
@@ -477,7 +477,7 @@ fun selectUser(
 ) = defineAction("Select User", context) {
     find(text(TiktokText.USER_TAB))?.let {
         tap(it)
-        wait(random(3000, 5000))
+        waitUntil(id(TiktokId.SEARCH_USERNAME), maxMs = random(3000L, 5000L))
         if (!it.isSelected) {
             endAction()
         }
@@ -488,7 +488,7 @@ fun selectUser(
                 onNoUser()
             } else {
                 tap(it)
-                wait(random(1000, 3000))
+                waitUntil(id(TiktokId.PROFILE_VIDEO_GRID), maxMs = random(1000L, 3000L))
             }
         }
     endAction()
