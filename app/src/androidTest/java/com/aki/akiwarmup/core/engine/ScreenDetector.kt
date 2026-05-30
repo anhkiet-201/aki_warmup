@@ -1,6 +1,7 @@
 package com.aki.akiwarmup.core.engine
 
-import android.util.Log
+import com.aki.akiwarmup.core.logger.AkiLog
+import com.aki.akiwarmup.core.logger.LogTag
 import androidx.test.uiautomator.UiDevice
 import com.aki.akiwarmup.core.dsl.ScreenDef
 import kotlinx.coroutines.Dispatchers
@@ -11,9 +12,6 @@ class ScreenDetector(
     private val device: UiDevice,
     private val screens: List<ScreenDef>
 ) {
-    companion object {
-        private const val TAG = "ScreenDetector"
-    }
 
     /**
      * Nhận diện màn hình hiện tại bằng cách kiểm tra song song tất cả screens.
@@ -24,7 +22,7 @@ class ScreenDetector(
      */
     suspend fun detectCurrent(): ScreenDef? = coroutineScope {
         val start = System.currentTimeMillis()
-        Log.d(TAG, "--- Start Screen Detection (${screens.size} screens defined) ---")
+        AkiLog.v(LogTag.ENGINE, "detecting (${screens.size} screens)")
 
         val jobs = screens.map { screen ->
             async(Dispatchers.IO) {
@@ -33,10 +31,10 @@ class ScreenDetector(
                 val duration = System.currentTimeMillis() - screenStart
 
                 if (detected) {
-                    Log.i(TAG, "SUCCESS: Detected [${screen.id}] in ${duration}ms")
+                    AkiLog.v(LogTag.ENGINE, "match [${screen.id}] (${duration}ms)")
                     screen
                 } else {
-                    Log.v(TAG, "Checking [${screen.id}]: Not matched (${duration}ms)")
+                    AkiLog.v(LogTag.ENGINE, "miss  [${screen.id}] (${duration}ms)")
                     null
                 }
             }
@@ -46,7 +44,7 @@ class ScreenDetector(
         val totalDuration = System.currentTimeMillis() - start
 
         if (result == null) {
-            Log.w(TAG, "FAILED: No screen detected! (Total time: ${totalDuration}ms)")
+            AkiLog.w(LogTag.ENGINE, "No screen matched (${totalDuration}ms)")
         }
 
         result

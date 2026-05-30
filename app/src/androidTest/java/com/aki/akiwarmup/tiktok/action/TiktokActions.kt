@@ -1,6 +1,7 @@
 package com.aki.akiwarmup.tiktok.action
 
-import android.util.Log
+import com.aki.akiwarmup.core.logger.AkiLog
+import com.aki.akiwarmup.core.logger.LogTag
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import androidx.test.uiautomator.Direction
@@ -98,12 +99,12 @@ fun watchVideo(
             val descText = desc?.text
             val beTTNHR = descText?.contains("#ttnhr") ?: false || descText?.contains("#vieclamttn") ?: false
             descText?.let {
-                Log.i("AkiFramework", "Desc: $descText")
+                AkiLog.d(LogTag.CONTENT, "desc: ${descText.take(80)}")
                 if (captionKeyword.none { kw -> it.lowercase().contains(kw.lowercase()) }) {
-                    Log.i("AkiFramework", "Không đúng nội dung")
+                    AkiLog.d(LogTag.CONTENT, "keyword miss → swipeBias")
                     rate.swipeBias()
                 } else {
-                    Log.i("AkiFramework", "Đúng nội dung")
+                    AkiLog.d(LogTag.CONTENT, "keyword hit ✓")
                     wait(random(1990, 30000 / loopCount))
                 }
             }

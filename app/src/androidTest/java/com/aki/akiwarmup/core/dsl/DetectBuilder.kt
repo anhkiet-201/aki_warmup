@@ -1,42 +1,43 @@
 package com.aki.akiwarmup.core.dsl
 
-import android.util.Log
+import com.aki.akiwarmup.core.logger.AkiLog
+import com.aki.akiwarmup.core.logger.LogTag
 
 class DetectBuilder {
     fun has(selector: Selector) = DetectPredicate { device ->
         val exists = selector.exists(device)
-        Log.d("AkiFramework", "[Detect] has($selector) -> $exists")
+        AkiLog.d(LogTag.DETECT, "has($selector) → $exists")
         exists
     }
 
     fun any(vararg predicates: DetectPredicate) = DetectPredicate { device ->
         val result = predicates.any { it.evaluate(device) }
-        Log.d("AkiFramework", "[Detect] any(...) -> $result")
+        AkiLog.d(LogTag.DETECT, "any(...) → $result")
         result
     }
 
     fun any(vararg selectors: Selector) = DetectPredicate { device ->
         val result = selectors.any { it.exists(device) }
-        Log.d("AkiFramework", "[Detect] any(${selectors.joinToString()}) -> $result")
+        AkiLog.d(LogTag.DETECT, "any(${selectors.joinToString()}) → $result")
         result
     }
 
     fun all(vararg predicates: DetectPredicate) = DetectPredicate { device ->
         val result = predicates.all { it.evaluate(device) }
-        Log.d("AkiFramework", "[Detect] all(...) -> $result")
+        AkiLog.d(LogTag.DETECT, "all(...) → $result")
         result
     }
 
     fun all(vararg selectors: Selector) = DetectPredicate { device ->
         val result = selectors.all { it.exists(device) }
-        Log.d("AkiFramework", "[Detect] all(${selectors.joinToString()}) -> $result")
+        AkiLog.d(LogTag.DETECT, "all(${selectors.joinToString()}) → $result")
         result
     }
     
     fun currentPackageIs(pkg: String) = DetectPredicate { device ->
         val current = device.currentPackageName
         val result = current == pkg
-        Log.d("AkiFramework", "[Detect] currentPackageIs($pkg) -> $result (actual: $current)")
+        AkiLog.d(LogTag.DETECT, "pkg($pkg) → $result (actual: $current)")
         result
     }
 }

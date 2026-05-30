@@ -2,7 +2,8 @@ package com.aki.akiwarmup.core.dsl
 
 import android.graphics.Point
 import android.os.Message
-import android.util.Log
+import com.aki.akiwarmup.core.logger.AkiLog
+import com.aki.akiwarmup.core.logger.LogTag
 import androidx.test.uiautomator.UiObject2
 import kotlinx.coroutines.delay
 import kotlin.random.Random
@@ -19,12 +20,12 @@ class ActionBuilder(val context: SceneExecutionContext) {
     private val random = Random
 
     suspend fun wait(ms: Long) {
-        Log.d("AkiFramework", "[Action] wait(ms=$ms)")
+        AkiLog.d(LogTag.ACTION, "wait(${ms}ms)")
         delay(ms)
     }
 
     suspend fun wait(milliseconds: Int) {
-        Log.d("AkiFramework", "[Action] wait(milliseconds=$milliseconds)")
+        AkiLog.d(LogTag.ACTION, "wait(${milliseconds}ms)")
         delay(milliseconds.toLong())
     }
 
@@ -60,7 +61,9 @@ class ActionBuilder(val context: SceneExecutionContext) {
     }
 
     fun tap(target: UiObject2?, humanized: Boolean = true) {
-        Log.d("AkiFramework", "[Action] tap(target=${target?.resourceName ?: "null"}, humanized=$humanized)")
+        val label = target?.resourceName?.substringAfterLast('/') ?: "null"
+        val humanStr = if (humanized) "" else " raw"
+        AkiLog.d(LogTag.ACTION, "tap($label$humanStr)")
         target?.let {
             val center = it.visibleCenter
             val point = if (humanized) humanEngine.getScatterPoint(center, 10) else center
@@ -69,7 +72,7 @@ class ActionBuilder(val context: SceneExecutionContext) {
     }
 
     suspend fun doubleTap(center: Point, scatter: Int = 15) {
-        Log.d("AkiFramework", "[Action] doubleTap(center=$center)")
+        AkiLog.d(LogTag.ACTION, "doubleTap(center=$center)")
         val p1 = humanEngine.getScatterPoint(center, scatter)
         device.click(p1.x, p1.y)
         delay(100)
@@ -78,7 +81,7 @@ class ActionBuilder(val context: SceneExecutionContext) {
     }
 
     fun swipeUp(humanized: Boolean = true) {
-        Log.d("AkiFramework", "[Action] swipeUp(humanized=$humanized)")
+        AkiLog.d(LogTag.ACTION, "swipeUp(humanized=$humanized)")
         val width = device.displayWidth
         val height = device.displayHeight
         val from = Point(width / 2 + random.nextInt(50) + 25, (height * 0.6).toInt())
@@ -92,7 +95,7 @@ class ActionBuilder(val context: SceneExecutionContext) {
     }
 
     fun scroll(direction: ScrollDirection, distancePx: Int) {
-        Log.d("AkiFramework", "[Action] scroll(direction=$direction, distance=$distancePx)")
+        AkiLog.d(LogTag.ACTION, "scroll($direction, ${distancePx}px)")
         val width = device.displayWidth
         val height = device.displayHeight
         val startX = width / 2
@@ -107,27 +110,28 @@ class ActionBuilder(val context: SceneExecutionContext) {
     }
 
     suspend fun humanType(field: UiObject2?, text: String) {
-        Log.d("AkiFramework", "[Action] humanType(field=${field?.resourceName ?: "null"}, text='$text')")
+        val fieldLabel = field?.resourceName?.substringAfterLast('/') ?: "null"
+        AkiLog.d(LogTag.ACTION, "type($fieldLabel, '${text.take(25)}'")
         field?.let { humanEngine.humanType(it, text) }
     }
 
     fun pressBack() {
-        Log.d("AkiFramework", "[Action] pressBack()")
+        AkiLog.d(LogTag.ACTION, "pressBack()")
         device.pressBack()
     }
 
     fun pressEnter() {
-        Log.d("AkiFramework", "[Action] pressEnter()")
+        AkiLog.d(LogTag.ACTION, "pressEnter()")
         device.pressEnter()
     }
 
     fun pressHome() {
-        Log.d("AkiFramework", "[Action] pressHome()")
+        AkiLog.d(LogTag.ACTION, "pressHome()")
         device.pressHome()
     }
 
     fun microScroll() {
-        Log.d("AkiFramework", "[Action] microScroll()")
+        AkiLog.d(LogTag.ACTION, "microScroll()")
         val dist = random.nextInt(100) + 50
         if (random.nextBoolean()) {
             scroll(ScrollDirection.Down, dist)
@@ -147,7 +151,7 @@ class ActionBuilder(val context: SceneExecutionContext) {
     }
 
     fun stop(message: String = "Complete") {
-        Log.d("AkiFramework", "[Action] stop($message)")
+        AkiLog.d(LogTag.ACTION, "stop($message)")
         context.stop(message)
     }
 
@@ -155,7 +159,7 @@ class ActionBuilder(val context: SceneExecutionContext) {
      * Thoát khỏi Action Group hiện tại ngay lập tức.
      */
     fun endAction() {
-        Log.d("AkiFramework", "[Action] endAction() - Terminating current action")
+        AkiLog.d(LogTag.ACTION, "endAction()")
         throw EndActionException()
     }
 
@@ -178,7 +182,7 @@ class ActionBuilder(val context: SceneExecutionContext) {
         for ((weight, block) in valid) {
             rand -= weight
             if (rand < 0) {
-                Log.v("AkiFramework", "\tchoose: selected branch (weight=$weight, remaining=${rand + weight})")
+                AkiLog.v(LogTag.ACTION, "choose(w=$weight)")
                 this.block()
                 return
             }
@@ -190,11 +194,13 @@ class ActionBuilder(val context: SceneExecutionContext) {
      * Ví dụ: loop({ !shouldExit }) { ... }
      */
     suspend fun loop(condition: () -> Boolean, block: suspend ActionBuilder.() -> Unit) {
-        Log.d("AkiFramework", "[Action] loop (dynamic condition) started")
+        AkiLog.d(LogTag.LOOP, "loop started")
         while (!context.isStopped() && condition()) {
+            AkiLog.enterScope()
             this.block()
+            AkiLog.exitScope()
         }
-        Log.d("AkiFramework", "[Action] loop finished or stopped")
+        AkiLog.d(LogTag.LOOP, "loop finished")
     }
 
     /**
@@ -202,9 +208,9 @@ class ActionBuilder(val context: SceneExecutionContext) {
      */
     suspend fun loop(times: Int? = null, block: suspend ActionBuilder.() -> Unit) {
         var count = 0
-        Log.d("AkiFramework", "[Action] loop(times=$times) started")
+        AkiLog.d(LogTag.LOOP, "loop(times=${times ?: "∞"}) started")
         loop({ times == null || count < times }) {
-            Log.v("AkiFramework", "  \tloop iteration ${++count}/${times ?: "inf"}")
+            AkiLog.v(LogTag.LOOP, "iter ${++count}/${times ?: "∞"}")
             this.block()
         }
     }

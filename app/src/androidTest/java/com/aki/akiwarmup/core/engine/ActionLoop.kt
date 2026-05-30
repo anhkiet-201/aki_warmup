@@ -1,6 +1,7 @@
 package com.aki.akiwarmup.core.engine
 
-import android.util.Log
+import com.aki.akiwarmup.core.logger.AkiLog
+import com.aki.akiwarmup.core.logger.LogTag
 import com.aki.akiwarmup.core.dsl.ActionDef
 import com.aki.akiwarmup.core.dsl.Scene
 import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
@@ -20,7 +21,7 @@ class ActionLoop(
 
     fun stop(reason: String = "", resultCode: Int = android.app.Activity.RESULT_OK) {
         if (reason.isNotEmpty()) {
-            Log.d("AkiFramework", "Stopping execution. Reason: $reason")
+            AkiLog.d(LogTag.ENGINE, "Stop: $reason")
         }
         context.stop(reason, resultCode)
     }
@@ -30,6 +31,7 @@ class ActionLoop(
         var currentIteration = 0
 
         while (!context.isStopped() && (iterations == -1 || currentIteration < iterations)) {
+            AkiLog.resetScope()
             val currentScreen = detector.detectCurrent()
 
             if (currentScreen == null) {
@@ -49,18 +51,25 @@ class ActionLoop(
             scene.context.consecutiveRestarts = 0
             val action = selectWeightedAction(currentScreen.actions)
 
+            // Depth 0: Screen
+            AkiLog.i(LogTag.ENGINE, "■ Screen [${currentScreen.id}]")
+            AkiLog.enterScope()          // depth 1
+            AkiLog.d(LogTag.ENGINE, "▶ [${action.id}]")
+            AkiLog.enterScope()          // depth 2: body của action
+
             val result = runCatching {
-                Log.d("AkiFramework", "\n---------------------\n[Action Group] ${action.id}")
                 action.block.invoke()
             }
 
             // Xử lý EndActionException như là kết quả thành công
             val finalResult = if (result.exceptionOrNull() is com.aki.akiwarmup.core.dsl.EndActionException) {
-                Log.d("AkiFramework", "Action [${action.id}] ended prematurely via endAction()")
+                AkiLog.d(LogTag.ACTION, "endAction()")
                 Result.success(Unit)
             } else {
                 result
             }
+            AkiLog.exitScope()           // depth 1
+            AkiLog.exitScope()           // depth 0
 
             logger.log(currentScreen.id, action.id, finalResult)
             humanEngine.breathingPause()

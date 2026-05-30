@@ -1,6 +1,7 @@
 package com.aki.akiwarmup.core.logger
 
-import android.util.Log
+import com.aki.akiwarmup.core.logger.AkiLog
+import com.aki.akiwarmup.core.logger.LogTag
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 
@@ -15,7 +16,6 @@ data class LogEntry(
 class SessionLogger {
     private val entries = mutableListOf<LogEntry>()
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
-    private val TAG = "AKI_FRAMEWORK"
 
     fun log(screenId: String, actionId: String, result: Result<Unit>) {
         val entry = LogEntry(
@@ -29,7 +29,7 @@ class SessionLogger {
         
         // Real-time status to logcat for the runner to pick up
         val status = if (result.isSuccess) "SUCCESS" else "FAILED: ${result.exceptionOrNull()?.message}"
-        Log.i(TAG, "ACTION: [$screenId] -> [$actionId] | $status")
+        AkiLog.i(LogTag.SESSION, "ACTION: [$screenId] -> [$actionId] | $status")
     }
 
     fun getFullReport(): String {
@@ -39,8 +39,8 @@ class SessionLogger {
     fun finalize() {
         val report = getFullReport()
         // Special tag to denote the end of session and the full report
-        Log.i(TAG, "SESSION_COMPLETE_REPORT_START")
-        Log.i(TAG, report)
-        Log.i(TAG, "SESSION_COMPLETE_REPORT_END")
+        AkiLog.i(LogTag.SESSION, "SESSION_COMPLETE_REPORT_START")
+        AkiLog.i(LogTag.SESSION, report)
+        AkiLog.i(LogTag.SESSION, "SESSION_COMPLETE_REPORT_END")
     }
 }

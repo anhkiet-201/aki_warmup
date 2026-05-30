@@ -5,6 +5,8 @@ import androidx.test.uiautomator.BySelector
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiObject2
 import java.util.regex.Pattern
+import com.aki.akiwarmup.core.logger.AkiLog
+import com.aki.akiwarmup.core.logger.LogTag
 
 /**
  * Interface đại diện cho một tiêu chí tìm kiếm UI Element.
@@ -83,36 +85,37 @@ class SimpleSelector : Selector {
     override fun find(device: UiDevice): UiObject2? {
         val sel = toBySelector()
         val obj = device.findObject(sel)
-        android.util.Log.d("AkiFramework", "[Find] $this -> ${if (obj != null) "Found" else "Not Found"}")
+        AkiLog.d(LogTag.DETECT, "find($this) → ${if (obj != null) "Found" else "Not Found"}")
         return obj
     }
     override fun findAll(device: UiDevice): List<UiObject2> {
         val sel = toBySelector()
         val list = device.findObjects(sel)
-        android.util.Log.d("AkiFramework", "[FindAll] $this -> Found ${list.size} elements")
+        AkiLog.d(LogTag.DETECT, "findAll($this) → ${list.size} found")
         return list
     }
     override fun find(parent: UiObject2): UiObject2? {
         val sel = toBySelector()
         val obj = parent.findObject(sel)
-        android.util.Log.d("AkiFramework", "[FindChild] $this -> ${if (obj != null) "Found" else "Not Found"}")
+        AkiLog.d(LogTag.DETECT, "findChild($this) → ${if (obj != null) "Found" else "Not Found"}")
         return obj
     }
     override fun findAll(parent: UiObject2): List<UiObject2> {
         val sel = toBySelector()
         val list = parent.findObjects(sel)
-        android.util.Log.d("AkiFramework", "[FindChildren] $this -> Found ${list.size} elements")
+        AkiLog.d(LogTag.DETECT, "findChildren($this) → ${list.size} found")
         return list
     }
     override fun exists(device: UiDevice): Boolean = device.hasObject(toBySelector())
 
     override fun toString(): String {
-        val sb = StringBuilder("SimpleSelector(")
-        resourceId?.let { sb.append("id=$it, ") }
-        text?.let { sb.append("text=$it, ") }
-        desc?.let { sb.append("desc=$it, ") }
-        pkg?.let { sb.append("pkg=$it, ") }
-        return sb.toString().trimEnd(',', ' ') + ")"
+        val parts = mutableListOf<String>()
+        // Strip package prefix: "com.ss.android.ugc.trill:id/ubv" → "#ubv"
+        resourceId?.let { parts.add("#${it.substringAfterLast('/')}") }
+        text?.let { parts.add("\"${it.take(30)}\"") }
+        desc?.let { parts.add("desc:${it.take(20)}") }
+        pkg?.let { parts.add("pkg:$it") }
+        return parts.joinToString("|")
     }
 
     // Fluent API

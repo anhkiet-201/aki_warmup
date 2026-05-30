@@ -1,6 +1,7 @@
 package com.aki.akiwarmup
 
-import android.util.Log
+import com.aki.akiwarmup.core.logger.AkiLog
+import com.aki.akiwarmup.core.logger.LogTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.aki.akiwarmup.core.dsl.runScene
 import com.aki.akiwarmup.tiktok.action.addComment
@@ -77,7 +78,7 @@ class AkiFrameworkTest {
         scene {
             tiktokSceneDefine("WarmUp", context) {
                 handleUnknowScreen {
-                    Log.i("AkiFramework", "${context.restartCount}")
+                    AkiLog.w(LogTag.ENGINE, "restart #${context.restartCount}")
                     if (this.context.restartCount > 3) {
                         this.context.stop("lỖI APP")
                     }
@@ -256,7 +257,7 @@ class AkiFrameworkTest {
         scene {
             tiktokSceneDefine("Seeding", context) {
                 handleUnknowScreen {
-                    Log.i("AkiFramework", "${context.consecutiveUnknownScreens}")
+                    AkiLog.w(LogTag.ENGINE, "unknown screen #${context.consecutiveUnknownScreens}")
                     if (this.context.consecutiveUnknownScreens > 8) {
                         context.device.pressHome()
                         this.context.stop("lỖI APP")
