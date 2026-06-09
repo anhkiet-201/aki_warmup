@@ -214,8 +214,12 @@ fun viewComment(
 ) = defineAction("View Comment", context) {
     on(id(TiktokId.COMMENT_INPUT)) { textField ->
         if (textField?.text?.trim()?.isNotEmpty() ?: false) {
-            find(desc(TiktokDesc.POST_COMMENT_BUTTON))?.let { postButton ->
-                tap(postButton)
+            findAll(desc(TiktokDesc.POST_COMMENT_BUTTON)).let { postButtons ->
+                postButtons.forEach { postButton ->
+                    if (postButton.isClickable) {
+                        tap(postButton)
+                    }
+                }
                 wait(random(100, 1500))
                 pressBack()
                 endAction()
