@@ -66,6 +66,8 @@ open class AkiContext(
     val humanBehaviorEngine: HumanBehaviorEngine,
     val sceneConfig: SceneConfig = SceneConfig()
 ) {
+    val storage: AkiStorage by lazy { AkiStorage(androidContext) }
+
     var stopped: Boolean = false
     var isStopped: () -> Boolean = { stopped }
 
@@ -102,6 +104,7 @@ open class SceneExecutionContext(
     var consecutiveRestarts: Int = 0,
     var consecutiveUnknownScreens: Int = 0
 ) {
+    val storage get() = baseContext.storage
     val device get() = baseContext.device
     val isStopped get() = baseContext.isStopped
     val sceneConfig get() = baseContext.sceneConfig

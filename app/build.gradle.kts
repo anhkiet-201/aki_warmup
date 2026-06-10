@@ -64,4 +64,6 @@ dependencies {
     androidTestImplementation("com.google.code.gson:gson:2.10.1")
     // Truth
     androidTestImplementation("com.google.truth:truth:1.4.2")
+    // DataStore
+    androidTestImplementation("androidx.datastore:datastore-preferences:1.0.0")
 }

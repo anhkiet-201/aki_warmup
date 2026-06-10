@@ -54,6 +54,24 @@ val MyScene = scene("my_scene") {
 }
 ```
 
+## 💾 Lưu trữ dữ liệu (Persistent Storage)
+
+Framework cung cấp sẵn `DataStore` (thông qua `AkiStorage`) để lưu trữ trạng thái bền vững giữa các lượt test, đảm bảo tiến trình không bị mất sau mỗi đợt chạy.
+
+```kotlin
+// Đọc dữ liệu đồng bộ
+val currentIndex = context.storage.sync { readInt("current_video_index", 0) }
+
+// Lưu dữ liệu đồng bộ
+context.storage.sync { 
+    saveInt("current_video_index", currentIndex + 1) 
+    saveBoolean("is_done", true)
+}
+
+// Xoá trắng
+context.storage.sync { clearAll() }
+```
+
 ## 🏃 Cách chạy
 
 1. Kết nối thiết bị Android (đã bật USB Debugging).

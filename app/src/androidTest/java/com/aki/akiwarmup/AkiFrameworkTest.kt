@@ -4,6 +4,7 @@ import com.aki.akiwarmup.core.logger.AkiLog
 import com.aki.akiwarmup.core.logger.LogTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.aki.akiwarmup.core.dsl.runScene
+import com.aki.akiwarmup.core.dsl.sync
 import com.aki.akiwarmup.tiktok.action.addComment
 import com.aki.akiwarmup.tiktok.action.keyWorlds
 import com.aki.akiwarmup.tiktok.action.onChooseVideo
@@ -91,7 +92,6 @@ class AkiFrameworkTest {
                 }
 
                 launchApp()
-
                 screen {
                     onHome(context) {
                         action {
