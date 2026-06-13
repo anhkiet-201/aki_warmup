@@ -166,7 +166,6 @@ class AkiFrameworkTest {
                         context.stop("Failure", -2)
                     }
                 }
-
                 screen {
                     onTiktokSharePost(context) {
                         action {
@@ -343,7 +342,6 @@ class AkiFrameworkTest {
      */
     @Test
     fun rePost() = runScene {
-
         scene {
             tiktokSceneDefine("Tiktok repost", context) {
                 include(TiktokBaseBehaviors)

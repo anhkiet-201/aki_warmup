@@ -58,7 +58,18 @@ val keyWorlds = listOf(
     "tìm việc làm ở tân uyên",
     "việc làm thời vụ st 3",
     "tuyển dụng ttnhr",
-    "việc làm bình dương ttnhr"
+    "việc làm bình dương ttnhr",
+    "việc làm vsip",
+    "việc làm vsip 3",
+    "việc làm hội nghĩa",
+    "việc làm hành chính",
+    "việc làm mỹ phước 1",
+    "việc làm mỹ phước 2",
+    "việc làm mỹ phước 3",
+    "việc làm mỹ phước 4",
+    "làm công ty ở bình dương",
+    "làm công ty ở vsip 3",
+    "làm công ty ở nam tân uyên"
 )
 
 /**
@@ -587,7 +598,7 @@ fun tapDeleteAndRepost(
         if (it != null) {
             tap(it)
         }
-        wait(random(2000, 5000))
+        wait(random(5000, 10000))
         endAction()
     }
 }
