@@ -598,7 +598,7 @@ fun tapDeleteAndRepost(
         if (it != null) {
             tap(it)
         }
-        wait(random(5000, 10000))
+        wait(random(2000, 3000))
         endAction()
     }
 }

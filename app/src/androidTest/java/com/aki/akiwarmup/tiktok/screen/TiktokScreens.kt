@@ -117,7 +117,7 @@ fun onTiktokSharePost(context: SceneExecutionContext, block: ScreenBuilder.() ->
  */
 fun onVideoPreview(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
     defineScreen("Video Preview", context) {
-        detect { has(id("com.ss.android.ugc.trill:id/zo6")) }
+        detect { has(text("AutoCut")) }
         apply(block)
     }
 
