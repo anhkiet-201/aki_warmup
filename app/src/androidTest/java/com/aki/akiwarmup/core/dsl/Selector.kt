@@ -85,7 +85,7 @@ class SimpleSelector : Selector {
     override fun find(device: UiDevice): UiObject2? {
         val sel = toBySelector()
         val obj = device.findObject(sel)
-        AkiLog.d(LogTag.DETECT, "find($this) → ${if (obj != null) "Found" else "Not Found"}")
+        AkiLog.d(LogTag.DETECT, "find(${obj?.toName()}) → ${if (obj != null) "Found" else "Not Found"}")
         return obj
     }
     override fun findAll(device: UiDevice): List<UiObject2> {
@@ -97,7 +97,7 @@ class SimpleSelector : Selector {
     override fun find(parent: UiObject2): UiObject2? {
         val sel = toBySelector()
         val obj = parent.findObject(sel)
-        AkiLog.d(LogTag.DETECT, "findChild($this) → ${if (obj != null) "Found" else "Not Found"}")
+        AkiLog.d(LogTag.DETECT, "findChild(${this}) → ${if (obj != null) "Found" else "Not Found"}")
         return obj
     }
     override fun findAll(parent: UiObject2): List<UiObject2> {

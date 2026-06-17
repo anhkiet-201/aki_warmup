@@ -81,7 +81,7 @@ class ActionBuilder(val context: SceneExecutionContext) {
     }
 
     fun tap(target: UiObject2?, humanized: Boolean = true) {
-        val label = target?.resourceName?.substringAfterLast('/') ?: "null"
+        val label = target.toName()
         val humanStr = if (humanized) "" else " raw"
         AkiLog.d(LogTag.ACTION, "tap($label$humanStr)")
         target?.let {
@@ -130,7 +130,7 @@ class ActionBuilder(val context: SceneExecutionContext) {
     }
 
     suspend fun humanType(field: UiObject2?, text: String) {
-        val fieldLabel = field?.resourceName?.substringAfterLast('/') ?: "null"
+        val fieldLabel = field.toName()
         AkiLog.d(LogTag.ACTION, "type($fieldLabel, '${text.take(25)}'")
         field?.let { humanEngine.humanType(it, text) }
     }
