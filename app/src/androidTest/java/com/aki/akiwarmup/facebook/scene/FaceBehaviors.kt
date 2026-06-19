@@ -24,19 +24,15 @@ val FaceBaseBehaviors: SceneBuilder.() -> Unit = {
  * Hành vi (Behavior) xử lý luồng bình luận trên Facebook (bao gồm xem danh sách bình luận và gửi bình luận mới).
  */
 val FaceCommentBehaviors: SceneBuilder.() -> Unit = {
-    screen {
-        onCommentView(context) {
-            action {
-                viewComment(context)
-            }
+    onCommentView(context) {
+        action {
+            viewComment(context)
         }
     }
 
-    screen {
-        onAddComment(context) {
-            action {
-                addComment(context)
-            }
+    onAddComment(context) {
+        action {
+            addComment(context)
         }
     }
 }
@@ -46,19 +42,15 @@ val FaceCommentBehaviors: SceneBuilder.() -> Unit = {
  * Tự động đăng ký màn hình xem video để thực hiện mở menu, và màn hình chia sẻ để thực hiện xóa video.
  */
 val FaceDeleteVideoBehaviors: SceneBuilder.() -> Unit = {
-    screen {
-        onVideoView(context) {
-            action {
-                openVideoMenu(context)
-            }
+    onVideoView(context) {
+        action {
+            openVideoMenu(context)
         }
     }
 
-    screen {
-        onShare(context) {
-            action {
-                swipeToChooseDelete(context)
-            }
+    onShare(context) {
+        action {
+            swipeToChooseDelete(context)
         }
     }
 }

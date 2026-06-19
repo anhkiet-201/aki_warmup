@@ -18,11 +18,9 @@ val TiktokBaseBehaviors: SceneBuilder.() -> Unit = {
         }
     }
 
-    screen {
-        onUnknowView(context) {
-            action {
-                onUnknowViewAction(context)
-            }
+    onUnknowView(context) {
+        action {
+            onUnknowViewAction(context)
         }
     }
 }
@@ -31,19 +29,15 @@ val TiktokBaseBehaviors: SceneBuilder.() -> Unit = {
  * Behavior xử lý việc bình luận (Xem bình luận và Thêm bình luận).
  */
 val TiktokCommentBehaviors: SceneBuilder.() -> Unit = {
-    screen {
-        onCommentView(context) {
-            action {
-                viewComment(context)
-            }
+    onCommentView(context) {
+        action {
+            viewComment(context)
         }
     }
 
-    screen {
-        onAddComment(context) {
-            action {
-                addComment(context)
-            }
+    onAddComment(context) {
+        action {
+            addComment(context)
         }
     }
 }
@@ -53,19 +47,15 @@ val TiktokCommentBehaviors: SceneBuilder.() -> Unit = {
  * Màn hình Video View sẽ được add tự động kèm action mở Menu.
  */
 val TiktokDeleteVideoBehaviors: SceneBuilder.() -> Unit = {
-    screen {
-        onVideoView(context) {
-            action {
-                openVideoMenu(context)
-            }
+    onVideoView(context) {
+        action {
+            openVideoMenu(context)
         }
     }
 
-    screen {
-        onShare(context) {
-            action {
-                swipeToChooseDelete(context)
-            }
+    onShare(context) {
+        action {
+            swipeToChooseDelete(context)
         }
     }
 }

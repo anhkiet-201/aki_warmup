@@ -95,43 +95,35 @@ class AkiFrameworkTest {
                 }
 
                 launchApp()
-                screen {
-                    onHome(context) {
-                        action {
-                            watchVideo(context) {
-                                find("com.ss.android.ugc.trill:id/jb1")?.let {
-                                    tap(it)
-                                    wait(300)
-                                }
+                onHome(context) {
+                    action {
+                        watchVideo(context) {
+                            find("com.ss.android.ugc.trill:id/jb1")?.let {
+                                tap(it)
+                                wait(300)
                             }
                         }
                     }
                 }
 
-                screen {
-                    onSearch(context) {
-                        action {
-                            typeSearchKeyword(context, keyWorlds.random())
-                        }
+                onSearch(context) {
+                    action {
+                        typeSearchKeyword(context, keyWorlds.random())
                     }
                 }
 
-                screen {
-                    onSearchResult(context) {
-                        action {
-                            selectVideoAfterSearch(context)
-                        }
+                onSearchResult(context) {
+                    action {
+                        selectVideoAfterSearch(context)
                     }
                 }
 
-                screen {
-                    onVideoView(context) {
-                        action {
-                            watchVideo(context) {
-                                pressHome()
-                                this@tiktokSceneDefine.killApp()
-                                stop("Hoàn thành")
-                            }
+                onVideoView(context) {
+                    action {
+                        watchVideo(context) {
+                            pressHome()
+                            this@tiktokSceneDefine.killApp()
+                            stop("Hoàn thành")
                         }
                     }
                 }
@@ -169,35 +161,27 @@ class AkiFrameworkTest {
                         context.stop("Failure", -2)
                     }
                 }
-                screen {
-                    onTiktokSharePost(context) {
-                        action {
-                            onTiktokSharePostAction(context)
-                        }
+                onTiktokSharePost(context) {
+                    action {
+                        onTiktokSharePostAction(context)
                     }
                 }
 
-                screen {
-                    onVideoPreview(context) {
-                        action {
-                            tapToAddMusic(context)
-                        }
+                onVideoPreview(context) {
+                    action {
+                        tapToAddMusic(context)
                     }
                 }
 
-                screen {
-                    onSelectMusicSheet(context) {
-                        action {
-                            selectRandomMusic(context)
-                        }
+                onSelectMusicSheet(context) {
+                    action {
+                        selectRandomMusic(context)
                     }
                 }
 
-                screen {
-                    onAddInfoView(context) {
-                        action {
-                            typeCaption(context)
-                        }
+                onAddInfoView(context) {
+                    action {
+                        typeCaption(context)
                     }
                 }
             }
@@ -236,45 +220,37 @@ class AkiFrameworkTest {
                         context.stop("Failure", -2)
                     }
                 }
-                screen {
-                    onTiktokSharePost(context) {
-                        action {
-                            onTiktokSharePostAction(context)
-                        }
+                onTiktokSharePost(context) {
+                    action {
+                        onTiktokSharePostAction(context)
                     }
                 }
 
-                screen {
-                    onVideoPreview(context) {
-                        action {
-                            if (!hasTapAutoCut) {
-                                return@action tapAutoCut(context) {
-                                    hasTapAutoCut = true
-                                }
+                onVideoPreview(context) {
+                    action {
+                        if (!hasTapAutoCut) {
+                            return@action tapAutoCut(context) {
+                                hasTapAutoCut = true
                             }
-                            if (!hasTapText) {
-                                return@action tapText(context, "Hello") {
-                                    hasTapText = true
-                                }
+                        }
+                        if (!hasTapText) {
+                            return@action tapText(context, "Hello") {
+                                hasTapText = true
                             }
-                            null
                         }
+                        null
                     }
                 }
 
-                screen {
-                    onSelectMusicSheet(context) {
-                        action {
-                            selectRandomMusic(context)
-                        }
+                onSelectMusicSheet(context) {
+                    action {
+                        selectRandomMusic(context)
                     }
                 }
 
-                screen {
-                    onAddInfoView(context) {
-                        action {
-                            typeCaption(context)
-                        }
+                onAddInfoView(context) {
+                    action {
+                        typeCaption(context)
                     }
                 }
             }
@@ -329,57 +305,47 @@ class AkiFrameworkTest {
 
                 launchApp()
 
-                screen {
-                    onHome(context) {
-                        action {
-                            watchVideo(context, rate) {
-                                find("com.ss.android.ugc.trill:id/jb1")?.let {
-                                    tap(it)
-                                    wait(300)
-                                }
+                onHome(context) {
+                    action {
+                        watchVideo(context, rate) {
+                            find("com.ss.android.ugc.trill:id/jb1")?.let {
+                                tap(it)
+                                wait(300)
                             }
                         }
                     }
                 }
 
-                screen {
-                    onSearch(context) {
-                        action {
-                            typeSearchKeyword(context, keyword)
+                onSearch(context) {
+                    action {
+                        typeSearchKeyword(context, keyword)
+                    }
+                }
+
+                onProfile(context) {
+                    action {
+                        onChooseVideo(context, {
+                            stop("No Videos")
+                        }) { videos ->
+                            tap(videos[numOfVideos])
                         }
                     }
                 }
 
-                screen {
-                    onProfile(context) {
-                        action {
-                            onChooseVideo(context, {
-                                stop("No Videos")
-                            }) { videos ->
-                                tap(videos[numOfVideos])
-                            }
+                onSearchResult(context) {
+                    action {
+                        selectUser(context, keyword) {
+                            pressHome()
+                            stop("Không tìm thấy User")
                         }
                     }
                 }
 
-                screen {
-                    onSearchResult(context) {
-                        action {
-                            selectUser(context, keyword) {
-                                pressHome()
-                                stop("Không tìm thấy User")
-                            }
-                        }
-                    }
-                }
-
-                screen {
-                    onVideoView(context) {
-                        action {
-                            watchVideo(context, rate) {
-                                pressHome()
-                                stop("Hoàn thành seeding: $keyword")
-                            }
+                onVideoView(context) {
+                    action {
+                        watchVideo(context, rate) {
+                            pressHome()
+                            stop("Hoàn thành seeding: $keyword")
                         }
                     }
                 }
@@ -427,61 +393,51 @@ class AkiFrameworkTest {
                 include(TiktokBaseBehaviors)
                 include(TiktokDeleteVideoBehaviors)
                 
-                screen {
-                    onProfile(context) {
-                        action {
-                            onChooseVideo(context, {
-                                stop("No Videos")
-                            }) { videos ->
-                                for ((i, videoText) in videos.withIndex()) {
-                                    if ((videoText.text.replace(".", "").trim().toIntOrNull() ?: Int.MAX_VALUE) < 10) {
-                                        tap(videoText)
-                                        wait(random(1000, 3000))
-                                        return@onChooseVideo
-                                    }
-                                    if (i >= videos.size - 1) {
-                                        stop("Không tìm thấy video 0 View nào")
-                                    }
+                onProfile(context) {
+                    action {
+                        onChooseVideo(context, {
+                            stop("No Videos")
+                        }) { videos ->
+                            for ((i, videoText) in videos.withIndex()) {
+                                if ((videoText.text.replace(".", "").trim().toIntOrNull() ?: Int.MAX_VALUE) < 10) {
+                                    tap(videoText)
+                                    wait(random(1000, 3000))
+                                    return@onChooseVideo
+                                }
+                                if (i >= videos.size - 1) {
+                                    stop("Không tìm thấy video 0 View nào")
                                 }
                             }
                         }
                     }
                 }
 
-                screen {
-                    onRepostPopup(context) {
-                        action {
-                            tapDeleteAndRepost(context)
+                onRepostPopup(context) {
+                    action {
+                        tapDeleteAndRepost(context)
+                    }
+                }
+
+                onDeletePopup(context) {
+                    action {
+                        tapDeleteVideo(context) {
+                            pressHome()
+                            stop("Đã xóa video")
                         }
                     }
                 }
 
-                screen {
-                    onDeletePopup(context) {
-                        action {
-                            tapDeleteVideo(context) {
-                                pressHome()
-                                stop("Đã xóa video")
-                            }
-                        }
+                onVideoPreview(context) {
+                    action {
+                        tapToAddMusic(context)
                     }
                 }
 
-                screen {
-                    onVideoPreview(context) {
-                        action {
-                            tapToAddMusic(context)
-                        }
-                    }
-                }
-
-                screen {
-                    onAddInfoView(context) {
-                        action {
-                            tapToUpload(context) {
-                                wait(random(20000, 40000))
-                                stop("Đã đăng lại video")
-                            }
+                onAddInfoView(context) {
+                    action {
+                        tapToUpload(context) {
+                            wait(random(20000, 40000))
+                            stop("Đã đăng lại video")
                         }
                     }
                 }
@@ -529,48 +485,42 @@ class AkiFrameworkTest {
                 include(TiktokBaseBehaviors)
                 include(TiktokDeleteVideoBehaviors)
                 
-                screen {
-                    onProfile(context) {
-                        action {
-                            onChooseVideo(context, {
-                                stop("No Videos")
-                            }) { videos ->
-                                // Fix: dùng withIndex() thay vì 0..(videos.size) để tránh IndexOutOfBounds
-                                for ((i, videoText) in videos.withIndex()) {
-                                    if ((videoText.text.trim().toIntOrNull() ?: Int.MAX_VALUE) < 10) {
-                                        tap(videoText)
-                                        wait(random(1000, 3000))
-                                        return@onChooseVideo
-                                    }
-                                    if (i >= videos.size - 1) {
-                                        stop(if (hasDeleteVideo) "Đã xóa tất cả video 0 View" else "Không tìm thấy video 0 View nào")
-                                    }
+                onProfile(context) {
+                    action {
+                        onChooseVideo(context, {
+                            stop("No Videos")
+                        }) { videos ->
+                            // Fix: dùng withIndex() thay vì 0..(videos.size) để tránh IndexOutOfBounds
+                            for ((i, videoText) in videos.withIndex()) {
+                                if ((videoText.text.trim().toIntOrNull() ?: Int.MAX_VALUE) < 10) {
+                                    tap(videoText)
+                                    wait(random(1000, 3000))
+                                    return@onChooseVideo
+                                }
+                                if (i >= videos.size - 1) {
+                                    stop(if (hasDeleteVideo) "Đã xóa tất cả video 0 View" else "Không tìm thấy video 0 View nào")
                                 }
                             }
                         }
                     }
                 }
 
-                screen {
-                    onRepostPopup(context) {
-                        action {
-                            tapDeleteInRepostPopup(context) {
-                                hasDeleteVideo = true
-                                wait(random(2000, 5000))
-                                pressBack()
-                            }
+                onRepostPopup(context) {
+                    action {
+                        tapDeleteInRepostPopup(context) {
+                            hasDeleteVideo = true
+                            wait(random(2000, 5000))
+                            pressBack()
                         }
                     }
                 }
 
-                screen {
-                    onDeletePopup(context) {
-                        action {
-                            tapDeleteVideo(context) {
-                                hasDeleteVideo = true
-                                wait(random(2000, 5000))
-                                pressBack()
-                            }
+                onDeletePopup(context) {
+                    action {
+                        tapDeleteVideo(context) {
+                            hasDeleteVideo = true
+                            wait(random(2000, 5000))
+                            pressBack()
                         }
                     }
                 }
