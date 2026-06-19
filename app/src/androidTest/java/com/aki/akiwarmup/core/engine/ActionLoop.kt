@@ -49,7 +49,12 @@ class ActionLoop(
 
             scene.context.consecutiveUnknownScreens = 0
             scene.context.consecutiveRestarts = 0
-            val action = selectWeightedAction(currentScreen.actions)
+            val action = currentScreen.action()
+            if (action == null) {
+                AkiLog.w(LogTag.ENGINE, "No action for [${currentScreen.id}]")
+                humanEngine.breathingPause()
+                continue
+            }
 
             // Depth 0: Screen
             AkiLog.i(LogTag.ENGINE, "■ Screen [${currentScreen.id}]")
@@ -80,16 +85,6 @@ class ActionLoop(
 
             onIterationComplete()
             currentIteration++
-        }
-    }
-
-    private fun selectWeightedAction(actions: List<ActionDef>): ActionDef {
-        if (actions.isEmpty()) throw IllegalStateException("No actions defined for screen")
-        val totalWeight = actions.sumOf { it.weight }
-        var rand = random.nextInt(totalWeight)
-        return actions.first {
-            rand -= it.weight
-            rand < 0
         }
     }
 

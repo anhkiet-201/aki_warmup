@@ -35,7 +35,7 @@ enum class UnknownScreenPolicy {
 data class ScreenDef(
     val id: String,
     val detectPredicate: DetectPredicate,
-    val actions: List<ActionDef>,
+    val action: () -> ActionDef?,
     /** Screens với priority cao hơn sẽ được detect trước — đặt cao cho screens xuất hiện thường xuyên */
     val priority: Int = 0
 )
@@ -53,8 +53,7 @@ class DetectPredicate(val check: (UiDevice) -> Boolean) {
 }
 
 data class ActionDef(
-    val id: String,
-    val weight: Int,
+    var id: String,
     val block: suspend () -> Unit
 )
 

@@ -3,6 +3,7 @@ package com.aki.akiwarmup
 import com.aki.akiwarmup.core.logger.AkiLog
 import com.aki.akiwarmup.core.logger.LogTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.aki.akiwarmup.core.dsl.defineAction
 import com.aki.akiwarmup.core.dsl.runScene
 import com.aki.akiwarmup.core.dsl.sync
 import com.aki.akiwarmup.tiktok.action.addComment
@@ -15,9 +16,11 @@ import com.aki.akiwarmup.tiktok.action.selectRandomMusic
 import com.aki.akiwarmup.tiktok.action.selectUser
 import com.aki.akiwarmup.tiktok.action.selectVideoAfterSearch
 import com.aki.akiwarmup.tiktok.action.swipeToChooseDelete
+import com.aki.akiwarmup.tiktok.action.tapAutoCut
 import com.aki.akiwarmup.tiktok.action.tapDeleteAndRepost
 import com.aki.akiwarmup.tiktok.action.tapDeleteInRepostPopup
 import com.aki.akiwarmup.tiktok.action.tapDeleteVideo
+import com.aki.akiwarmup.tiktok.action.tapText
 import com.aki.akiwarmup.tiktok.action.tapToAddMusic
 import com.aki.akiwarmup.tiktok.action.tapToUpload
 import com.aki.akiwarmup.tiktok.action.typeCaption
@@ -206,6 +209,83 @@ class AkiFrameworkTest {
     }
 
     /**
+     * Kịch bản Đăng bài tự động (Auto Post) từ luồng chia sẻ ngoài ứng dụng.
+     *
+     * Kịch bản này được kích hoạt khi hệ thống chia sẻ một tệp video từ bên ngoài (hoặc thư viện) vào TikTok.
+     *
+     * Luồng kịch bản chi tiết:
+     * 1. Xử lý màn hình Chia sẻ bài viết (`onTiktokSharePost`):
+     *    - Chuyển tiếp sang màn hình chỉnh sửa video bằng cách nhấn chọn tab Video (`onTiktokSharePostAction`).
+     * 2. Xử lý màn hình Xem trước video (`onVideoPreview`):
+     *    - Thực hiện nhấn nút Thêm âm thanh (`tapToAddMusic`) để chuyển sang sheet chọn nhạc nền.
+     * 3. Xử lý sheet Chọn nhạc (`onSelectMusicSheet`):
+     *    - Lựa chọn ngẫu nhiên một bài hát từ danh sách đề xuất (`selectRandomMusic`) để chèn vào video, sau đó quay lại.
+     * 4. Xử lý màn hình Soạn thảo thông tin (`onAddInfoView`):
+     *    - Thực hiện nhập văn bản caption lấy từ đối số kịch bản (`typeCaption`) và bấm nút Đăng, đợi quá trình upload hoàn tất rồi dừng.
+     * 5. Cơ chế phục hồi lỗi (`handleUnknowScreen`):
+     *    - Nếu gặp liên tiếp quá 8 lần màn hình không xác định hoặc lỗi không nhận dạng được giao diện, dừng kịch bản kiểm thử với mã lỗi thất bại.
+     */
+    @Test
+    fun autoPostWithAutoCut() = runScene {
+        var hasTapAutoCut = true
+        var hasTapText = false
+        scene {
+            tiktokSceneDefine("Auto Post", context) {
+                handleUnknowScreen {
+                    if (this.context.consecutiveUnknownScreens > 8) {
+                        context.stop("Failure", -2)
+                    }
+                }
+                screen {
+                    onTiktokSharePost(context) {
+                        action {
+                            onTiktokSharePostAction(context)
+                        }
+                    }
+                }
+
+                screen {
+                    onVideoPreview(context) {
+                        action {
+                            if (!hasTapAutoCut) {
+                                return@action tapAutoCut(context) {
+                                    hasTapAutoCut = true
+                                }
+                            }
+                            if (!hasTapText) {
+                                return@action tapText(context, "Hello") {
+                                    hasTapText = true
+                                }
+                            }
+                            null
+                        }
+                    }
+                }
+
+                screen {
+                    onSelectMusicSheet(context) {
+                        action {
+                            selectRandomMusic(context)
+                        }
+                    }
+                }
+
+                screen {
+                    onAddInfoView(context) {
+                        action {
+                            typeCaption(context)
+                        }
+                    }
+                }
+            }
+        }
+
+        loop {
+
+        }
+    }
+
+    /**
      * Kịch bản Seeding (Tương tác mồi) tài khoản dựa trên từ khóa chỉ định.
      * 
      * Kịch bản này dùng để tìm kiếm một từ khóa/username cụ thể, đi vào trang cá nhân của họ và thực hiện tương tác (like, comment, favorite) 
@@ -353,9 +433,8 @@ class AkiFrameworkTest {
                             onChooseVideo(context, {
                                 stop("No Videos")
                             }) { videos ->
-                                // Fix: dùng withIndex() thay vì 0..(videos.size) để tránh IndexOutOfBounds
                                 for ((i, videoText) in videos.withIndex()) {
-                                    if ((videoText.text.trim().toIntOrNull() ?: Int.MAX_VALUE) < 10) {
+                                    if ((videoText.text.replace(".", "").trim().toIntOrNull() ?: Int.MAX_VALUE) < 10) {
                                         tap(videoText)
                                         wait(random(1000, 3000))
                                         return@onChooseVideo

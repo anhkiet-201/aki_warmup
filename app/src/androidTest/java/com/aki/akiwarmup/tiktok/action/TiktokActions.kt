@@ -391,18 +391,39 @@ fun onTiktokSharePostAction(context: SceneExecutionContext) =
  * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
  */
 fun tapToAddMusic(context: SceneExecutionContext) = defineAction("Tap To Add Music", context) {
-    find(id(TiktokId.ADD_SOUND_TEXT))?.let {
+    find(id(TiktokId.ADD_SOUND_TEXT) or id("com.ss.android.ugc.trill:id/zct"))?.let {
         if (it.text == TiktokText.ADD_SOUND) {
             tap(it)
             wait(5000)
             endAction()
         }
     }
-    find(id(TiktokId.NEXT_BUTTON))?.let {
+    find(text("Tiếp"))?.let {
         tap(it)
         wait(random(3000, 5000))
     }
     endAction()
+}
+
+fun tapAutoCut(context: SceneExecutionContext, action: Action) = defineAction("Tap AutoCut", context) {
+    find(desc("Mẫu"))?.let {
+        tap(it)
+        action()
+        wait(random(5000, 10000))
+    }
+}
+
+fun tapText(context: SceneExecutionContext, text: String, action: Action) = defineAction("Tap Text", context) {
+    find(desc("Văn bản"))?.let {
+        context.device.executeShellCommand("ime set com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME")
+        tap(it)
+        wait(random(1500, 3000))
+        on(clazz("android.widget.EditText")) { editText ->
+            humanType(editText, text)
+            action()
+            wait(random(1500, 3000))
+        }
+    }
 }
 
 /**
@@ -459,7 +480,7 @@ fun selectRandomMusic(context: SceneExecutionContext) =
  */
 fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", context) {
     val caption = context.args.getString("caption")!!
-    find(id(TiktokId.CAPTION_INPUT))?.let {
+    find(clazz("android.widget.EditText"))?.let {
         humanType(it, "$caption ")
         wait(random(3000, 5000))
         find(text(TiktokText.POST))?.let { post ->
@@ -527,15 +548,16 @@ fun onChooseVideo(
     onNoVideos: Action,
     action: suspend ActionBuilder.(List<UiObject2>) -> Unit
 ) = defineAction("Choose Video", context) {
-    find(id(TiktokId.PROFILE_VIDEO_GRID))?.findObjects(id(TiktokId.PROFILE_VIDEO_ITEM).toBySelector())
-        .let {
-            if (it?.isEmpty() != false) {
-                onNoVideos()
-            } else {
-                action(it)
-            }
-            endAction()
+    find(clazz("android.widget.GridView")).let { grid ->
+        val videoItems = grid?.children?.mapNotNull {
+            it.children.lastOrNull()?.children?.lastOrNull()
+        } ?: emptyList()
+        if (videoItems.isEmpty()) {
+            onNoVideos()
+        } else {
+            action(videoItems)
         }
+    }
 }
 
 /**

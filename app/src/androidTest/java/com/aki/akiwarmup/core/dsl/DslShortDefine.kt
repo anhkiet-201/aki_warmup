@@ -5,9 +5,8 @@ import androidx.test.uiautomator.UiObject2
 fun defineAction(
     id: String,
     context: SceneExecutionContext,
-    weight: Int = 1,
     block: suspend ActionBuilder.() -> Unit
-): ActionDef = ActionDef(id, weight) {
+): ActionDef = ActionDef(id) {
     ActionBuilder(context).block()
 }
 

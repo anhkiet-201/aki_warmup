@@ -266,7 +266,7 @@ fun contains(child: Selector) = SimpleSelector().contains(child)
 fun Selector.child(child: Selector): Selector = NestedSelector(this, child)
 fun Selector.like(pattern: String): Selector {
     if (this is SimpleSelector) return this.textLike(pattern)
-    return this // Không hỗ trợ like cho Or/And selector trực tiếp
+    return this
 }
 
 infix fun Selector.or(other: Selector): Selector = OrSelector(this, other)

@@ -44,7 +44,7 @@ class SceneBuilder(val name: String, val akiContext: AkiContext) {
     }
 
     fun build() = Scene(name, screens, unknownScreenHandler, context)
-    
+
     fun include(behavior: SceneBuilder.() -> Unit) {
         this.behavior()
     }
@@ -75,21 +75,25 @@ class SceneBuilder(val name: String, val akiContext: AkiContext) {
 @SceneDslMarker
 class ScreenBuilder(val screenID: String, val context: SceneExecutionContext) {
     private var detectPredicate: DetectPredicate? = null
-    private val actions = mutableListOf<ActionDef>()
+    private var actionProvider: (() -> ActionDef?)? = null
     var priority: Int = 0
 
     fun detect(block: DetectBuilder.() -> DetectPredicate) {
         detectPredicate = DetectBuilder().block()
     }
 
-    fun action(id: String, weight: Int = 1, block: suspend ActionBuilder.() -> Unit) {
-        actions.add(ActionDef(id, weight) {
-            ActionBuilder(context).block()
-        })
+    fun action(id: String, block: suspend ActionBuilder.() -> Unit) {
+        actionProvider = {
+            ActionDef(id) {
+                ActionBuilder(context).block()
+            }
+        }
     }
 
-    fun action(block: () -> ActionDef) = actions.add(block())
+    fun action(block: () -> ActionDef?) {
+        actionProvider = block
+    }
 
 
-    fun build() = ScreenDef(screenID, detectPredicate ?: DetectPredicate { false }, actions, priority)
+    fun build() = ScreenDef(screenID, detectPredicate ?: DetectPredicate { false }, actionProvider ?: { null }, priority)
 }
