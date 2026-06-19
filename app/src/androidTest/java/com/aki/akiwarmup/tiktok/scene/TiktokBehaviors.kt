@@ -19,9 +19,7 @@ val TiktokBaseBehaviors: SceneBuilder.() -> Unit = {
     }
 
     onUnknowView(context) {
-        action {
-            onUnknowViewAction(context)
-        }
+        onUnknowViewAction(context)
     }
 }
 
@@ -30,15 +28,11 @@ val TiktokBaseBehaviors: SceneBuilder.() -> Unit = {
  */
 val TiktokCommentBehaviors: SceneBuilder.() -> Unit = {
     onCommentView(context) {
-        action {
-            viewComment(context)
-        }
+        viewComment(context)
     }
 
     onAddComment(context) {
-        action {
-            addComment(context)
-        }
+        addComment(context)
     }
 }
 
@@ -48,14 +42,10 @@ val TiktokCommentBehaviors: SceneBuilder.() -> Unit = {
  */
 val TiktokDeleteVideoBehaviors: SceneBuilder.() -> Unit = {
     onVideoView(context) {
-        action {
-            openVideoMenu(context)
-        }
+        openVideoMenu(context)
     }
 
     onShare(context) {
-        action {
-            swipeToChooseDelete(context)
-        }
+        swipeToChooseDelete(context)
     }
 }

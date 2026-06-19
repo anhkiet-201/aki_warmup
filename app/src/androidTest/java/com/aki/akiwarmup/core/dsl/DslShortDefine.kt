@@ -2,12 +2,17 @@ package com.aki.akiwarmup.core.dsl
 
 import androidx.test.uiautomator.UiObject2
 
+val activeScreenBuilder = ThreadLocal<ScreenBuilder>()
+
 fun defineAction(
     id: String,
     context: SceneExecutionContext,
     block: suspend ActionBuilder.() -> Unit
-): ActionDef = ActionDef(id) {
-    ActionBuilder(context).block()
+): Unit {
+    val actionDef = ActionDef(id) {
+        ActionBuilder(context).block()
+    }
+    activeScreenBuilder.get()?.action { actionDef }
 }
 
 val activeSceneBuilder = ThreadLocal<SceneBuilder>()
@@ -18,11 +23,22 @@ fun defineScreen(
     priority: Int = 0,
     block: ScreenBuilder.() -> Unit
 ): Unit {
-    val screenDef = ScreenBuilder(id, context).apply {
-        this.priority = priority
-        block()
-    }.build()
+    val builder = ScreenBuilder(id, context)
+    builder.priority = priority
     
+    val oldBuilder = activeScreenBuilder.get()
+    activeScreenBuilder.set(builder)
+    try {
+        builder.block()
+    } finally {
+        if (oldBuilder != null) {
+            activeScreenBuilder.set(oldBuilder)
+        } else {
+            activeScreenBuilder.remove()
+        }
+    }
+    
+    val screenDef = builder.build()
     activeSceneBuilder.get()?.screen { screenDef }
 }
 

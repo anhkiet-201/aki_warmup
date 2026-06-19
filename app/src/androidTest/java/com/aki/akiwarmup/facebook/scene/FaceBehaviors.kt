@@ -25,15 +25,11 @@ val FaceBaseBehaviors: SceneBuilder.() -> Unit = {
  */
 val FaceCommentBehaviors: SceneBuilder.() -> Unit = {
     onCommentView(context) {
-        action {
-            viewComment(context)
-        }
+        viewComment(context)
     }
 
     onAddComment(context) {
-        action {
-            addComment(context)
-        }
+        addComment(context)
     }
 }
 
@@ -43,14 +39,10 @@ val FaceCommentBehaviors: SceneBuilder.() -> Unit = {
  */
 val FaceDeleteVideoBehaviors: SceneBuilder.() -> Unit = {
     onVideoView(context) {
-        action {
-            openVideoMenu(context)
-        }
+        openVideoMenu(context)
     }
 
     onShare(context) {
-        action {
-            swipeToChooseDelete(context)
-        }
+        swipeToChooseDelete(context)
     }
 }

@@ -75,25 +75,50 @@ class SceneBuilder(val name: String, val akiContext: AkiContext) {
 @SceneDslMarker
 class ScreenBuilder(val screenID: String, val context: SceneExecutionContext) {
     private var detectPredicate: DetectPredicate? = null
-    private var actionProvider: (() -> ActionDef?)? = null
+    var testBlock: (ScreenBuilder.() -> Unit)? = null
     var priority: Int = 0
 
     fun detect(block: DetectBuilder.() -> DetectPredicate) {
         detectPredicate = DetectBuilder().block()
     }
 
+    fun apply(block: ScreenBuilder.() -> Unit): ScreenBuilder {
+        this.testBlock = block
+        return this
+    }
+
     fun action(id: String, block: suspend ActionBuilder.() -> Unit) {
-        actionProvider = {
+        action {
             ActionDef(id) {
                 ActionBuilder(context).block()
             }
         }
     }
 
+    private var registeredAction: ActionDef? = null
+
     fun action(block: () -> ActionDef?) {
-        actionProvider = block
+        if (registeredAction == null) {
+            registeredAction = block()
+        }
     }
 
-
-    fun build() = ScreenDef(screenID, detectPredicate ?: DetectPredicate { false }, actionProvider ?: { null }, priority)
+    fun build(): ScreenDef {
+        val actionProvider: () -> ActionDef? = {
+            val builder = ScreenBuilder(screenID, context)
+            val oldBuilder = activeScreenBuilder.get()
+            activeScreenBuilder.set(builder)
+            try {
+                testBlock?.invoke(builder)
+            } finally {
+                if (oldBuilder != null) {
+                    activeScreenBuilder.set(oldBuilder)
+                } else {
+                    activeScreenBuilder.remove()
+                }
+            }
+            builder.registeredAction
+        }
+        return ScreenDef(screenID, detectPredicate ?: DetectPredicate { false }, actionProvider, priority)
+    }
 }
