@@ -1,21 +1,19 @@
 package com.aki.akiwarmup
 
+import android.graphics.Point
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.uiautomator.Direction
+import com.aki.akiwarmup.core.dsl.clazz
+import com.aki.akiwarmup.core.dsl.runScene
+import com.aki.akiwarmup.core.dsl.text
 import com.aki.akiwarmup.core.logger.AkiLog
 import com.aki.akiwarmup.core.logger.LogTag
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.aki.akiwarmup.core.dsl.defineAction
-import com.aki.akiwarmup.core.dsl.runScene
-import com.aki.akiwarmup.core.dsl.sync
-import com.aki.akiwarmup.tiktok.action.addComment
 import com.aki.akiwarmup.tiktok.action.keyWorlds
 import com.aki.akiwarmup.tiktok.action.onChooseVideo
 import com.aki.akiwarmup.tiktok.action.onTiktokSharePostAction
-import com.aki.akiwarmup.tiktok.action.onUnknowViewAction
-import com.aki.akiwarmup.tiktok.action.openVideoMenu
 import com.aki.akiwarmup.tiktok.action.selectRandomMusic
 import com.aki.akiwarmup.tiktok.action.selectUser
 import com.aki.akiwarmup.tiktok.action.selectVideoAfterSearch
-import com.aki.akiwarmup.tiktok.action.swipeToChooseDelete
 import com.aki.akiwarmup.tiktok.action.tapAutoCut
 import com.aki.akiwarmup.tiktok.action.tapDeleteAndRepost
 import com.aki.akiwarmup.tiktok.action.tapDeleteInRepostPopup
@@ -25,17 +23,14 @@ import com.aki.akiwarmup.tiktok.action.tapToAddMusic
 import com.aki.akiwarmup.tiktok.action.tapToUpload
 import com.aki.akiwarmup.tiktok.action.typeCaption
 import com.aki.akiwarmup.tiktok.action.typeSearchKeyword
-import com.aki.akiwarmup.tiktok.action.viewComment
 import com.aki.akiwarmup.tiktok.action.watchVideo
 import com.aki.akiwarmup.tiktok.model.AutoRate
-import com.aki.akiwarmup.tiktok.model.RateType
-import com.aki.akiwarmup.tiktok.scene.tiktokSceneDefine
 import com.aki.akiwarmup.tiktok.scene.TiktokBaseBehaviors
 import com.aki.akiwarmup.tiktok.scene.TiktokCommentBehaviors
 import com.aki.akiwarmup.tiktok.scene.TiktokDeleteVideoBehaviors
-import com.aki.akiwarmup.tiktok.screen.onAddComment
+import com.aki.akiwarmup.tiktok.scene.tiktokSceneDefine
 import com.aki.akiwarmup.tiktok.screen.onAddInfoView
-import com.aki.akiwarmup.tiktok.screen.onCommentView
+import com.aki.akiwarmup.tiktok.screen.onChooseTemplate
 import com.aki.akiwarmup.tiktok.screen.onDeletePopup
 import com.aki.akiwarmup.tiktok.screen.onHome
 import com.aki.akiwarmup.tiktok.screen.onProfile
@@ -43,9 +38,7 @@ import com.aki.akiwarmup.tiktok.screen.onRepostPopup
 import com.aki.akiwarmup.tiktok.screen.onSearch
 import com.aki.akiwarmup.tiktok.screen.onSearchResult
 import com.aki.akiwarmup.tiktok.screen.onSelectMusicSheet
-import com.aki.akiwarmup.tiktok.screen.onShare
 import com.aki.akiwarmup.tiktok.screen.onTiktokSharePost
-import com.aki.akiwarmup.tiktok.screen.onUnknowView
 import com.aki.akiwarmup.tiktok.screen.onVideoPreview
 import com.aki.akiwarmup.tiktok.screen.onVideoView
 import org.junit.Test
@@ -58,7 +51,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AkiFrameworkTest {
 
-    /**
+     /**
      * Kịch bản Khởi động (Warm-up) tài khoản TikTok.
      * 
      * Kịch bản này nhằm thực hiện các tương tác tự nhiên ban đầu (lướt xem, tìm kiếm ngẫu nhiên) để tạo độ tin cậy (trust) cho tài khoản.
@@ -195,8 +188,9 @@ class AkiFrameworkTest {
      */
     @Test
     fun autoPostWithAutoCut() = runScene {
-        var hasTapAutoCut = true
+        var hasTapAutoCut = false
         var hasTapText = false
+        val text = context.args.getString("text") ?: ""
         scene {
             tiktokSceneDefine("Auto Post", context) {
                 handleUnknowScreen {
@@ -214,15 +208,45 @@ class AkiFrameworkTest {
                             hasTapAutoCut = true
                         }
                     }
-                    if (!hasTapText) {
-                        tapText(context, "Hello") {
+                    if (!hasTapText && text.isNotEmpty()) {
+                        tapText(context, text) {
                             hasTapText = true
+                        }
+                    }
+                    if (hasTapAutoCut && hasTapText) {
+                        action("Tap 'Tiếp'") {
+                            on(clazz("android.widget.EditText")) { editText ->
+                                editText?.let {
+                                    it.drag(
+                                    Point(
+                                        it.visibleBounds.centerX() + random(100) - 50,
+                                        200 + random(100),
+                                    ), random(100, 180))
+                                }
+
+                                wait(random(1500,2000))
+                            }
+                            on(text("Tiếp")) {
+                                tap(it)
+                                wait(random(1500,2000))
+                            }
                         }
                     }
                 }
 
-                onSelectMusicSheet(context) {
-                    selectRandomMusic(context)
+                onChooseTemplate(context) {
+                    action("Chọn mẫu") {
+                        on(clazz("androidx.recyclerview.widget.RecyclerView")) {
+                            sometimes(60) {
+                                it?.scroll(Direction.RIGHT, 0.6f)
+                            }
+                            val templates = it?.children
+                            tap(templates?.random())
+                            wait(random(3000,5000))
+                            pressBack()
+                            wait(random(3000,5000))
+                        }
+                    }
                 }
 
                 onAddInfoView(context) {

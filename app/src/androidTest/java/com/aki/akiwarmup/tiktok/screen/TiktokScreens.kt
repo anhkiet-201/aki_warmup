@@ -123,6 +123,12 @@ fun onVideoPreview(context: SceneExecutionContext, block: ScreenBuilder.() -> Un
         apply(block)
     }
 
+fun onChooseTemplate(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
+    defineScreen("Choose Template", context) {
+        detect { has(text("Chọn mẫu") and text("Tiếp"))}
+        apply(block)
+    }
+
 /**
  * Định nghĩa sheet chọn nhạc nền (Select Music Sheet) trong quy trình tải lên video.
  *

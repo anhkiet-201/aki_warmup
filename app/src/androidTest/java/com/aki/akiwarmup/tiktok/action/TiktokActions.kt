@@ -422,6 +422,9 @@ fun tapText(context: SceneExecutionContext, text: String, action: Action) = defi
             humanType(editText, text)
             action()
             wait(random(1500, 3000))
+            on(desc("Text")) { text -> tap(text)}
+            wait(random(1500, 3000))
+            pressBack()
         }
     }
 }
