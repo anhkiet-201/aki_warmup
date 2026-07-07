@@ -170,27 +170,28 @@ class AkiFrameworkTest {
     }
 
     /**
-     * Kịch bản Đăng bài tự động (Auto Post) từ luồng chia sẻ ngoài ứng dụng.
+     * Kịch bản Đăng bài tự động (Auto Post) kết hợp tính năng Tự động cắt (Auto Cut) và thêm văn bản.
      *
-     * Kịch bản này được kích hoạt khi hệ thống chia sẻ một tệp video từ bên ngoài (hoặc thư viện) vào TikTok.
+     * Kịch bản này chia sẻ video vào TikTok, áp dụng tính năng Auto Cut để chọn mẫu dựng video,
+     * tự động chèn thêm văn bản tùy chỉnh vào video, sau đó tiến hành đăng bài viết.
      *
-     * Luồng kịch bản chi tiết:
-     * 1. Xử lý màn hình Chia sẻ bài viết (`onTiktokSharePost`):
-     *    - Chuyển tiếp sang màn hình chỉnh sửa video bằng cách nhấn chọn tab Video (`onTiktokSharePostAction`).
+     * **Các đối số truyền vào qua `context.args`:**
+     * - `text`: Chuỗi văn bản cần chèn đè lên video (mặc định là "Xin chào"). Nếu truyền chuỗi rỗng, bỏ qua bước chèn văn bản.
+     *
+     * **Luồng kịch bản chi tiết:**
+     * 1. Xử lý màn hình Chia sẻ bài viết (`onTiktokSharePost`): Nhấn chọn tab Video (`onTiktokSharePostAction`).
      * 2. Xử lý màn hình Xem trước video (`onVideoPreview`):
-     *    - Thực hiện nhấn nút Thêm âm thanh (`tapToAddMusic`) để chuyển sang sheet chọn nhạc nền.
-     * 3. Xử lý sheet Chọn nhạc (`onSelectMusicSheet`):
-     *    - Lựa chọn ngẫu nhiên một bài hát từ danh sách đề xuất (`selectRandomMusic`) để chèn vào video, sau đó quay lại.
-     * 4. Xử lý màn hình Soạn thảo thông tin (`onAddInfoView`):
-     *    - Thực hiện nhập văn bản caption lấy từ đối số kịch bản (`typeCaption`) và bấm nút Đăng, đợi quá trình upload hoàn tất rồi dừng.
-     * 5. Cơ chế phục hồi lỗi (`handleUnknowScreen`):
-     *    - Nếu gặp liên tiếp quá 8 lần màn hình không xác định hoặc lỗi không nhận dạng được giao diện, dừng kịch bản kiểm thử với mã lỗi thất bại.
+     *    - Nếu chưa nhấn Auto Cut, thực hiện gọi [tapAutoCut].
+     *    - Nếu chưa chèn văn bản và đối số `text` không rỗng, thực hiện gọi [tapText] để chèn văn bản.
+     *    - Sau khi hoàn thành hai bước trên, thực hiện kéo thả ô nhập văn bản (EditText) đến vị trí ngẫu nhiên trên màn hình và nhấn nút "Tiếp".
+     * 3. Xử lý màn hình Chọn mẫu (`onChooseTemplate`): Cuộn ngẫu nhiên qua các mẫu template và nhấn chọn ngẫu nhiên một mẫu phù hợp.
+     * 4. Xử lý màn hình Soạn thảo thông tin (`onAddInfoView`): Nhập caption và nhấn Đăng bài (`typeCaption`).
      */
     @Test
     fun autoPostWithAutoCut() = runScene {
         var hasTapAutoCut = false
         var hasTapText = false
-        val text = context.args.getString("text") ?: ""
+        val text = context.args.getString("text") ?: "Xin chào"
         scene {
             tiktokSceneDefine("Auto Post", context) {
                 handleUnknowScreen {
@@ -213,17 +214,16 @@ class AkiFrameworkTest {
                             hasTapText = true
                         }
                     }
-                    if (hasTapAutoCut && hasTapText) {
+                    if (hasTapAutoCut && (hasTapText || text.isEmpty())) {
                         action("Tap 'Tiếp'") {
                             on(clazz("android.widget.EditText")) { editText ->
                                 editText?.let {
                                     it.drag(
                                     Point(
                                         it.visibleBounds.centerX() + random(100) - 50,
-                                        200 + random(100),
-                                    ), random(100, 180))
+                                        325 + random(100),
+                                    ), random(180, 300))
                                 }
-
                                 wait(random(1500,2000))
                             }
                             on(text("Tiếp")) {
@@ -237,14 +237,18 @@ class AkiFrameworkTest {
                 onChooseTemplate(context) {
                     action("Chọn mẫu") {
                         on(clazz("androidx.recyclerview.widget.RecyclerView")) {
-                            sometimes(60) {
-                                it?.scroll(Direction.RIGHT, 0.6f)
+                            while (true) {
+                                if (random(100) < 60) {
+                                    it?.scroll(Direction.RIGHT, 0.6f)
+                                } else {
+                                    val templates = it?.children
+                                    tap(templates?.random())
+                                    wait(random(3000,5000))
+                                    pressBack()
+                                    wait(random(3000,5000))
+                                    endAction()
+                                }
                             }
-                            val templates = it?.children
-                            tap(templates?.random())
-                            wait(random(3000,5000))
-                            pressBack()
-                            wait(random(3000,5000))
                         }
                     }
                 }
