@@ -40,7 +40,7 @@ class ActionBuilder(val context: SceneExecutionContext) {
      */
     suspend fun waitUntil(
         selector: Selector,
-        maxMs: Long = 5000L,
+        maxMs: Long = 60000L,
         intervalMs: Long = 300L
     ): UiObject2? {
         AkiLog.d(LogTag.ACTION, "waitUntil($selector, max=${maxMs}ms)")

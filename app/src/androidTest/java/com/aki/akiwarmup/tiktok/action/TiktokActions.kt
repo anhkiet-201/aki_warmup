@@ -374,10 +374,9 @@ fun onTiktokSharePostAction(context: SceneExecutionContext) =
     defineAction("Tiktok Share Post Action", context) {
         find(text(TiktokText.VIDEO_TAB))?.let {
             tap(it)
-            wait(random(3000, 5000))
+            waitUntil(selector = desc("Mẫu") and desc("Văn bản"),maxMs = 60000L)
             endAction()
         }
-        endAction()
     }
 
 /**

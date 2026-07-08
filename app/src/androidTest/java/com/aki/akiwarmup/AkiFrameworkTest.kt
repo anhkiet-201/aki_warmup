@@ -191,7 +191,7 @@ class AkiFrameworkTest {
     fun autoPostWithAutoCut() = runScene {
         var hasTapAutoCut = false
         var hasTapText = false
-        val text = context.args.getString("text") ?: "Xin chào"
+        val text = context.args.getString("text") ?: ""
         scene {
             tiktokSceneDefine("Auto Post", context) {
                 handleUnknowScreen {
@@ -206,7 +206,9 @@ class AkiFrameworkTest {
                 onVideoPreview(context) {
                     if (!hasTapAutoCut) {
                         tapAutoCut(context) {
+                            waitUntil(text("Chọn mẫu") and text("Tiếp"))
                             hasTapAutoCut = true
+                            endAction()
                         }
                     }
                     if (!hasTapText && text.isNotEmpty()) {
