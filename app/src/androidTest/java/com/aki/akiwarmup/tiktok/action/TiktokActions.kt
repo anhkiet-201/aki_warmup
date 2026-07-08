@@ -405,10 +405,15 @@ fun tapToAddMusic(context: SceneExecutionContext) = defineAction("Tap To Add Mus
 }
 
 fun tapAutoCut(context: SceneExecutionContext, action: Action) = defineAction("Tap AutoCut", context) {
-    find(desc("Mẫu"))?.let {
-        tap(it)
-        action()
-        wait(random(5000, 10000))
+    on(desc("Mẫu")) {
+        if (it != null) {
+            tap(it)
+            waitUntil(text("Chọn mẫu") and text("Tiếp"))
+            action()
+            endAction()
+        } else {
+            action()
+        }
     }
 }
 
@@ -420,6 +425,61 @@ fun tapText(context: SceneExecutionContext, text: String, action: Action) = defi
         on(clazz("android.widget.EditText")) { editText ->
             humanType(editText, text)
             action()
+            ///
+            on(clazz("androidx.recyclerview.widget.RecyclerView")) { recyclerview ->
+                val options = recyclerview?.children
+                val fontButton = options?.getOrNull(0)
+                val colorButton = options?.getOrNull(1)
+                val styleButton = options?.getOrNull(2)
+                val alignButton = options?.getOrNull(3)
+
+                fontButton?.let {  button ->
+                    tap(button)
+                    wait(random(300, 900))
+                    find(clazz("android.widget.HorizontalScrollView"))?.let { scrollview ->
+                        val fontList = scrollview.children.first()
+                        sometimes(60) {
+                            fontList.scroll(Direction.RIGHT, 0.6f)
+                        }
+                        fontList.children.random().let { font ->
+                            tap(font)
+                        }
+                    }
+                }
+                wait(random(300, 900))
+
+                colorButton?.let { button ->
+                    tap(button)
+                    wait(random(300, 900))
+                    find(clazz("android.widget.HorizontalScrollView"))?.let { scrollview ->
+                        val colorList = scrollview.children.first()
+                        repeat(random(0, 5)) {
+                            colorList.scroll(Direction.RIGHT, 0.6f)
+                            wait(random(200, 500))
+                        }
+                        colorList.children.random().let { color ->
+                            tap(color)
+                        }
+                    }
+                }
+                wait(random(300, 900))
+
+                styleButton?.let { button ->
+                    repeat(random(0, 4)) {
+                        tap(button)
+                        wait(random(200, 500))
+                    }
+                }
+                wait(random(300, 900))
+
+                alignButton?.let { button ->
+                    repeat(random(0, 4)) {
+                        tap(button)
+                        wait(random(200, 500))
+                    }
+                }
+            }
+            ///
             wait(random(1500, 3000))
             on(desc("Text")) { text -> tap(text)}
             wait(random(1500, 3000))
@@ -481,7 +541,7 @@ fun selectRandomMusic(context: SceneExecutionContext) =
  * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
  */
 fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", context) {
-    val caption = context.args.getString("caption")!!
+    val caption = context.args.getString("caption") ?: "asdqadaf"
     find(clazz("android.widget.EditText"))?.let {
         humanType(it, "$caption ")
         wait(random(3000, 5000))
