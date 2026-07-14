@@ -37,12 +37,15 @@ fun chooseGroup(
 ) = defineAction("Choose group", context) {
     on(clazz("androidx.recyclerview.widget.RecyclerView")) { recyclerView ->
         val groupElement = recyclerView?.children?.mapNotNull {
-            it.children.firstOrNull()?.children?.firstOrNull()
+            it.children.firstOrNull()?.children?.firstOrNull { el -> el.className == "android.view.ViewGroup" }
         } ?: emptyList<UiObject2>()
         groupElement.forEach {
-            val text= it.text
+            val children = it.children
+            val text= children.firstOrNull()?.text ?: ""
             if (keywords.any { k -> text.contains(k, ignoreCase = true) } && !cacheSelectedGroups.contains(text)) {
-                tap(it)
+                if (children.size < 2) {
+                    tap(it)
+                }
                 cacheSelectedGroups.add(text)
                 wait(random(1500, 3000))
                 return@on

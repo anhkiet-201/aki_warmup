@@ -78,7 +78,7 @@ class AkiFrameworkFace {
         scene {
             faceSceneDefine("Group Post", context) {
                 include(FaceBaseBehaviors)
-                val keywords = (context.args.getString("keywords") ?: "").split("|")
+                val keywords = (context.args.getString("keywords") ?: "Nam tân uyên").split("|")
                 if (keywords.isEmpty()) {
                     context.stop("Danh sách từ khóa rỗng")
                 }
@@ -90,7 +90,7 @@ class AkiFrameworkFace {
                     selectGroup(context, keywords)
                 }
 
-                val caption = context.args.getString("caption") ?: ""
+                val caption = context.args.getString("caption") ?: "ádsa"
                 if (caption.isEmpty()) {
                     context.stop("Caption rỗng")
                 }

@@ -4,6 +4,7 @@ import android.graphics.Point
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.uiautomator.Direction
 import com.aki.akiwarmup.core.dsl.clazz
+import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.runScene
 import com.aki.akiwarmup.core.dsl.text
 import com.aki.akiwarmup.core.logger.AkiLog
@@ -11,6 +12,7 @@ import com.aki.akiwarmup.core.logger.LogTag
 import com.aki.akiwarmup.tiktok.action.keyWorlds
 import com.aki.akiwarmup.tiktok.action.onChooseVideo
 import com.aki.akiwarmup.tiktok.action.onTiktokSharePostAction
+import com.aki.akiwarmup.tiktok.action.openVideoMenu
 import com.aki.akiwarmup.tiktok.action.selectRandomMusic
 import com.aki.akiwarmup.tiktok.action.selectUser
 import com.aki.akiwarmup.tiktok.action.selectVideoAfterSearch
@@ -475,7 +477,9 @@ class AkiFrameworkTest {
                     }) { videos ->
                         // Fix: dùng withIndex() thay vì 0..(videos.size) để tránh IndexOutOfBounds
                         for ((i, videoText) in videos.withIndex()) {
-                            if ((videoText.text.trim().toIntOrNull() ?: Int.MAX_VALUE) < 10) {
+                            val text = videoText.text.replace(".", "").trim()
+                            val viewCount = text.toIntOrNull() ?: if (text.contains("Vi phạm", true)) 0 else Int.MAX_VALUE
+                            if ( viewCount < 5) {
                                 tap(videoText)
                                 wait(random(1000, 3000))
                                 return@onChooseVideo
@@ -499,6 +503,12 @@ class AkiFrameworkTest {
                     tapDeleteVideo(context) {
                         hasDeleteVideo = true
                         wait(random(2000, 5000))
+                        on(id("com.ss.android.ugc.trill:id/view_entrance_text")) {
+                            val viewCount = (it?.text ?: "").replace("lượt xem", "").replace(".", "").trim().toIntOrNull() ?: Int.MAX_VALUE
+                            if (viewCount < 5) {
+                                endAction()
+                            }
+                        }
                         pressBack()
                     }
                 }
