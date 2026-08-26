@@ -1,12 +1,16 @@
 package com.aki.akiwarmup.facebook.action
 
 import androidx.test.uiautomator.UiObject2
+import androidx.test.uiautomator.onElement
+import androidx.test.uiautomator.onElements
+import androidx.test.uiautomator.textAsString
 import com.aki.akiwarmup.core.dsl.SceneExecutionContext
 import com.aki.akiwarmup.core.dsl.clazz
 import com.aki.akiwarmup.core.dsl.defineAction
 import com.aki.akiwarmup.core.dsl.text
 import com.aki.akiwarmup.core.logger.AkiLog
 import com.aki.akiwarmup.core.logger.LogTag
+import com.aki.akiwarmup.facebook.GroupPost
 
 /**
  * Bộ nhớ đệm (cache) lưu trữ danh sách tên các nhóm Facebook đã được chọn hoặc đã đăng bài.
@@ -29,23 +33,28 @@ var lastedGroup = ""
  * Khi cuộn đến cuối danh sách (phát hiện qua [lastedGroup] không đổi), hành động sẽ dừng kịch bản.
  *
  * @param context Ngữ cảnh thực thi cảnh hiện tại.
- * @param keywords Danh sách các từ khóa dùng để so khớp (không phân biệt hoa thường) với tên nhóm.
+ * @param data
  */
 fun chooseGroup(
     context: SceneExecutionContext,
-    keywords: List<String>,
+    data: GroupPost,
 ) = defineAction("Choose group", context) {
+    if (data.captions.size == cacheSelectedGroups.size) {
+        pressHome()
+        stop("Đã đăng ${cacheSelectedGroups.size} nhóm với ${data.captions.size} captions")
+    }
+    val keywords = data.keywords
     on(clazz("androidx.recyclerview.widget.RecyclerView")) { recyclerView ->
         val groupElement = recyclerView?.children?.mapNotNull {
-            it.children.firstOrNull()?.children?.firstOrNull { el -> el.className == "android.view.ViewGroup" }
+            it.onElement { textAsString() != null }
         } ?: emptyList<UiObject2>()
         groupElement.forEach {
-            val children = it.children
-            val text= children.firstOrNull()?.text ?: ""
-            if (keywords.any { k -> text.contains(k, ignoreCase = true) } && !cacheSelectedGroups.contains(text)) {
-                if (children.size < 2) {
-                    tap(it)
-                }
+            val text= it.text
+            if (keywords.any { k ->
+                AkiLog.e(LogTag.ENGINE, "Compare $text : $k")
+                text.contains(k, ignoreCase = true)
+            } && !cacheSelectedGroups.contains(text)) {
+                tap(it)
                 cacheSelectedGroups.add(text)
                 wait(random(1500, 3000))
                 return@on
@@ -83,8 +92,9 @@ fun chooseGroup(
  */
 fun selectGroup(
     context: SceneExecutionContext,
-    keywords: List<String>,
+    data: GroupPost
 ) = defineAction("Select groups", context) {
+    val keywords = data.keywords
     val view = findAll(clazz("androidx.recyclerview.widget.RecyclerView")).firstOrNull {
         it.visibleBounds.height() > 1000
     }
@@ -98,7 +108,7 @@ fun selectGroup(
                 tap(it)
                 cacheSelectedGroups.add(text)
                 on(text("Bạn đã đạt giới hạn chia sẻ.")) { limitText ->
-                    if (limitText != null) {
+                    if (limitText != null || data.captions.size == cacheSelectedGroups.size) {
                         on(text("Tiếp")) { nextButton ->
                             tap(nextButton)
                             wait(random(900, 1800))

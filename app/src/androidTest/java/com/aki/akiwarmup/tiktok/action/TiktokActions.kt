@@ -12,6 +12,7 @@ import com.aki.akiwarmup.core.dsl.clazz
 import com.aki.akiwarmup.core.dsl.defineAction
 import com.aki.akiwarmup.core.dsl.desc
 import com.aki.akiwarmup.core.dsl.id
+import com.aki.akiwarmup.core.dsl.or
 import com.aki.akiwarmup.core.dsl.text
 import com.aki.akiwarmup.random.generateComment
 import com.aki.akiwarmup.tiktok.model.AutoRate
@@ -372,9 +373,9 @@ fun onUnknowViewAction(context: SceneExecutionContext) =
  */
 fun onTiktokSharePostAction(context: SceneExecutionContext) =
     defineAction("Tiktok Share Post Action", context) {
-        find(text(TiktokText.VIDEO_TAB))?.let {
+        find(text(TiktokText.VIDEO_TAB) or text("Ảnh"))?.let {
             tap(it)
-            waitUntil(selector = desc("Mẫu") and desc("Văn bản"),maxMs = 60000L)
+            waitUntil(selector =  (desc("Mẫu") and desc("Văn bản")) or (id(TiktokId.ADD_SOUND_TEXT)),maxMs = 60000L)
             endAction()
         }
     }
@@ -542,6 +543,17 @@ fun selectRandomMusic(context: SceneExecutionContext) =
  */
 fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", context) {
     val caption = context.args.getString("caption") ?: "asdqadaf"
+    find(text("Mô tả dài có thể giúp tăng lượt xem trung bình lên gấp 3 lần."))?.let {
+        humanType(it, "$caption ")
+        wait(random(3000, 5000))
+        find(text(TiktokText.POST))?.let { post ->
+            tap(post)
+            wait(random(20000, 40000))
+            pressHome()
+            stop()
+        }
+        endAction()
+    }
     find(clazz("android.widget.EditText"))?.let {
         humanType(it, "$caption ")
         wait(random(3000, 5000))

@@ -119,7 +119,7 @@ fun onTiktokSharePost(context: SceneExecutionContext, block: ScreenBuilder.() ->
  */
 fun onVideoPreview(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
     defineScreen("Video Preview", context) {
-        detect { has(desc("Mẫu") and desc("Văn bản"))}
+        detect { has(desc("Mẫu") and desc("Văn bản")) or has(id(TiktokId.ADD_SOUND_TEXT))}
         apply(block)
     }
 
@@ -153,7 +153,7 @@ fun onSelectMusicSheet(context: SceneExecutionContext, block: ScreenBuilder.() -
  */
 fun onAddInfoView(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
     defineScreen("Add Info", context) {
-        detect { has(text("Sửa ảnh bìa") and text("Đăng")) }
+        detect { has(text("Nháp") and text("Đăng")) }
         apply(block)
     }
 
