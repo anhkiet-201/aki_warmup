@@ -546,12 +546,12 @@ fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", c
     findAll(clazz("android.widget.EditText")).lastOrNull()?.let {
         humanType(it, "$caption ")
         wait(random(3000, 5000))
-//        find(text(TiktokText.POST))?.let { post ->
-//            tap(post)
-//            wait(random(20000, 40000))
-//            pressHome()
-//            stop()
-//        }
+        find(text(TiktokText.POST))?.let { post ->
+            tap(post)
+            wait(random(20000, 40000))
+            pressHome()
+            stop()
+        }
     }
     endAction()
 }
