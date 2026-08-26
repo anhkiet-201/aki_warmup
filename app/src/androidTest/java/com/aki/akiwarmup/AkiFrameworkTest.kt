@@ -2,8 +2,16 @@ package com.aki.akiwarmup
 
 import android.graphics.Point
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Direction
+import androidx.test.uiautomator.Until
+import androidx.test.uiautomator.onElementOrNull
+import androidx.test.uiautomator.textAsString
+import java.util.regex.Pattern
+import com.aki.akiwarmup.core.dsl.UnknownScreenPolicy
+import com.aki.akiwarmup.core.dsl.and
 import com.aki.akiwarmup.core.dsl.clazz
+import com.aki.akiwarmup.core.dsl.desc
 import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.runScene
 import com.aki.akiwarmup.core.dsl.text
@@ -519,5 +527,123 @@ class AkiFrameworkTest {
         loop {
 
         }
+    }
+
+    /**
+     * Kịch bản Đăng bài tự động sử dụng tính năng Tạo hình ảnh từ văn bản (AI Text-to-Image).
+     *
+     * Kịch bản này thực hiện quy trình từ màn hình Trang chủ -> Chuyển sang màn hình Quay -> 
+     * Chọn tải lên dạng Văn bản -> Nhập văn bản mô tả -> Chọn phong cách (Style) ngẫu nhiên -> 
+     * Soạn thảo caption và bấm Đăng bài.
+     *
+     * **Các đối số truyền vào qua `context.args`:**
+     * - `text`: Nội dung văn bản mô tả dùng để tạo hình ảnh AI (mặc định: "Xin chào").
+     * - `caption`: Nội dung chú thích bài đăng khi hoàn tất.
+     *
+     * **Luồng kịch bản chi tiết:**
+     * 1. Xử lý màn hình popup bất ngờ (`handleUnknowScreen`): Tự động nhấn "Thử ngay" nếu xuất hiện.
+     * 2. Khởi chạy ứng dụng TikTok (`launchApp`).
+     * 3. Xử lý màn hình Trang chủ (`onHome`): Nhấn vào nút "Quay" trên thanh điều hướng dưới.
+     * 4. Xử lý màn hình Quay (`RecordScreen`): Nhấn nút mở thư viện/tải lên.
+     * 5. Xử lý màn hình Chọn phương tiện (`Select Image Screen`): Nhấn chọn tab "Văn bản".
+     * 6. Xử lý màn hình Nhập văn bản tạo ảnh (`Create Image From Text`): Nhập nội dung prompt và nhấn "Tiếp".
+     * 7. Xử lý màn hình Chọn phong cách (`Select Style Screen`): Cuộn và chọn ngẫu nhiên 1 phong cách, sau đó nhấn "Tiếp".
+     * 8. Xử lý màn hình Soạn thảo thông tin (`onAddInfoView`): Nhập caption và bấm Đăng bài (`typeCaption`).
+     */
+    @Test
+    fun autoPostTextToImage() = runScene {
+        scene {
+            tiktokSceneDefine("TiktokTextToImage", context) {
+                handleUnknowScreen {
+                    context.device.onElementOrNull(timeoutMs = 3000) { textAsString() == "Thử ngay" }?.click()
+                }
+
+                launchApp()
+
+                onHome(context) {
+                    action("openRecordFromHome") {
+                        find(desc("Quay"))?.let {
+                            tap(it)
+                            waitUntil(text("ĐĂNG") and text("Thêm âm thanh"))
+                        }
+                    }
+                }
+
+                screen("RecordScreen") {
+                    detect {
+                        has(text("ĐĂNG") and text("Thêm âm thanh") and text("Chọn nhiều").not())
+                    }
+                    action("openUploadLibrary") {
+                        find(id("com.ss.android.ugc.trill:id/ckt"))?.let {
+                            tap(it)
+                            waitUntil(text("Tất cả") and text("Video") and text("Ảnh"))
+                        }
+                    }
+                }
+
+                screen("Select Image Screen") {
+                    detect {
+                        has(text("Tất cả") and text("Video") and text("Ảnh"))
+                    }
+                    action("chooseTextTab") {
+                        find(text("Văn bản"))?.let {
+                            tap(it)
+                            waitUntil(text("TẠO HÌNH ẢNH TỪ VĂN BẢN CỦA BẠN"))
+                        }
+                    }
+                }
+
+                screen("Create Image From Text") {
+                    detect {
+                        has(text("TẠO HÌNH ẢNH TỪ VĂN BẢN CỦA BẠN"))
+                    }
+                    action("inputPromptAndNext") {
+                        val promptText = context.args.getString("text") ?: ""
+                        if (promptText.isEmpty()) {
+                            stop("Chưa nhập text")
+                        }
+                        find(clazz("android.widget.EditText"))?.let {
+                            humanType(it, promptText)
+                            wait(1500)
+                            find(text("Tiếp"))?.let { continueButton ->
+                                tap(continueButton)
+                                waitUntil(text("Chọn một phong cách") and text("Tiếp"))
+                            }
+                        }
+                    }
+                }
+
+                screen("Select Style Screen") {
+                    detect {
+                        has(text("Chọn một phong cách") and text("Tiếp"))
+                    }
+                    action("chooseRandomStyleAndNext") {
+                        on(clazz("androidx.recyclerview.widget.RecyclerView")) { recyclerView ->
+                            while (true) {
+                                if (random(100) < 60) {
+                                    recyclerView?.scroll(Direction.RIGHT, 0.6f)
+                                    wait(random(500, 1000))
+                                } else {
+                                    val templates = recyclerView?.children
+                                    if (!templates.isNullOrEmpty()) {
+                                        tap(templates.random())
+                                        wait(random(900, 1500))
+                                        find(text("Tiếp"))?.let { continueButton -> tap(continueButton) }
+                                        wait(random(900, 1500))
+                                        endAction()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                onAddInfoView(context) {
+                    typeCaption(context)
+                }
+            }
+        }
+
+        loop { }
     }
 }

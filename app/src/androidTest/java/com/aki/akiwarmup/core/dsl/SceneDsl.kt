@@ -30,7 +30,19 @@ class SceneBuilder(val name: String, val akiContext: AkiContext) {
     }
 
     fun screen(id: String, block: ScreenBuilder.() -> Unit) {
-        screens.add(ScreenBuilder(id, context).apply(block).build())
+        val builder = ScreenBuilder(id, context)
+        val oldBuilder = activeScreenBuilder.get()
+        activeScreenBuilder.set(builder)
+        try {
+            builder.block()
+        } finally {
+            if (oldBuilder != null) {
+                activeScreenBuilder.set(oldBuilder)
+            } else {
+                activeScreenBuilder.remove()
+            }
+        }
+        screens.add(builder.build())
     }
 
     fun screen(block: () -> ScreenDef) {
@@ -105,19 +117,23 @@ class ScreenBuilder(val screenID: String, val context: SceneExecutionContext) {
 
     fun build(): ScreenDef {
         val actionProvider: () -> ActionDef? = {
-            val builder = ScreenBuilder(screenID, context)
-            val oldBuilder = activeScreenBuilder.get()
-            activeScreenBuilder.set(builder)
-            try {
-                testBlock?.invoke(builder)
-            } finally {
-                if (oldBuilder != null) {
-                    activeScreenBuilder.set(oldBuilder)
-                } else {
-                    activeScreenBuilder.remove()
+            if (registeredAction != null) {
+                registeredAction
+            } else {
+                val builder = ScreenBuilder(screenID, context)
+                val oldBuilder = activeScreenBuilder.get()
+                activeScreenBuilder.set(builder)
+                try {
+                    testBlock?.invoke(builder)
+                } finally {
+                    if (oldBuilder != null) {
+                        activeScreenBuilder.set(oldBuilder)
+                    } else {
+                        activeScreenBuilder.remove()
+                    }
                 }
+                builder.registeredAction
             }
-            builder.registeredAction
         }
         return ScreenDef(screenID, detectPredicate ?: DetectPredicate { false }, actionProvider, priority)
     }

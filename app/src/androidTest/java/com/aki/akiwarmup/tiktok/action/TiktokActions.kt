@@ -542,27 +542,16 @@ fun selectRandomMusic(context: SceneExecutionContext) =
  * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
  */
 fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", context) {
-    val caption = context.args.getString("caption") ?: "asdqadaf"
-    find(text("Mô tả dài có thể giúp tăng lượt xem trung bình lên gấp 3 lần."))?.let {
+    val caption = context.args.getString("caption") ?: ""
+    findAll(clazz("android.widget.EditText")).lastOrNull()?.let {
         humanType(it, "$caption ")
         wait(random(3000, 5000))
-        find(text(TiktokText.POST))?.let { post ->
-            tap(post)
-            wait(random(20000, 40000))
-            pressHome()
-            stop()
-        }
-        endAction()
-    }
-    find(clazz("android.widget.EditText"))?.let {
-        humanType(it, "$caption ")
-        wait(random(3000, 5000))
-        find(text(TiktokText.POST))?.let { post ->
-            tap(post)
-            wait(random(20000, 40000))
-            pressHome()
-            stop()
-        }
+//        find(text(TiktokText.POST))?.let { post ->
+//            tap(post)
+//            wait(random(20000, 40000))
+//            pressHome()
+//            stop()
+//        }
     }
     endAction()
 }

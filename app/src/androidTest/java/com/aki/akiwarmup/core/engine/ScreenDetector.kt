@@ -45,10 +45,9 @@ class ScreenDetector(
                     val duration = System.currentTimeMillis() - screenStart
 
                     if (detected) {
-                        AkiLog.v(LogTag.ENGINE, "match [${screen.id}] (${duration}ms)")
+                        AkiLog.i(LogTag.ENGINE, "match [${screen.id}] (${duration}ms)")
                         channel.send(screen)
                     } else {
-                        AkiLog.v(LogTag.ENGINE, "miss  [${screen.id}] (${duration}ms)")
                         channel.send(null)
                     }
                 }
