@@ -1,5 +1,6 @@
 package com.aki.akiwarmup.facebook.action
 
+import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.onElement
 import androidx.test.uiautomator.onElements
@@ -7,6 +8,8 @@ import androidx.test.uiautomator.textAsString
 import com.aki.akiwarmup.core.dsl.SceneExecutionContext
 import com.aki.akiwarmup.core.dsl.clazz
 import com.aki.akiwarmup.core.dsl.defineAction
+import com.aki.akiwarmup.core.dsl.desc
+import com.aki.akiwarmup.core.dsl.descContains
 import com.aki.akiwarmup.core.dsl.text
 import com.aki.akiwarmup.core.logger.AkiLog
 import com.aki.akiwarmup.core.logger.LogTag
@@ -160,4 +163,88 @@ fun typeCaption(
         tap(it)
         wait(random(10000, 15000))
     }
+}
+
+/**
+ * Hành động xử lý thêm âm thanh hoặc chọn định dạng nhãn dán nhạc và nhấn Tiếp tục trên màn hình chỉnh sửa video.
+ *
+ * @param context Ngữ cảnh thực thi cảnh hiện tại.
+ */
+fun editVideoAndAddMusic(
+    context: SceneExecutionContext
+) = defineAction("Edit Video & Add Music", context) {
+    on(desc("Thêm âm thanh")) { addMusicButton ->
+        if (addMusicButton != null) {
+            tap(addMusicButton)
+        } else {
+            find(descContains("Nhãn dán âm nhạc"))?.let { musicLabel ->
+                tap(musicLabel)
+                wait(1000)
+                find(clazz("androidx.recyclerview.widget.RecyclerView"))?.let { rvc ->
+                    tap(rvc.children.firstOrNull())
+                    wait(1000)
+                    find(text("Xong"))?.let { tap(it) }
+                    wait(1000)
+                }
+            }
+            find(text("Tiếp"))?.let { continueButton ->
+                tap(continueButton)
+                wait(1000)
+                var retry = 0
+                while (find(desc("Chia sẻ ngay")) == null && retry < 5) {
+                    pressBack()
+                    wait(500)
+                    retry++
+                }
+                endAction()
+            }
+        }
+    }
+}
+
+/**
+ * Hành động cuộn và chọn ngẫu nhiên một bài hát từ danh sách nhạc đề xuất.
+ *
+ * @param context Ngữ cảnh thực thi cảnh hiện tại.
+ */
+fun selectMusicTrack(
+    context: SceneExecutionContext
+) = defineAction("Select Music Track", context) {
+    on(clazz("androidx.recyclerview.widget.RecyclerView")) { recyclerView ->
+        while (true) {
+            if (random(100) < 60) {
+                recyclerView?.scroll(Direction.DOWN, 0.6f)
+                wait(random(500, 1000))
+            } else {
+                val templates = recyclerView?.children
+                if (!templates.isNullOrEmpty()) {
+                    tap(templates.random())
+                    wait(random(900, 1500))
+                    endAction()
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Hành động nhập caption và nhấn Chia sẻ Thước phim (Reel) lên Facebook.
+ *
+ * @param context Ngữ cảnh thực thi cảnh hiện tại.
+ * @param caption Nội dung caption muốn đăng.
+ */
+fun shareReelWithCaption(
+    context: SceneExecutionContext,
+    caption: String
+) = defineAction("Share Reel", context) {
+    find(clazz("android.widget.AutoCompleteTextView"))?.let { inputField ->
+        if (caption.isNotEmpty()) {
+            humanType(inputField, caption)
+        }
+        find(desc("Chia sẻ ngay"))?.let { shareButton ->
+            tap(shareButton)
+            wait(random(3000, 5000))
+            stop("OK")
+        } ?: stop("Không tìm thấy nút Chia sẻ ngay")
+    } ?: stop("Không tìm thấy ô nhập caption")
 }

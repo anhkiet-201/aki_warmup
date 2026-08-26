@@ -2,7 +2,10 @@ package com.aki.akiwarmup.facebook.screen
 
 import com.aki.akiwarmup.core.dsl.SceneExecutionContext
 import com.aki.akiwarmup.core.dsl.ScreenBuilder
+import com.aki.akiwarmup.core.dsl.all
 import com.aki.akiwarmup.core.dsl.defineScreen
+import com.aki.akiwarmup.core.dsl.desc
+import com.aki.akiwarmup.core.dsl.descContains
 import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.text
 
@@ -55,5 +58,56 @@ fun onSelectGroupsView(context: SceneExecutionContext, block: ScreenBuilder.() -
 fun onInputCaptionView(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
     defineScreen("Input Caption", context) {
         detect { has(text("Đăng")) }
+        apply(block)
+    }
+
+/**
+ * Định nghĩa màn hình Chỉnh sửa Video/Reels (Video Editor View) trên Facebook.
+ * Màn hình được phát hiện khi xuất hiện đồng thời các công cụ: "Âm thanh", "Chỉnh sửa", "Hiệu ứng", "Văn bản".
+ *
+ * @param context Ngữ cảnh thực thi cảnh hiện tại.
+ * @param block Khối dựng cấu trúc màn hình [ScreenBuilder].
+ */
+fun onVideoEditorView(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
+    defineScreen("Video Editor View", context) {
+        detect {
+            all(
+                text("Âm thanh"),
+                text("Chỉnh sửa"),
+                text("Hiệu ứng"),
+                text("Văn bản")
+            )
+        }
+        apply(block)
+    }
+
+/**
+ * Định nghĩa màn hình Tìm kiếm/Chọn Âm thanh (Music Search View) trên Facebook.
+ * Màn hình được phát hiện khi xuất hiện thanh tìm kiếm chứa mô tả "Tìm kiếm".
+ *
+ * @param context Ngữ cảnh thực thi cảnh hiện tại.
+ * @param block Khối dựng cấu trúc màn hình [ScreenBuilder].
+ */
+fun onMusicSearchView(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
+    defineScreen("Music Search View", context) {
+        detect { has(descContains("Tìm kiếm")) }
+        apply(block)
+    }
+
+/**
+ * Định nghĩa màn hình Chia sẻ Thước phim/Reels (Share Reel View) trên Facebook.
+ * Màn hình được phát hiện khi xuất hiện nút "Chia sẻ ngay" và mục "Ai có thể xem nội dung này?".
+ *
+ * @param context Ngữ cảnh thực thi cảnh hiện tại.
+ * @param block Khối dựng cấu trúc màn hình [ScreenBuilder].
+ */
+fun onShareReelView(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
+    defineScreen("Share Reel View", context) {
+        detect {
+            all(
+                desc("Chia sẻ ngay"),
+                desc("Ai có thể xem nội dung này?")
+            )
+        }
         apply(block)
     }
