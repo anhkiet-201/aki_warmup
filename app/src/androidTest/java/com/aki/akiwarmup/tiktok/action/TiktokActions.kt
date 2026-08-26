@@ -8,6 +8,7 @@ import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.UiObject2
 import com.aki.akiwarmup.core.dsl.ActionBuilder
 import com.aki.akiwarmup.core.dsl.SceneExecutionContext
+import com.aki.akiwarmup.core.dsl.and
 import com.aki.akiwarmup.core.dsl.clazz
 import com.aki.akiwarmup.core.dsl.defineAction
 import com.aki.akiwarmup.core.dsl.desc
@@ -732,4 +733,96 @@ fun tapDeleteVideo(
         action()
     }
     endAction()
+}
+
+/**
+ * Hành động nhấn nút "Quay" từ màn hình Trang chủ để mở giao diện quay/tải lên.
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ */
+fun openRecordFromHome(
+    context: SceneExecutionContext
+) = defineAction("Open Record From Home", context) {
+    find(desc("Quay"))?.let {
+        tap(it)
+        waitUntil(text(TiktokText.RECORD_POST) and text(TiktokText.ADD_SOUND))
+    }
+}
+
+/**
+ * Hành động nhấn nút mở thư viện/album tải lên từ màn hình quay.
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ */
+fun openUploadLibrary(
+    context: SceneExecutionContext
+) = defineAction("Open Upload Library", context) {
+    find(id(TiktokId.UPLOAD_BUTTON))?.let {
+        tap(it)
+        waitUntil(text(TiktokText.ALL) and text(TiktokText.VIDEO_TAB) and text(TiktokText.IMAGE))
+    }
+}
+
+/**
+ * Hành động chuyển sang tab "Văn bản" để tạo ảnh AI từ văn bản mô tả.
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ */
+fun chooseTextToImageTab(
+    context: SceneExecutionContext
+) = defineAction("Choose Text Tab", context) {
+    find(text(TiktokText.TEXT_TAB))?.let {
+        tap(it)
+        waitUntil(text(TiktokText.CREATE_IMAGE_FROM_TEXT_TITLE))
+    }
+}
+
+/**
+ * Hành động nhập prompt văn bản và nhấn "Tiếp" để chuyển sang bước chọn phong cách ảnh.
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ * @param promptText Nội dung văn bản mô tả hình ảnh AI cần tạo.
+ */
+fun inputPromptAndProceed(
+    context: SceneExecutionContext,
+    promptText: String
+) = defineAction("Input Prompt And Proceed", context) {
+    if (promptText.isEmpty()) {
+        stop("Chưa nhập text mô tả")
+    }
+    find(clazz("android.widget.EditText"))?.let {
+        humanType(it, promptText)
+        wait(1500)
+        find(text(TiktokText.NEXT))?.let { continueButton ->
+            tap(continueButton)
+            waitUntil(text(TiktokText.SELECT_STYLE_TITLE) and text(TiktokText.NEXT))
+        }
+    }
+}
+
+/**
+ * Hành động cuộn và chọn ngẫu nhiên một phong cách ảnh AI, sau đó bấm "Tiếp".
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ */
+fun selectRandomImageStyle(
+    context: SceneExecutionContext
+) = defineAction("Select Random Image Style", context) {
+    on(clazz("androidx.recyclerview.widget.RecyclerView")) { recyclerView ->
+        while (true) {
+            if (random(100) < 60) {
+                recyclerView?.scroll(Direction.RIGHT, 0.6f)
+                wait(random(500, 1000))
+            } else {
+                val templates = recyclerView?.children
+                if (!templates.isNullOrEmpty()) {
+                    tap(templates.random())
+                    wait(random(900, 1500))
+                    find(text(TiktokText.NEXT))?.let { continueButton -> tap(continueButton) }
+                    wait(random(900, 1500))
+                    endAction()
+                }
+            }
+        }
+    }
 }

@@ -245,3 +245,67 @@ fun onAddComment(
     detect { has(id(TiktokId.COMMENT_INPUT_POPUP)) }
     apply(block)
 }
+
+/**
+ * Định nghĩa màn hình Quay/Camera (Record View) của TikTok.
+ * Màn hình được phát hiện khi có nút "ĐĂNG", "Thêm âm thanh" và không có "Chọn nhiều".
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
+ */
+fun onRecordView(
+    context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
+) = defineScreen("Record View", context) {
+    detect {
+        has(text(TiktokText.RECORD_POST) and text(TiktokText.ADD_SOUND) and text(TiktokText.SELECT_MULTIPLE).not())
+    }
+    apply(block)
+}
+
+/**
+ * Định nghĩa màn hình Chọn phương tiện/Album tải lên (Media Picker View).
+ * Màn hình được phát hiện khi xuất hiện các tab "Tất cả", "Video", "Ảnh".
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
+ */
+fun onMediaPickerView(
+    context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
+) = defineScreen("Media Picker View", context) {
+    detect {
+        has(text(TiktokText.ALL) and text(TiktokText.VIDEO_TAB) and text(TiktokText.IMAGE))
+    }
+    apply(block)
+}
+
+/**
+ * Định nghĩa màn hình Nhập văn bản để tạo ảnh bằng AI (Create Image From Text View).
+ * Màn hình được phát hiện khi xuất hiện tiêu đề "TẠO HÌNH ẢNH TỪ VĂN BẢN CỦA BẠN".
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
+ */
+fun onCreateImageFromTextView(
+    context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
+) = defineScreen("Create Image From Text View", context) {
+    detect {
+        has(text(TiktokText.CREATE_IMAGE_FROM_TEXT_TITLE))
+    }
+    apply(block)
+}
+
+/**
+ * Định nghĩa màn hình Chọn phong cách nghệ thuật cho ảnh AI (Select Style View).
+ * Màn hình được phát hiện khi xuất hiện tiêu đề "Chọn một phong cách" và nút "Tiếp".
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
+ */
+fun onSelectImageStyleView(
+    context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
+) = defineScreen("Select Image Style View", context) {
+    detect {
+        has(text(TiktokText.SELECT_STYLE_TITLE) and text(TiktokText.NEXT))
+    }
+    apply(block)
+}

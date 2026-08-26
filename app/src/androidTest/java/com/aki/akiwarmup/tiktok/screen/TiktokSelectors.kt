@@ -36,9 +36,36 @@ object TiktokText {
 
     /** Nút hoặc nhãn Xóa video/bài viết */
     const val DELETE = "Xóa"
+
+    /** Nút ĐĂNG lớn trên màn hình quay (Record) */
+    const val RECORD_POST = "ĐĂNG"
+
+    /** Tùy chọn Chọn nhiều ảnh/video */
+    const val SELECT_MULTIPLE = "Chọn nhiều"
+
+    /** Tab Tất cả trong album */
+    const val ALL = "Tất cả"
+
+    /** Tab Ảnh trong album */
+    const val IMAGE = "Ảnh"
+
+    /** Tab Văn bản để tạo ảnh AI */
+    const val TEXT_TAB = "Văn bản"
+
+    /** Tiêu đề màn hình tạo ảnh từ văn bản AI */
+    const val CREATE_IMAGE_FROM_TEXT_TITLE = "TẠO HÌNH ẢNH TỪ VĂN BẢN CỦA BẠN"
+
+    /** Tiêu đề chọn phong cách ảnh AI */
+    const val SELECT_STYLE_TITLE = "Chọn một phong cách"
+
+    /** Nút Tiếp tục */
+    const val NEXT = "Tiếp"
 }
 
 object TiktokId {
+    /** Nút mở Album/Thư viện tải lên trên màn hình quay */
+    const val UPLOAD_BUTTON = "com.ss.android.ugc.trill:id/ckt"
+
     /** ID của ảnh đại diện người dùng */
     const val USER_AVATAR  = "com.ss.android.ugc.trill:id/user_avatar"
 

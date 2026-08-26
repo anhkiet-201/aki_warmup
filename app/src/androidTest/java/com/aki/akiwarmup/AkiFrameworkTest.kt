@@ -17,10 +17,15 @@ import com.aki.akiwarmup.core.dsl.runScene
 import com.aki.akiwarmup.core.dsl.text
 import com.aki.akiwarmup.core.logger.AkiLog
 import com.aki.akiwarmup.core.logger.LogTag
+import com.aki.akiwarmup.tiktok.action.chooseTextToImageTab
+import com.aki.akiwarmup.tiktok.action.inputPromptAndProceed
 import com.aki.akiwarmup.tiktok.action.keyWorlds
 import com.aki.akiwarmup.tiktok.action.onChooseVideo
 import com.aki.akiwarmup.tiktok.action.onTiktokSharePostAction
+import com.aki.akiwarmup.tiktok.action.openRecordFromHome
+import com.aki.akiwarmup.tiktok.action.openUploadLibrary
 import com.aki.akiwarmup.tiktok.action.openVideoMenu
+import com.aki.akiwarmup.tiktok.action.selectRandomImageStyle
 import com.aki.akiwarmup.tiktok.action.selectRandomMusic
 import com.aki.akiwarmup.tiktok.action.selectUser
 import com.aki.akiwarmup.tiktok.action.selectVideoAfterSearch
@@ -41,12 +46,16 @@ import com.aki.akiwarmup.tiktok.scene.TiktokDeleteVideoBehaviors
 import com.aki.akiwarmup.tiktok.scene.tiktokSceneDefine
 import com.aki.akiwarmup.tiktok.screen.onAddInfoView
 import com.aki.akiwarmup.tiktok.screen.onChooseTemplate
+import com.aki.akiwarmup.tiktok.screen.onCreateImageFromTextView
 import com.aki.akiwarmup.tiktok.screen.onDeletePopup
 import com.aki.akiwarmup.tiktok.screen.onHome
+import com.aki.akiwarmup.tiktok.screen.onMediaPickerView
 import com.aki.akiwarmup.tiktok.screen.onProfile
+import com.aki.akiwarmup.tiktok.screen.onRecordView
 import com.aki.akiwarmup.tiktok.screen.onRepostPopup
 import com.aki.akiwarmup.tiktok.screen.onSearch
 import com.aki.akiwarmup.tiktok.screen.onSearchResult
+import com.aki.akiwarmup.tiktok.screen.onSelectImageStyleView
 import com.aki.akiwarmup.tiktok.screen.onSelectMusicSheet
 import com.aki.akiwarmup.tiktok.screen.onTiktokSharePost
 import com.aki.akiwarmup.tiktok.screen.onVideoPreview
@@ -530,8 +539,8 @@ class AkiFrameworkTest {
     }
 
     /**
-     * Kịch bản Đăng bài tự động sử dụng tính năng Tạo hình ảnh từ văn bản (AI Text-to-Image).
-     *
+     * Kịch bản Tạo ảnh AI từ văn bản mô tả và Đăng bài tự động (Text to Image) lên TikTok.
+     * 
      * Kịch bản này thực hiện quy trình từ màn hình Trang chủ -> Chuyển sang màn hình Quay -> 
      * Chọn tải lên dạng Văn bản -> Nhập văn bản mô tả -> Chọn phong cách (Style) ngẫu nhiên -> 
      * Soạn thảo caption và bấm Đăng bài.
@@ -543,12 +552,12 @@ class AkiFrameworkTest {
      * **Luồng kịch bản chi tiết:**
      * 1. Xử lý màn hình popup bất ngờ (`handleUnknowScreen`): Tự động nhấn "Thử ngay" nếu xuất hiện.
      * 2. Khởi chạy ứng dụng TikTok (`launchApp`).
-     * 3. Xử lý màn hình Trang chủ (`onHome`): Nhấn vào nút "Quay" trên thanh điều hướng dưới.
-     * 4. Xử lý màn hình Quay (`RecordScreen`): Nhấn nút mở thư viện/tải lên.
-     * 5. Xử lý màn hình Chọn phương tiện (`Select Image Screen`): Nhấn chọn tab "Văn bản".
-     * 6. Xử lý màn hình Nhập văn bản tạo ảnh (`Create Image From Text`): Nhập nội dung prompt và nhấn "Tiếp".
-     * 7. Xử lý màn hình Chọn phong cách (`Select Style Screen`): Cuộn và chọn ngẫu nhiên 1 phong cách, sau đó nhấn "Tiếp".
-     * 8. Xử lý màn hình Soạn thảo thông tin (`onAddInfoView`): Nhập caption và bấm Đăng bài (`typeCaption`).
+     * 3. Xử lý màn hình Trang chủ (`onHome`): Nhấn vào nút "Quay" trên thanh điều hướng dưới ([openRecordFromHome]).
+     * 4. Xử lý màn hình Quay (`onRecordView`): Nhấn nút mở thư viện/tải lên ([openUploadLibrary]).
+     * 5. Xử lý màn hình Chọn phương tiện (`onMediaPickerView`): Nhấn chọn tab "Văn bản" ([chooseTextToImageTab]).
+     * 6. Xử lý màn hình Nhập văn bản tạo ảnh (`onCreateImageFromTextView`): Nhập nội dung prompt và nhấn "Tiếp" ([inputPromptAndProceed]).
+     * 7. Xử lý màn hình Chọn phong cách (`onSelectImageStyleView`): Cuộn và chọn ngẫu nhiên 1 phong cách, sau đó nhấn "Tiếp" ([selectRandomImageStyle]).
+     * 8. Xử lý màn hình Soạn thảo thông tin (`onAddInfoView`): Nhập caption và bấm Đăng bài ([typeCaption]).
      */
     @Test
     fun autoPostTextToImage() = runScene {
@@ -561,81 +570,24 @@ class AkiFrameworkTest {
                 launchApp()
 
                 onHome(context) {
-                    action("openRecordFromHome") {
-                        find(desc("Quay"))?.let {
-                            tap(it)
-                            waitUntil(text("ĐĂNG") and text("Thêm âm thanh"))
-                        }
-                    }
+                    openRecordFromHome(context)
                 }
 
-                screen("RecordScreen") {
-                    detect {
-                        has(text("ĐĂNG") and text("Thêm âm thanh") and text("Chọn nhiều").not())
-                    }
-                    action("openUploadLibrary") {
-                        find(id("com.ss.android.ugc.trill:id/ckt"))?.let {
-                            tap(it)
-                            waitUntil(text("Tất cả") and text("Video") and text("Ảnh"))
-                        }
-                    }
+                onRecordView(context) {
+                    openUploadLibrary(context)
                 }
 
-                screen("Select Image Screen") {
-                    detect {
-                        has(text("Tất cả") and text("Video") and text("Ảnh"))
-                    }
-                    action("chooseTextTab") {
-                        find(text("Văn bản"))?.let {
-                            tap(it)
-                            waitUntil(text("TẠO HÌNH ẢNH TỪ VĂN BẢN CỦA BẠN"))
-                        }
-                    }
+                onMediaPickerView(context) {
+                    chooseTextToImageTab(context)
                 }
 
-                screen("Create Image From Text") {
-                    detect {
-                        has(text("TẠO HÌNH ẢNH TỪ VĂN BẢN CỦA BẠN"))
-                    }
-                    action("inputPromptAndNext") {
-                        val promptText = context.args.getString("text") ?: ""
-                        if (promptText.isEmpty()) {
-                            stop("Chưa nhập text")
-                        }
-                        find(clazz("android.widget.EditText"))?.let {
-                            humanType(it, promptText)
-                            wait(1500)
-                            find(text("Tiếp"))?.let { continueButton ->
-                                tap(continueButton)
-                                waitUntil(text("Chọn một phong cách") and text("Tiếp"))
-                            }
-                        }
-                    }
+                onCreateImageFromTextView(context) {
+                    val promptText = context.args.getString("text") ?: ""
+                    inputPromptAndProceed(context, promptText)
                 }
 
-                screen("Select Style Screen") {
-                    detect {
-                        has(text("Chọn một phong cách") and text("Tiếp"))
-                    }
-                    action("chooseRandomStyleAndNext") {
-                        on(clazz("androidx.recyclerview.widget.RecyclerView")) { recyclerView ->
-                            while (true) {
-                                if (random(100) < 60) {
-                                    recyclerView?.scroll(Direction.RIGHT, 0.6f)
-                                    wait(random(500, 1000))
-                                } else {
-                                    val templates = recyclerView?.children
-                                    if (!templates.isNullOrEmpty()) {
-                                        tap(templates.random())
-                                        wait(random(900, 1500))
-                                        find(text("Tiếp"))?.let { continueButton -> tap(continueButton) }
-                                        wait(random(900, 1500))
-                                        endAction()
-                                    }
-                                }
-                            }
-                        }
-                    }
+                onSelectImageStyleView(context) {
+                    selectRandomImageStyle(context)
                 }
 
                 onAddInfoView(context) {
