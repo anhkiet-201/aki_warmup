@@ -1,5 +1,6 @@
 package com.aki.akiwarmup.tiktok.action
 
+import android.util.Log
 import com.aki.akiwarmup.core.logger.AkiLog
 import com.aki.akiwarmup.core.logger.LogTag
 import androidx.compose.ui.text.intl.Locale
@@ -30,16 +31,15 @@ val captionKeyword = listOf(
     "tìm việc",
     "tuyển dụng",
     "kcn",
-    "Mỹ phước",
-    "Vsip",
+    "mỹ phước",
+    "vsip",
     "ttnhr",
     "vieclambinhduong",
     "vieclam",
     "công ty",
     "công việc",
     "đồng an",
-    "Nam Tân uyên",
-    "kcn"
+    "nam tân uyên"
 )
 
 val keyWorlds = listOf(
@@ -108,99 +108,119 @@ fun watchVideo(
     var loopCount = 1
     loop {
         var hasDoAction = false
-        on(id(TiktokId.VIDEO_DESC)) { desc ->
-            val descText = desc?.text
-            val beTTNHR = descText?.contains("#ttnhr") ?: false || descText?.contains("#vieclamttn") ?: false
-            descText?.let {
-                AkiLog.d(LogTag.CONTENT, "desc: ${descText.take(80)}")
-                if (captionKeyword.none { kw -> it.lowercase().contains(kw.lowercase()) }) {
-                    AkiLog.d(LogTag.CONTENT, "keyword miss → swipeBias")
-                    rate.swipeBias()
-                } else {
-                    AkiLog.d(LogTag.CONTENT, "keyword hit ✓")
-                    wait(random(1990, 30000 / loopCount))
-                }
+
+        // 1. Kiểm tra quảng cáo: nếu là video quảng bá đề xuất, lướt qua và thoát để ActionLoop re-detect
+        on(text(TiktokText.RECOMMENDED_PROMOTION)) { promo ->
+            if (promo != null) {
+                swipeUp()
+                hasDoAction = true
+                endAction()
             }
-            on(text(TiktokText.RECOMMENDED_PROMOTION)) {
-                if (it != null) {
-                    swipeUp()
-                    hasDoAction = true
-                    endAction()
-                }
+        }
+
+        // 2. Đọc mô tả video và đánh giá từ khóa
+        val desc = find(id(TiktokId.VIDEO_DESC))
+        val descText = desc?.text
+        val beTTNHR = descText?.contains("#ttnhr", ignoreCase = true) == true ||
+                descText?.contains("#vieclamttn", ignoreCase = true) == true
+
+        if (beTTNHR) {
+            find(id("com.ss.android.ugc.trill:id/i0f"))?.let { followButton ->
+                tap(followButton)
             }
-            choose(
-                rate[RateType.SWIPE] to {
-                    rate.reset()
-                    loopCount = 1
-                    swipeUp()
+        }
+
+        descText?.let { text ->
+            AkiLog.d(LogTag.CONTENT, "desc: ${text.take(80)}")
+            val lowerDesc = text.lowercase()
+            if (captionKeyword.none { kw -> lowerDesc.contains(kw) }) {
+                AkiLog.d(LogTag.CONTENT, "keyword miss → swipeBias")
+                rate.swipeBias()
+            } else {
+                AkiLog.d(LogTag.CONTENT, "keyword hit ✓")
+                val maxWait = maxOf(2500, 30000 / loopCount)
+                wait(random(1990, maxWait))
+            }
+        }
+
+        // 3. Thực thi hành động tương tác theo tỷ lệ xác suất
+        choose(
+            rate[RateType.SWIPE] to {
+                rate.reset()
+                loopCount = 1
+                swipeUp()
+                hasDoAction = true
+            },
+            rate[RateType.LIKE] to {
+                find(id(TiktokId.LIKE_BUTTON))?.let {
+                    rate.consume(RateType.LIKE)
+                    if (!it.isSelected) {
+                        tap(it)
+                        wait(random(min = 1000, max = 3000))
+                    }
                     hasDoAction = true
-                },
-                rate[RateType.LIKE] to {
-                    find(id(TiktokId.LIKE_BUTTON))?.let {
-                        rate.consume(RateType.LIKE)
-                        if (!it.isSelected) {
-                            tap(it)
-                            wait(random(min = 1000, max = 3000))
-                        }
-                        hasDoAction = true
-                    }
-                },
-                rate[RateType.FAVORITE] to {
-                    find(id(TiktokId.FAVORITE_BUTTON))?.let {
-                        rate.consume(RateType.FAVORITE)
-                        if (!it.isSelected) {
-                            tap(it)
-                            wait(random(min = 1000, max = 3000))
-                        }
-                        hasDoAction = true
-                    }
-                },
-                rate[RateType.COMMENT] to {
-                    rate.consume(RateType.COMMENT)
-                    if (beTTNHR) {
-                        find(id(TiktokId.COMMENT_BUTTON))?.let { commentButton ->
-                            tap(commentButton)
-                            wait(random(100, 1500))
-                            hasDoAction = true
-                            endAction()
-                        }
-                    }
-                },
-                rate[RateType.RE_POST] to {
-                    find(id(TiktokId.SHARE_BUTTON))?.let {
-                        rate.consume(RateType.RE_POST)
+                }
+            },
+            rate[RateType.FAVORITE] to {
+                find(id(TiktokId.FAVORITE_BUTTON))?.let {
+                    rate.consume(RateType.FAVORITE)
+                    if (!it.isSelected) {
                         tap(it)
-                        wait(random(1000, 1500))
-                        find(text(TiktokText.REPOST)).let { repost ->
-                            if (repost == null) {
-                                pressBack()
-                            } else {
-                                tap(repost)
-                                wait(random(1000, 1500))
-                            }
-                        }
-                        hasDoAction = true
+                        wait(random(min = 1000, max = 3000))
                     }
-                },
-                rate[RateType.COPY_LINK] to {
-                    find(id(TiktokId.SHARE_BUTTON))?.let {
-                        rate.consume(RateType.COPY_LINK)
-                        tap(it)
-                        wait(random(1000, 1500))
-                        find(text(TiktokText.COPY_LINK))?.let { repost ->
+                    hasDoAction = true
+                }
+            },
+            rate[RateType.COMMENT] to {
+                rate.consume(RateType.COMMENT)
+                if (beTTNHR) {
+                    find(id(TiktokId.COMMENT_BUTTON))?.let { commentButton ->
+                        tap(commentButton)
+                        wait(random(100, 1500))
+                        hasDoAction = true
+                        endAction()
+                    }
+                }
+            },
+            rate[RateType.RE_POST] to {
+                find(id(TiktokId.SHARE_BUTTON))?.let {
+                    rate.consume(RateType.RE_POST)
+                    tap(it)
+                    wait(random(1000, 1500))
+                    find(text(TiktokText.REPOST)).let { repost ->
+                        if (repost == null) {
+                            pressBack()
+                        } else {
                             tap(repost)
                             wait(random(1000, 1500))
                         }
-                        hasDoAction = true
                     }
-                },
-                rate[RateType.EXIT] to {
-                    this.onExit()
-                    rate.reset()
-                    endAction()
+                    hasDoAction = true
                 }
-            )
-        }
+            },
+            rate[RateType.COPY_LINK] to {
+                find(id(TiktokId.SHARE_BUTTON))?.let {
+                    rate.consume(RateType.COPY_LINK)
+                    tap(it)
+                    wait(random(1000, 1500))
+                    find(text(TiktokText.COPY_LINK)).let { copyLink ->
+                        if (copyLink == null) {
+                            pressBack()
+                        } else {
+                            tap(copyLink)
+                            wait(random(1000, 1500))
+                        }
+                    }
+                    hasDoAction = true
+                }
+            },
+            rate[RateType.EXIT] to {
+                this.onExit()
+                rate.reset()
+                endAction()
+            }
+        )
+
         if (!hasDoAction) {
             endAction()
         }
@@ -226,7 +246,7 @@ fun viewComment(
     context: SceneExecutionContext
 ) = defineAction("View Comment", context) {
     on(id(TiktokId.COMMENT_INPUT)) { textField ->
-        if (textField?.text?.trim()?.isNotEmpty() ?: false) {
+        if (textField?.text?.removePrefix("Thêm bình luận...")?.trim()?.isNotEmpty() ?: false) {
             findAll(desc(TiktokDesc.POST_COMMENT_BUTTON)).let { postButtons ->
                 postButtons.forEach { postButton ->
                     if (postButton.isClickable) {
@@ -324,6 +344,7 @@ fun selectVideoAfterSearch(context: SceneExecutionContext) = defineAction("Selec
         if (!it.isSelected) {
             endAction()
         }
+        waitUntil(id(TiktokId.SEARCH_RESULT_LIST))
     }
     loop {
         choose(5 to {
