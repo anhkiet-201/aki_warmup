@@ -26,52 +26,110 @@ import com.aki.akiwarmup.tiktok.screen.TiktokText
 typealias Action = suspend ActionBuilder.() -> Unit
 
 val captionKeyword = listOf(
+    // Tuyển dụng & việc làm chung
     "việc làm",
-    "thời vụ",
-    "tìm việc",
-    "tuyển dụng",
-    "kcn",
-    "mỹ phước",
-    "vsip",
-    "ttnhr",
-    "vieclambinhduong",
     "vieclam",
+    "vieclamdongnai",
+    "tìm việc",
+    "timviec",
+    "tuyển dụng",
+    "tuyendung",
+    "thời vụ",
+    "chính thức",
+    "công nhân",
+    "lao động",
     "công ty",
+    "cong ty",
     "công việc",
-    "đồng an",
-    "nam tân uyên"
+    "kcn",
+    "khu công nghiệp",
+    // Chế độ đãi ngộ
+    "lương 3 ngày",
+    "lương tuần",
+    "nhận lương",
+    "bao ăn ở",
+    "tăng ca",
+    "thu nhập",
+    // Ngành nghề
+    "điện tử",
+    "gỗ",
+    "nội thất",
+    "may mặc",
+    "giày da",
+    "bao bì",
+    // Địa bàn & Khu công nghiệp Đồng Nai
+    "đồng nai",
+    "dong nai",
+    "biên hòa",
+    "bien hoa",
+    "trảng bom",
+    "trang bom",
+    "long thành",
+    "long thanh",
+    "nhơn trạch",
+    "nhon trach",
+    "vĩnh cửu",
+    "vinh cuu",
+    "sông mây",
+    "song may",
+    "hố nai",
+    "ho nai",
+    "hố nai 3",
+    "tam phước",
+    "tam phuoc",
+    "amata",
+    "lộc an",
+    "bình sơn",
+    "loc an binh son",
+    "giang điền"
 )
 
 val keyWorlds = listOf(
-    "ttnhr",
-    "việc làm bình dương",
-    "việc làm thời vụ bình dương",
-    "tìm việc vsip 2a",
-    "việc làm ở mỹ phước",
-    "tìm việc ttnhr",
-    "việc làm nam tân uyên",
-    "việc làm kcn sóng thần 3",
-    "việc làm ở kcn vsip 2a",
-    "việc làm mỹ phước tuyển dụng",
-    "việc làm mỹ phước ttnhr",
-    "tìm việc làm bến cát",
-    "việc làm kcn đồng an 2",
-    "việc làm vĩnh tân bình dương",
-    "tìm việc làm ở tân uyên",
-    "việc làm thời vụ st 3",
-    "tuyển dụng ttnhr",
-    "việc làm bình dương ttnhr",
-    "việc làm vsip",
-    "việc làm vsip 3",
-    "việc làm hội nghĩa",
-    "việc làm hành chính",
-    "việc làm mỹ phước 1",
-    "việc làm mỹ phước 2",
-    "việc làm mỹ phước 3",
-    "việc làm mỹ phước 4",
-    "làm công ty ở bình dương",
-    "làm công ty ở vsip 3",
-    "làm công ty ở nam tân uyên"
+    // 7 từ khóa gốc
+    "những công ty lương 3 ngày 1 lần tại đồng nai",
+    "công ty điện tử kcn sông mây",
+    "công ty gỗ nội thất kcn hố nai 3",
+    "công ty điện tử kcn long thành",
+    "công ty gỗ kcn tam phước",
+    "công ty điện tử kcn amata long thành",
+    "công ty điện tử kcn lộc an bình sơn",
+    // Nhóm lương 3 ngày 1 lần / lương tuần tại Đồng Nai
+    "công ty lương 3 ngày đồng nai",
+    "việc làm lương 3 ngày 1 lần",
+    "việc làm lương 3 ngày đồng nai",
+    "tuyển dụng công ty lương 3 ngày",
+    "công ty nhận lương 3 ngày tại đồng nai",
+    "việc làm thời vụ lương 3 ngày đồng nai",
+    // KCN Sông Mây
+    "việc làm kcn sông mây",
+    "tuyển dụng kcn sông mây",
+    "công nhân điện tử kcn sông mây",
+    "việc làm thời vụ kcn sông mây",
+    // KCN Hố Nai 3 & Trảng Bom
+    "việc làm kcn hố nai 3",
+    "công ty gỗ kcn hố nai",
+    "tuyển dụng kcn hố nai trảng bom",
+    "việc làm gỗ nội thất hố nai",
+    // KCN Long Thành & Lộc An Bình Sơn
+    "việc làm kcn long thành",
+    "tuyển dụng kcn long thành",
+    "công ty điện tử long thành",
+    "việc làm kcn lộc an bình sơn",
+    "công ty kcn lộc an bình sơn",
+    "tuyển dụng lộc an bình sơn đồng nai",
+    // KCN Tam Phước & KCN Amata
+    "việc làm kcn tam phước biên hòa",
+    "tuyển dụng kcn tam phước",
+    "công ty gỗ tam phước đồng nai",
+    "việc làm kcn amata",
+    "công ty điện tử kcn amata",
+    "tuyển dụng kcn amata biên hòa",
+    // Từ khóa tổng hợp Đồng Nai
+    "việc làm đồng nai",
+    "việc làm thời vụ đồng nai",
+    "tìm việc làm ở đồng nai",
+    "tuyển dụng công nhân đồng nai",
+    "làm công ty ở đồng nai"
 )
 
 /**
@@ -431,12 +489,12 @@ fun tapAutoCut(context: SceneExecutionContext, action: Action) = defineAction("T
     on(desc("Mẫu")) {
         if (it != null) {
             tap(it)
-            waitUntil(text("Chọn mẫu") and text("Tiếp"))
-            action()
-            endAction()
-        } else {
-            action()
+            waitUntil(text("Chọn mẫu") and text("Tiếp"))?.let {
+                pressBack()
+                endAction()
+            }
         }
+        action()
     }
 }
 
