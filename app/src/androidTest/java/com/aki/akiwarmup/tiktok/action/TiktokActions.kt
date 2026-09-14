@@ -905,3 +905,94 @@ fun selectRandomImageStyle(
         }
     }
 }
+
+/**
+ * Hành động chuyển hướng từ màn hình Trang chủ (Home) sang màn hình Hồ sơ cá nhân (Profile).
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ */
+fun openProfileFromHome(
+    context: SceneExecutionContext
+) = defineAction("Open Profile From Home", context) {
+    (find(desc(TiktokText.PROFILE_TAB)) ?: find(text(TiktokText.PROFILE_TAB)))?.let { profileTab ->
+        tap(profileTab)
+    }
+}
+
+/**
+ * Hành động nhấn nút "Sửa hồ sơ" từ màn hình Trang cá nhân (Profile).
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ */
+fun openEditProfile(
+    context: SceneExecutionContext
+) = defineAction("Open Edit Profile", context) {
+    find(id("com.ss.android.ugc.trill:id/rh3"))?.let { editButton ->
+        tap(editButton)
+        waitUntil(text(TiktokText.CHANGE_PHOTO))
+    }
+}
+
+/**
+ * Hành động chọn mục "Tiểu sử" trên màn hình Chỉnh sửa hồ sơ.
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ */
+fun openEditBio(
+    context: SceneExecutionContext
+) = defineAction("Open Edit Bio", context) {
+    find(text(TiktokText.BIO))?.let { bioItem ->
+        tap(bioItem)
+        waitUntil(text(TiktokText.BIO) and (text(TiktokText.EDIT_BIO_HINT) or clazz("android.widget.EditText")))
+    }
+}
+
+/**
+ * Hành động cập nhật nội dung tiểu sử mới:
+ * 1. Kiểm tra nếu nội dung tiểu sử hiện tại đã giống [bioText] thì thoát sớm (không ghi đè).
+ * 2. Điền [bioText] vào ô EditText.
+ * 3. Kiểm tra nút "Lưu" (Save), nếu khả dụng (`isEnabled == true`) thì bấm Lưu.
+ * 4. Chờ giao diện quay lại màn hình "Sửa hồ sơ" rồi bấm Home và kết thúc kịch bản thành công.
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ * @param bioText Nội dung tiểu sử cần cập nhật.
+ */
+fun updateBioAndSave(
+    context: SceneExecutionContext,
+    bioText: String
+) = defineAction("Update Bio And Save", context) {
+    find(clazz("android.widget.EditText"))?.let { inputField ->
+        if (inputField.text == bioText) {
+            AkiLog.i(LogTag.ACTION, "Tiểu sử hiện tại đã trùng khớp với '$bioText', bỏ qua cập nhật")
+            pressBack()
+            wait(random(500, 1000))
+            pressHome()
+            stop("Tiểu sử đã trùng khớp, không cần cập nhật")
+            return@defineAction
+        }
+
+        inputField.text = bioText
+        wait(random(600, 1200))
+
+        val saveButton = find(desc(TiktokText.SAVE)) ?: find(text(TiktokText.SAVE))
+        if (saveButton != null && saveButton.isEnabled) {
+            tap(saveButton)
+            val returned = waitUntil(text(TiktokText.EDIT_PROFILE))
+            if (returned != null) {
+                wait(random(500, 1000))
+                pressHome()
+                stop("Cập nhật tiểu sử thành công")
+            } else {
+                pressBack()
+                pressHome()
+                stop("Đã bấm Lưu tiểu sử")
+            }
+        } else {
+            AkiLog.w(LogTag.ACTION, "Nút Lưu tiểu sử không khả dụng hoặc không tìm thấy")
+            pressBack()
+            pressHome()
+            stop("Nút Lưu không khả dụng")
+        }
+    }
+}
+

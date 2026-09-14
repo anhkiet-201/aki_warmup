@@ -3,9 +3,11 @@ package com.aki.akiwarmup.tiktok.screen
 import com.aki.akiwarmup.core.dsl.SceneExecutionContext
 import com.aki.akiwarmup.core.dsl.ScreenBuilder
 import com.aki.akiwarmup.core.dsl.and
+import com.aki.akiwarmup.core.dsl.clazz
 import com.aki.akiwarmup.core.dsl.defineScreen
 import com.aki.akiwarmup.core.dsl.desc
 import com.aki.akiwarmup.core.dsl.id
+import com.aki.akiwarmup.core.dsl.or
 import com.aki.akiwarmup.core.dsl.text
 
 /**
@@ -167,7 +169,7 @@ fun onAddInfoView(context: SceneExecutionContext, block: ScreenBuilder.() -> Uni
  */
 fun onProfile(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
     defineScreen("Profile", context) {
-        detect { has(text("Đã follow") and text("Follower") and text("Thích") ) }
+        detect { has(desc("Ảnh hồ sơ") and desc("Tạo một Nhật ký") ) }
         apply(block)
     }
 
@@ -309,3 +311,36 @@ fun onSelectImageStyleView(
     }
     apply(block)
 }
+
+/**
+ * Định nghĩa màn hình Chỉnh sửa hồ sơ (Edit Profile).
+ * Màn hình được phát hiện khi xuất hiện tiêu đề "Sửa hồ sơ" và nhãn "Thay đổi ảnh".
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
+ */
+fun onEditProfile(
+    context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
+) = defineScreen("Edit Profile", context) {
+    detect {
+        has(text(TiktokText.EDIT_PROFILE) and text(TiktokText.CHANGE_PHOTO))
+    }
+    apply(block)
+}
+
+/**
+ * Định nghĩa màn hình Chỉnh sửa tiểu sử (Edit Bio).
+ * Màn hình được phát hiện khi xuất hiện tiêu đề "Tiểu sử" và ô nhập văn bản (hoặc dòng gợi ý chỉnh sửa).
+ *
+ * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
+ * @param block Khối Lambda thiết lập các hành động tương tác sẽ được áp dụng trên màn hình này.
+ */
+fun onEditBio(
+    context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
+) = defineScreen("Edit Bio", context) {
+    detect {
+        has(text(TiktokText.BIO)) and (has(text(TiktokText.EDIT_BIO_HINT)) or has(clazz("android.widget.EditText")))
+    }
+    apply(block)
+}
+

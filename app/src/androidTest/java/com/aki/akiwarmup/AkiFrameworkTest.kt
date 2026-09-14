@@ -15,6 +15,7 @@ import com.aki.akiwarmup.core.dsl.desc
 import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.runScene
 import com.aki.akiwarmup.core.dsl.text
+import com.aki.akiwarmup.core.dsl.textContains
 import com.aki.akiwarmup.core.logger.AkiLog
 import com.aki.akiwarmup.core.logger.LogTag
 import com.aki.akiwarmup.tiktok.action.chooseTextToImageTab
@@ -22,6 +23,9 @@ import com.aki.akiwarmup.tiktok.action.inputPromptAndProceed
 import com.aki.akiwarmup.tiktok.action.keyWorlds
 import com.aki.akiwarmup.tiktok.action.onChooseVideo
 import com.aki.akiwarmup.tiktok.action.onTiktokSharePostAction
+import com.aki.akiwarmup.tiktok.action.openEditBio
+import com.aki.akiwarmup.tiktok.action.openEditProfile
+import com.aki.akiwarmup.tiktok.action.openProfileFromHome
 import com.aki.akiwarmup.tiktok.action.openRecordFromHome
 import com.aki.akiwarmup.tiktok.action.openUploadLibrary
 import com.aki.akiwarmup.tiktok.action.openVideoMenu
@@ -38,6 +42,7 @@ import com.aki.akiwarmup.tiktok.action.tapToAddMusic
 import com.aki.akiwarmup.tiktok.action.tapToUpload
 import com.aki.akiwarmup.tiktok.action.typeCaption
 import com.aki.akiwarmup.tiktok.action.typeSearchKeyword
+import com.aki.akiwarmup.tiktok.action.updateBioAndSave
 import com.aki.akiwarmup.tiktok.action.watchVideo
 import com.aki.akiwarmup.tiktok.model.AutoRate
 import com.aki.akiwarmup.tiktok.scene.TiktokBaseBehaviors
@@ -48,6 +53,8 @@ import com.aki.akiwarmup.tiktok.screen.onAddInfoView
 import com.aki.akiwarmup.tiktok.screen.onChooseTemplate
 import com.aki.akiwarmup.tiktok.screen.onCreateImageFromTextView
 import com.aki.akiwarmup.tiktok.screen.onDeletePopup
+import com.aki.akiwarmup.tiktok.screen.onEditBio
+import com.aki.akiwarmup.tiktok.screen.onEditProfile
 import com.aki.akiwarmup.tiktok.screen.onHome
 import com.aki.akiwarmup.tiktok.screen.onMediaPickerView
 import com.aki.akiwarmup.tiktok.screen.onProfile
@@ -592,6 +599,63 @@ class AkiFrameworkTest {
 
                 onAddInfoView(context) {
                     typeCaption(context)
+                }
+            }
+        }
+
+        loop { }
+    }
+
+    /**
+     * Kịch bản Cập nhật Tiểu sử (Update Bio) trên TikTok.
+     *
+     * **Mục đích:**
+     * Tự động truy cập vào trang cá nhân, mở giao diện chỉnh sửa hồ sơ và cập nhật nội dung
+     * tiểu sử mới được truyền từ tham số cấu hình (`context.args`).
+     *
+     * **Tham số đầu vào (`context.args`):**
+     * - `keyword` (hoặc `bio` / `text`): Chuỗi văn bản tiểu sử mới cần cập nhật.
+     *
+     * **Luồng kịch bản chi tiết:**
+     * 1. Kiểm tra tính hợp lệ của dữ liệu đầu vào; dừng kịch bản nếu nội dung rỗng.
+     * 2. Khởi chạy ứng dụng TikTok ([launchApp]).
+     * 3. Xử lý màn hình Trang chủ ([onHome]): Nhấn vào tab "Hồ sơ" để mở trang cá nhân ([openProfileFromHome]).
+     * 4. Xử lý màn hình Trang cá nhân ([onProfile]): Nhấn nút "Sửa hồ sơ" ([openEditProfile]).
+     * 5. Xử lý màn hình Chỉnh sửa hồ sơ ([onEditProfile]): Chọn mục "Tiểu sử" ([openEditBio]).
+     * 6. Xử lý màn hình Chỉnh sửa tiểu sử ([onEditBio]):
+     *    - Nếu tiểu sử hiện tại đã trùng khớp, quay về màn hình chính và dừng kịch bản ([updateBioAndSave]).
+     *    - Ngược lại, điền nội dung mới, bấm nút "Lưu" và đợi hệ thống xác nhận cập nhật thành công.
+     * 7. Tích hợp cơ chế phục hồi và bắt lỗi popup hệ thống chuẩn qua [TiktokBaseBehaviors].
+     */
+    @Test
+    fun updateBio() = runScene {
+        scene {
+            tiktokSceneDefine("Tiktok Update Bio", context) {
+                val bioText = context.args.getString("bio")
+                    ?: ""
+
+                if (bioText.isEmpty()) {
+                    context.stop("Nội dung tiểu sử (keyword/bio/text) đang để trống")
+                }
+
+                include(TiktokBaseBehaviors)
+
+                launchApp()
+
+                onHome(context) {
+                    openProfileFromHome(context)
+                }
+
+                onProfile(context) {
+                    openEditProfile(context)
+                }
+
+                onEditProfile(context) {
+                    openEditBio(context)
+                }
+
+                onEditBio(context) {
+                    updateBioAndSave(context, bioText)
                 }
             }
         }

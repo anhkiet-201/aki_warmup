@@ -60,6 +60,24 @@ object TiktokText {
 
     /** Nút Tiếp tục */
     const val NEXT = "Tiếp"
+
+    /** Tab Hồ sơ trên thanh điều hướng dưới */
+    const val PROFILE_TAB = "Hồ sơ"
+
+    /** Nút hoặc nhãn Sửa hồ sơ */
+    const val EDIT_PROFILE = "Sửa hồ sơ"
+
+    /** Nhãn Thay đổi ảnh trên màn hình sửa hồ sơ */
+    const val CHANGE_PHOTO = "Thay đổi ảnh"
+
+    /** Mục Tiểu sử trên màn hình sửa hồ sơ */
+    const val BIO = "Tiểu sử"
+
+    /** Nút Lưu thông tin chỉnh sửa */
+    const val SAVE = "Lưu"
+
+    /** Dòng mô tả gợi ý chỉnh sửa tiểu sử */
+    const val EDIT_BIO_HINT = "Bạn có thể chỉnh sửa tiểu sử bất cứ lúc nào."
 }
 
 object TiktokId {
@@ -148,6 +166,9 @@ object TiktokId {
 
     /** Nút xác nhận Xóa cuối cùng trong hộp thoại xóa video */
     const val CONFIRM_DELETE_BUTTON = "com.ss.android.ugc.trill:id/wk"
+
+    /** Nút Sửa hồ sơ trên trang cá nhân */
+    const val EDIT_PROFILE_BUTTON = "com.ss.android.ugc.trill:id/rh3"
 }
 
 object TiktokDesc {
