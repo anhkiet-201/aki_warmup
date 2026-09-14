@@ -499,7 +499,6 @@ class AkiFrameworkTest {
                     onChooseVideo(context, {
                         stop("No Videos")
                     }) { videos ->
-                        // Fix: dùng withIndex() thay vì 0..(videos.size) để tránh IndexOutOfBounds
                         for ((i, videoText) in videos.withIndex()) {
                             val text = videoText.text.replace(".", "").trim()
                             val viewCount = text.toIntOrNull() ?: if (text.contains("Vi phạm", true)) 0 else Int.MAX_VALUE
@@ -632,7 +631,7 @@ class AkiFrameworkTest {
         scene {
             tiktokSceneDefine("Tiktok Update Bio", context) {
                 val bioText = context.args.getString("bio")
-                    ?: ""
+                    ?: "xin chào|123143"
 
                 if (bioText.isEmpty()) {
                     context.stop("Nội dung tiểu sử (keyword/bio/text) đang để trống")
@@ -655,7 +654,7 @@ class AkiFrameworkTest {
                 }
 
                 onEditBio(context) {
-                    updateBioAndSave(context, bioText)
+                    updateBioAndSave(context, bioText.replace("|", "\n"))
                 }
             }
         }
