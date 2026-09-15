@@ -455,7 +455,7 @@ fun onTiktokSharePostAction(context: SceneExecutionContext) =
     defineAction("Tiktok Share Post Action", context) {
         find(text(TiktokText.VIDEO_TAB) or text("Ảnh"))?.let {
             tap(it)
-            waitUntil(selector =  (desc("Mẫu") and desc("Văn bản")) or (id(TiktokId.ADD_SOUND_TEXT)),maxMs = 60000L)
+            waitUntil(selector =  (desc("Mẫu") and desc("Văn bản")) or (id(TiktokId.ADD_SOUND_TEXT)),maxMs = 120000L)
             endAction()
         }
     }
@@ -489,9 +489,11 @@ fun tapAutoCut(context: SceneExecutionContext, action: Action) = defineAction("T
     on(desc("Mẫu")) {
         if (it != null) {
             tap(it)
-            waitUntil(text("Chọn mẫu") and text("Tiếp"))?.let {
-                pressBack()
-                endAction()
+            waitUntil(text("Chọn mẫu") and text("Tiếp")).let { result ->
+                if (result == null) {
+                    pressBack()
+                    endAction()
+                }
             }
         }
         action()
@@ -623,9 +625,34 @@ fun selectRandomMusic(context: SceneExecutionContext) =
  */
 fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", context) {
     val caption = context.args.getString("caption") ?: ""
+    if (caption.isEmpty()) {
+        stop("Caption trống")
+    }
+    val location = context.args.getString("location") ?: ""
     findAll(clazz("android.widget.EditText")).lastOrNull()?.let {
         humanType(it, "$caption ")
-        wait(random(3000, 5000))
+        wait(random(1000, 1500))
+        pressBack()
+        wait(random(1000, 1500))
+        if (location.isNotEmpty()) {
+            find(text("Vị trí"))?.let { locationButton ->
+                tap(locationButton)
+                find(id("com.android.permissioncontroller:id/permission_message"))?.let {
+                    find(id("com.android.permissioncontroller:id/permission_allow_foreground_only_button"))?.click()
+                    wait(random(3000, 5000))
+                }
+                find(clazz("android.widget.EditText"))?.let { inputText ->
+                    inputText.text = location
+                    wait(random(1000, 1500))
+                    waitUntil(clazz("androidx.recyclerview.widget.RecyclerView"), maxMs=120000L)?.let { rcv ->
+                        rcv.children.getOrNull(1)?.let { target ->
+                            tap(target)
+                        }
+                    }
+                }
+            }
+            wait(random(1000, 1500))
+        }
         find(text(TiktokText.POST))?.let { post ->
             tap(post)
             wait(random(20000, 40000))
