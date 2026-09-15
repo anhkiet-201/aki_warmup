@@ -217,7 +217,7 @@ class AkiFrameworkTest {
     fun autoPostWithAutoCut() = runScene {
         var hasTapAutoCut = false
         var hasTapText = false
-        val text = context.args.getString("text") ?: ""
+        val text = context.args.getString("text") ?: "gsd"
         scene {
             tiktokSceneDefine("Auto Post", context) {
                 handleUnknowScreen {

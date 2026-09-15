@@ -17,6 +17,7 @@ interface Selector {
     fun find(parent: UiObject2): UiObject2?
     fun findAll(parent: UiObject2): List<UiObject2>
     fun exists(device: UiDevice): Boolean
+    fun exists(parent: UiObject2): Boolean = find(parent) != null
 }
 
 /**
@@ -107,6 +108,7 @@ class SimpleSelector : Selector {
         return list
     }
     override fun exists(device: UiDevice): Boolean = device.hasObject(toBySelector())
+    override fun exists(parent: UiObject2): Boolean = parent.hasObject(toBySelector())
 
     override fun toString(): String {
         val parts = mutableListOf<String>()
@@ -156,6 +158,7 @@ class OrSelector(val left: Selector, val right: Selector) : Selector {
         (left.findAll(parent) + right.findAll(parent)).distinct()
 
     override fun exists(device: UiDevice): Boolean = left.exists(device) || right.exists(device)
+    override fun exists(parent: UiObject2): Boolean = left.exists(parent) || right.exists(parent)
 
     override fun toString(): String = "($left OR $right)"
 }
@@ -164,22 +167,32 @@ class OrSelector(val left: Selector, val right: Selector) : Selector {
  * Hỗ trợ toán tử AND phức hợp (khi không thể merge vào SimpleSelector).
  */
 class AndSelector(val left: Selector, val right: Selector) : Selector {
-    override fun find(device: UiDevice): UiObject2? = findAll(device).firstOrNull()
-
-    override fun findAll(device: UiDevice): List<UiObject2> {
-        val leftResults = left.findAll(device)
-        val rightResults = right.findAll(device)
-        return leftResults.filter { l -> rightResults.any { r -> l == r } }
+    override fun find(device: UiDevice): UiObject2? {
+        if (!exists(device)) return null
+        return if (left !is NotSelector) left.find(device) ?: right.find(device) else right.find(device)
     }
 
-    override fun find(parent: UiObject2): UiObject2? = findAll(parent).firstOrNull()
+    override fun findAll(device: UiDevice): List<UiObject2> {
+        if (!exists(device)) return emptyList()
+        val leftResults = if (left is NotSelector) emptyList() else left.findAll(device)
+        val rightResults = if (right is NotSelector) emptyList() else right.findAll(device)
+        return (leftResults + rightResults).distinct()
+    }
+
+    override fun find(parent: UiObject2): UiObject2? {
+        if (!exists(parent)) return null
+        return if (left !is NotSelector) left.find(parent) ?: right.find(parent) else right.find(parent)
+    }
+
     override fun findAll(parent: UiObject2): List<UiObject2> {
-        val leftResults = left.findAll(parent)
-        val rightResults = right.findAll(parent)
-        return leftResults.filter { l -> rightResults.any { r -> l == r } }
+        if (!exists(parent)) return emptyList()
+        val leftResults = if (left is NotSelector) emptyList() else left.findAll(parent)
+        val rightResults = if (right is NotSelector) emptyList() else right.findAll(parent)
+        return (leftResults + rightResults).distinct()
     }
 
     override fun exists(device: UiDevice): Boolean = left.exists(device) && right.exists(device)
+    override fun exists(parent: UiObject2): Boolean = left.exists(parent) && right.exists(parent)
 
     override fun toString(): String = "($left AND $right)"
 }
@@ -200,6 +213,7 @@ class NotSelector(val selector: Selector): Selector {
     }
 
     override fun exists(device: UiDevice): Boolean = !selector.exists(device)
+    override fun exists(parent: UiObject2): Boolean = !selector.exists(parent)
 
     override fun toString(): String = "NOT ($selector)"
 }

@@ -547,7 +547,7 @@ fun tapAutoCut(context: SceneExecutionContext, action: Action) = defineAction("T
     on(desc("Mẫu")) {
         if (it != null) {
             tap(it)
-            waitUntil(text("Chọn mẫu") and text("Tiếp")).let { result ->
+            waitUntil(text("Chọn mẫu")).let { result ->
                 if (result == null) {
                     pressBack()
                     endAction()
@@ -682,11 +682,11 @@ fun selectRandomMusic(context: SceneExecutionContext) =
  * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
  */
 fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", context) {
-    val caption = context.args.getString("caption") ?: ""
+    val caption = context.args.getString("caption") ?: "sdfs"
     if (caption.isEmpty()) {
         stop("Caption trống")
     }
-    val location = context.args.getString("location") ?: ""
+    val location = context.args.getString("location") ?: "KCN Lộc An Bình Sơn"
     findAll(clazz("android.widget.EditText")).lastOrNull()?.let {
         humanType(it, "$caption ")
         wait(random(1000, 1500))
@@ -695,6 +695,7 @@ fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", c
         if (location.isNotEmpty()) {
             find(text("Vị trí"))?.let { locationButton ->
                 tap(locationButton)
+                wait(random(3000, 5000))
                 find(id("com.android.permissioncontroller:id/permission_message"))?.let {
                     find(id("com.android.permissioncontroller:id/permission_allow_foreground_only_button"))?.click()
                     wait(random(3000, 5000))
@@ -703,7 +704,7 @@ fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", c
                     inputText.text = location
                     wait(random(1000, 1500))
                     waitUntil(clazz("androidx.recyclerview.widget.RecyclerView"), maxMs=120000L)?.let { rcv ->
-                        rcv.children.getOrNull(1)?.let { target ->
+                        rcv.children.firstOrNull()?.let { target ->
                             tap(target)
                         }
                     }
