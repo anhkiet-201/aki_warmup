@@ -199,7 +199,7 @@ fun onShare(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
 fun onRepostPopup(
     context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
 ) = defineScreen("Repost Popup", context) {
-    detect { has(id("com.ss.android.ugc.trill:id/ofw")) }
+    detect { has(text("Xóa") and text("Hủy")) }
     apply(block)
 }
 

@@ -779,8 +779,11 @@ fun onChooseVideo(
 ) = defineAction("Choose Video", context) {
     find(clazz("android.widget.GridView")).let { grid ->
         val videoItems = grid?.children?.mapNotNull {
-            it.children.lastOrNull()?.children?.lastOrNull()
+            it.findObjects(clazz("android.widget.TextView").toBySelector()).lastOrNull()
         } ?: emptyList()
+//        val videoItems = grid?.children?.mapNotNull {
+//            it.children.lastOrNull()?.children?.lastOrNull()
+//        } ?: emptyList()
         if (videoItems.isEmpty()) {
             onNoVideos()
         } else {
@@ -869,8 +872,10 @@ fun tapDeleteInRepostPopup(
     context: SceneExecutionContext,
     action: Action
 ) = defineAction("Delete in repost popup", context) {
-    find(id(TiktokId.DELETE_IN_REPOST_POPUP))?.let {
+    find(text(TiktokText.DELETE))?.let {
         tap(it)
+        wait(random(1500, 2000))
+        find(text(TiktokText.DELETE))?.click()
         action()
     }
     endAction()
