@@ -45,6 +45,7 @@ import com.aki.akiwarmup.tiktok.action.typeSearchKeyword
 import com.aki.akiwarmup.tiktok.action.updateBioAndSave
 import com.aki.akiwarmup.tiktok.action.watchVideo
 import com.aki.akiwarmup.tiktok.model.AutoRate
+import com.aki.akiwarmup.tiktok.model.RateType
 import com.aki.akiwarmup.tiktok.scene.TiktokBaseBehaviors
 import com.aki.akiwarmup.tiktok.scene.TiktokCommentBehaviors
 import com.aki.akiwarmup.tiktok.scene.TiktokDeleteVideoBehaviors
@@ -319,14 +320,14 @@ class AkiFrameworkTest {
      */
     @Test
     fun seeding() = runScene {
-        val rate = AutoRate()
+        val rate = AutoRate().withRate(RateType.COMMENT, 40)
 
         scene {
             tiktokSceneDefine("Seeding", context) {
                 include(TiktokBaseBehaviors)
                 include(TiktokCommentBehaviors)
                 
-                val rawKeyword = context.args.getString("keyword")?.split("|")
+                val rawKeyword = context.args.getString("keyword", "vieclam.hr61")?.split("|")
                 if (rawKeyword == null) {
                     context.stop("Wrong Keyword")
                 }

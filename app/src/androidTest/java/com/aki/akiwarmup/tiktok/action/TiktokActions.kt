@@ -547,7 +547,7 @@ fun tapAutoCut(context: SceneExecutionContext, action: Action) = defineAction("T
     on(desc("Mẫu")) {
         if (it != null) {
             tap(it)
-            waitUntil(text("Chọn mẫu")).let { result ->
+            waitUntil(text("Chọn mẫu"), maxMs = 120000).let { result ->
                 if (result == null) {
                     pressBack()
                     endAction()

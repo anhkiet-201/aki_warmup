@@ -49,6 +49,12 @@ class AutoRate(
         RateType.entries.filter { it != RateType.SWIPE }.forEach { current[it] = 0 }
     }
 
+    fun withRate(type: RateType, value: Int): AutoRate {
+        val updated = initial.toMutableMap()
+        updated[type] = value
+        return AutoRate(updated, step)
+    }
+
     fun reset() {
         current.putAll(initial)
     }
