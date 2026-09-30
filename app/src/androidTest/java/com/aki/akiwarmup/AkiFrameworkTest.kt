@@ -490,7 +490,6 @@ class AkiFrameworkTest {
     @Test
     fun delete0() = runScene {
         var hasDeleteVideo = false
-
         scene {
             tiktokSceneDefine("Delete zero view video", context) {
                 include(TiktokBaseBehaviors)

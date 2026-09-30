@@ -9,6 +9,7 @@ import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.UiObject2
 import com.aki.akiwarmup.core.dsl.ActionBuilder
 import com.aki.akiwarmup.core.dsl.SceneExecutionContext
+import com.aki.akiwarmup.core.dsl.SimpleSelector
 import com.aki.akiwarmup.core.dsl.and
 import com.aki.akiwarmup.core.dsl.clazz
 import com.aki.akiwarmup.core.dsl.defineAction
@@ -742,21 +743,25 @@ fun selectUser(
 ) = defineAction("Select User", context) {
     find(text(TiktokText.USER_TAB))?.let {
         tap(it)
-        waitUntil(id(TiktokId.SEARCH_USERNAME), maxMs = random(3000L, 5000L))
         if (!it.isSelected) {
             endAction()
         }
     }
-    findAll(id(TiktokId.SEARCH_USERNAME)).findLast { it.text.trim() == username.trim() }
-        .let {
-            if (it == null) {
-                onNoUser()
-            } else {
-                tap(it)
-                waitUntil(id(TiktokId.PROFILE_VIDEO_GRID), maxMs = random(1000L, 3000L))
+    waitUntil(text(username).apply {
+        className = "android.widget.TextView"
+    }).let {
+        if (it == null) {
+            onNoUser()
+        } else {
+            it.parent.parent.findObject(text("Follow").toBySelector())?.let { followButton ->
+                wait(random(1000, 3000))
+                tap(followButton)
+                wait(random(1000, 3000))
             }
+            tap(it)
+            waitUntil(clazz("android.widget.GridView"))
         }
-    endAction()
+    }
 }
 
 /**
