@@ -214,15 +214,23 @@ val keyWorlds = listOf(
  * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`), chứa thông tin phiên chạy.
  * @param rate Đối tượng cấu hình xác suất/tần suất các hành động tự động (`AutoRate`), mặc định là một instance mới.
  * @param id Định danh hành động, mặc định là "Watch Video".
+ * @param maxEndRepeats Số lần lặp lại mô tả video liên tiếp sau khi swipe để xác định đã lướt hết video (mặc định là 3).
+ * @param onEndOfVideos Callback hành động được gọi khi đã lướt hết video. Nếu null, sẽ fallback gọi [onExit].
  * @param onExit Callback hành động dạng suspend được gọi khi quyết định thoát xem video.
  */
 fun watchVideo(
     context: SceneExecutionContext,
     rate: AutoRate = AutoRate(),
     id: String = "Watch Video",
+    maxEndRepeats: Int = 3,
+    isSeeding: Boolean = false,
+    onEndOfVideos: Action? = null,
     onExit: Action
 ) = defineAction(id, context) {
     var loopCount = 1
+    var lastDesc: String? = null
+    var sameDescCount = 0
+
     loop {
         var hasDoAction = false
 
@@ -238,8 +246,12 @@ fun watchVideo(
         // 2. Đọc mô tả video và đánh giá từ khóa
         val desc = find(id(TiktokId.VIDEO_DESC))
         val descText = desc?.text
+        if (!descText.isNullOrBlank()) {
+            lastDesc = descText
+        }
+
         val beTTNHR = descText?.contains("#ttnhr", ignoreCase = true) == true ||
-                descText?.contains("#vieclamttn", ignoreCase = true) == true
+                descText?.contains("#vieclamttn", ignoreCase = true) == true || isSeeding
 
         if (beTTNHR) {
             find(id("com.ss.android.ugc.trill:id/i0f"))?.let { followButton ->
@@ -265,7 +277,29 @@ fun watchVideo(
             rate[RateType.SWIPE] to {
                 rate.reset()
                 loopCount = 1
+
+                val beforeDesc = descText ?: lastDesc
                 swipeUp()
+                val nextDescObj = waitUntil(id(TiktokId.VIDEO_DESC), maxMs = 2500L)
+                val afterDesc = nextDescObj?.text
+
+                AkiLog.d(LogTag.CONTENT, "Swipe check: before='${beforeDesc?.take(40)}', after='${afterDesc?.take(40)}'")
+
+                if (!beforeDesc.isNullOrBlank() && !afterDesc.isNullOrBlank() && afterDesc == beforeDesc) {
+                    sameDescCount++
+                    AkiLog.w(LogTag.CONTENT, "VIDEO_DESC repeated after swipe ($sameDescCount/$maxEndRepeats): ${afterDesc.take(60)}")
+                    if (sameDescCount >= maxEndRepeats) {
+                        AkiLog.i(LogTag.ACTION, "Đã lướt hết video (VIDEO_DESC lặp $sameDescCount lần). Gọi callback onEndOfVideos.")
+                        (onEndOfVideos ?: onExit).invoke(this)
+                        hasDoAction = true
+                        endAction()
+                    }
+                    rate.swipeBias()
+                } else if (!afterDesc.isNullOrBlank() && afterDesc != beforeDesc) {
+                    sameDescCount = 0
+                    lastDesc = afterDesc
+                }
+
                 hasDoAction = true
             },
             rate[RateType.LIKE] to {

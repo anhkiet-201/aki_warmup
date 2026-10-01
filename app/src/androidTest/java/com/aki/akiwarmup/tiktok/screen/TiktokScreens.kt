@@ -169,7 +169,7 @@ fun onAddInfoView(context: SceneExecutionContext, block: ScreenBuilder.() -> Uni
  */
 fun onProfile(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
     defineScreen("Profile", context) {
-        detect { has(desc("Bài đăng") and desc("Đăng lại") ) }
+        detect { has(desc("Bài đăng")) }
         apply(block)
     }
 

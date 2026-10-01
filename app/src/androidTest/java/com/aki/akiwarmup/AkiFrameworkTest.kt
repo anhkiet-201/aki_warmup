@@ -320,14 +320,14 @@ class AkiFrameworkTest {
      */
     @Test
     fun seeding() = runScene {
-        val rate = AutoRate().withRate(RateType.COMMENT, 40)
+        val rate = AutoRate()
 
         scene {
             tiktokSceneDefine("Seeding", context) {
                 include(TiktokBaseBehaviors)
                 include(TiktokCommentBehaviors)
                 
-                val rawKeyword = context.args.getString("keyword", "vieclam.hr61")?.split("|")
+                val rawKeyword = context.args.getString("keyword", "sdfwsdf")?.split("|")
                 if (rawKeyword == null) {
                     context.stop("Wrong Keyword")
                 }
@@ -365,7 +365,10 @@ class AkiFrameworkTest {
                 }
 
                 onVideoView(context) {
-                    watchVideo(context, rate) {
+                    watchVideo(context, AutoRate().withRate(RateType.COMMENT, 80), isSeeding = true, onEndOfVideos = {
+                        pressHome()
+                        stop("Xong")
+                    }) {
                         pressHome()
                         stop("Hoàn thành seeding: $keyword")
                     }
