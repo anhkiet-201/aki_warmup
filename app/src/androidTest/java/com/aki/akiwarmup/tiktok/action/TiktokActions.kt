@@ -737,11 +737,11 @@ fun selectRandomMusic(context: SceneExecutionContext) =
  * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
  */
 fun typeCaption(context: SceneExecutionContext) = defineAction("Type Caption", context) {
-    val caption = context.args.getString("caption") ?: "sdfs"
+    val caption = context.args.getString("caption") ?: ""
     if (caption.isEmpty()) {
         stop("Caption trống")
     }
-    val location = context.args.getString("location") ?: "KCN Lộc An Bình Sơn"
+    val location = context.args.getString("location") ?: ""
     findAll(clazz("android.widget.EditText")).lastOrNull()?.let {
         humanType(it, "$caption ")
         wait(random(1000, 1500))
