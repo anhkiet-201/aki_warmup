@@ -578,6 +578,26 @@ fun tapToAddMusic(context: SceneExecutionContext) = defineAction("Tap To Add Mus
     endAction()
 }
 
+/**
+ * Nhấn chọn công cụ AI trên màn hình xem trước video (nếu có) và nhấn nút "Tiếp" để chuyển sang bước kế tiếp.
+ *
+ * Quy trình thực hiện:
+ * 1. Tìm nút công cụ AI ([TiktokId.AI_BUTTON]). Nếu tìm thấy, thực hiện chạm (tap) và chờ ngẫu nhiên từ 1000ms đến 1500ms.
+ * 2. Tìm nút "Tiếp" ([TiktokText.NEXT]). Nếu tìm thấy, thực hiện chạm (tap) và chờ ngẫu nhiên từ 1000ms đến 1500ms.
+ *
+ * @param context Ngữ cảnh thực thi hành động ([SceneExecutionContext]).
+ */
+fun tapAIToolAndProceed(context: SceneExecutionContext) = defineAction("Tap AI Tool And Proceed", context) {
+    find(id(TiktokId.AI_BUTTON))?.let {
+        tap(it)
+        wait(random(1000, 1500))
+    }
+    find(text(TiktokText.NEXT))?.let {
+        tap(it)
+        wait(random(1000, 1500))
+    }
+}
+
 fun tapAutoCut(context: SceneExecutionContext, action: Action) = defineAction("Tap AutoCut", context) {
     on(desc("Mẫu")) {
         if (it != null) {

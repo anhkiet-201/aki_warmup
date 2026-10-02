@@ -169,6 +169,9 @@ object TiktokId {
 
     /** Nút Sửa hồ sơ trên trang cá nhân */
     const val EDIT_PROFILE_BUTTON = "com.ss.android.ugc.trill:id/rh3"
+
+    /** Nút công cụ AI trên màn hình chỉnh sửa/xem trước video */
+    const val AI_BUTTON = "com.ss.android.ugc.trill:id/dgw"
 }
 
 object TiktokDesc {

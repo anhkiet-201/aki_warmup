@@ -33,6 +33,7 @@ import com.aki.akiwarmup.tiktok.action.selectRandomImageStyle
 import com.aki.akiwarmup.tiktok.action.selectRandomMusic
 import com.aki.akiwarmup.tiktok.action.selectUser
 import com.aki.akiwarmup.tiktok.action.selectVideoAfterSearch
+import com.aki.akiwarmup.tiktok.action.tapAIToolAndProceed
 import com.aki.akiwarmup.tiktok.action.tapAutoCut
 import com.aki.akiwarmup.tiktok.action.tapDeleteAndRepost
 import com.aki.akiwarmup.tiktok.action.tapDeleteInRepostPopup
@@ -663,5 +664,54 @@ class AkiFrameworkTest {
         }
 
         loop { }
+    }
+
+    /**
+     * Kịch bản Đăng bài tự động kết hợp công cụ AI (Auto AI Post) từ luồng chia sẻ ngoài ứng dụng vào TikTok.
+     *
+     * Kịch bản này được kích hoạt khi hệ thống chia sẻ một tệp phương tiện (video/ảnh) từ bên ngoài vào TikTok,
+     * tự động kích hoạt tính năng xử lý/công cụ AI tại màn hình xem trước, chuyển tiếp sang màn hình soạn thảo
+     * thông tin bài đăng và thực hiện đăng bài tự động.
+     *
+     * **Các đối số truyền vào qua `context.args` (thông qua [typeCaption]):**
+     * - `caption`: Chuỗi văn bản mô tả bài đăng (mặc định "sdfs" nếu không truyền). Nếu rỗng, kịch bản sẽ dừng với lỗi.
+     * - `location`: Chuỗi vị trí check-in (mặc định "KCN Lộc An Bình Sơn"). Nếu không muốn gán vị trí, có thể cấu hình chuỗi rỗng.
+     *
+     * **Luồng kịch bản chi tiết:**
+     * 1. Cơ chế xử lý màn hình không xác định (`handleUnknowScreen`):
+     *    - Nếu số lần liên tiếp xuất hiện màn hình không xác định vượt quá 8 lần (`consecutiveUnknownScreens > 8`), dừng kịch bản với trạng thái "Failure" và mã lỗi -2.
+     * 2. Xử lý màn hình Chia sẻ bài viết (`onTiktokSharePost`):
+     *    - Chuyển tiếp sang màn hình chỉnh sửa/xem trước bằng cách chọn tab Video hoặc Ảnh ([onTiktokSharePostAction]).
+     * 3. Xử lý màn hình Xem trước video (`onVideoPreview`):
+     *    - Tự động tìm và kích hoạt công cụ AI (nút ID `dgw`), sau đó nhấn nút "Tiếp" ([tapAIToolAndProceed]).
+     * 4. Xử lý màn hình Soạn thảo thông tin (`onAddInfoView`):
+     *    - Nhập nội dung caption, chọn vị trí (nếu có), bấm nút Đăng và chờ quá trình đăng tải hoàn tất ([typeCaption]).
+     */
+    @Test
+    fun autoAIPost() = runScene {
+        scene {
+            tiktokSceneDefine("Auto AI Post", context) {
+                handleUnknowScreen {
+                    if (this.context.consecutiveUnknownScreens > 8) {
+                        context.stop("Failure", -2)
+                    }
+                }
+                onTiktokSharePost(context) {
+                    onTiktokSharePostAction(context)
+                }
+
+                onVideoPreview(context) {
+                    tapAIToolAndProceed(context)
+                }
+
+                onAddInfoView(context) {
+                    typeCaption(context)
+                }
+            }
+        }
+
+        loop {
+
+        }
     }
 }
