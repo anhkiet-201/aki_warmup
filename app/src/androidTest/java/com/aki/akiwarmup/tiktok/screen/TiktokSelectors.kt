@@ -101,6 +101,9 @@ object TiktokId {
     /** Nút Thích (Like) video */
     const val LIKE_BUTTON = "com.ss.android.ugc.trill:id/fhc"
 
+    /** Nút Follow tài khoản trên video */
+    const val FOLLOW_BUTTON = "com.ss.android.ugc.trill:id/i0f"
+
     /** Nút Yêu thích (Favorite) video */
     const val FAVORITE_BUTTON = "com.ss.android.ugc.trill:id/h_9"
 

@@ -191,191 +191,298 @@ val keyWorlds = listOf(
     "làm công ty ở đồng nai"
 )
 
+private val targetHashtags = listOf("#ttnhr", "#vieclamttn")
+
+/**
+ * Trạng thái phiên xem video xuyên suốt nhiều lần lặp hoặc re-detect của ActionLoop.
+ * Giữ số lượng video đã xem, số lần fingerprint trùng liên tiếp và trạng thái video hiện tại.
+ */
+class WatchVideoSession {
+    var videoCount: Int = 0
+    var sameFingerprintCount: Int = 0
+    var lastFingerprint: String? = null
+    var current: VideoState? = null
+}
+
+/**
+ * Trạng thái tương tác cụ thể của từng video đơn lẻ đang phát trên màn hình.
+ * Tránh lặp lại follow, dwell hoặc tương tác trùng lặp (ví dụ tap Re-post 2 lần gây hủy repost).
+ */
+data class VideoState(
+    val fingerprint: String?,
+    val isTarget: Boolean,
+    val isKeywordHit: Boolean,
+    val performed: MutableSet<RateType> = mutableSetOf(),
+    var hasFollowed: Boolean = false,
+    var hasDwelled: Boolean = false
+)
+
+/**
+ * Kiểm tra xem màn hình hiện tại có còn đang ở giao diện xem video hay không.
+ * Tránh việc tiếp tục vuốt hoặc tương tác mù khi đã chuyển sang màn hình khác.
+ */
+private fun ActionBuilder.isOnVideoFeed(): Boolean {
+    return has(id(TiktokId.LIKE_BUTTON)) && has(id(TiktokId.USER_AVATAR))
+}
+
+/**
+ * Đọc định danh duy nhất của video hiện tại (fingerprint).
+ * Sử dụng existingDesc đã tìm thấy từ đầu vòng lặp để tránh scan lại view hierarchy.
+ * Tuyệt đối không dùng contentDescription của nút Like (vì "Thích" là tĩnh trên mọi video).
+ * Trả về null nếu không có desc để tránh kết luận nhầm là đã hết danh sách video.
+ */
+private fun ActionBuilder.readVideoFingerprint(existingDesc: String?): String? {
+    val trimmedExisting = existingDesc?.trim()
+    if (!trimmedExisting.isNullOrEmpty()) return trimmedExisting
+    return null
+}
+
+/**
+ * Kiểm tra xem video có thuộc diện mục tiêu seeding hay tuyển dụng cần tương tác không.
+ */
+private fun isTargetVideo(descText: String?, isSeeding: Boolean): Boolean {
+    if (isSeeding) return true
+    if (descText.isNullOrEmpty()) return false
+    return targetHashtags.any { descText.contains(it, ignoreCase = true) }
+}
+
+/**
+ * Kiểm tra mô tả video có chứa từ khóa quan tâm trong [captionKeyword] hay không.
+ */
+private fun isKeywordHit(descText: String?): Boolean {
+    if (descText.isNullOrEmpty()) return false
+    val lower = descText.lowercase()
+    return captionKeyword.any { kw -> lower.contains(kw) }
+}
+
+/**
+ * Chờ xem video (dwell time) theo hành vi người dùng tự nhiên.
+ * - Video thuộc diện mục tiêu (seeding, hashtag) hoặc đúng từ khóa chủ đề: xem ngẫu nhiên theo [durationRangeSeconds].
+ * - Video không liên quan: lướt qua nhanh (fast skip) từ 1.0s đến 2.5s.
+ */
+private suspend fun ActionBuilder.dwellVideo(
+    isEngaged: Boolean,
+    durationRangeSeconds: IntRange
+) {
+    if (isEngaged) {
+        val minMs = maxOf(3000, durationRangeSeconds.first * 1000)
+        val maxMs = maxOf(minMs + 2000, durationRangeSeconds.last * 1000)
+        val waitMs = random(minMs, maxMs)
+        AkiLog.d(LogTag.CONTENT, "Engaged video (target/topic matched) -> dwelling ${waitMs}ms (${waitMs / 1000}s)")
+        wait(waitMs)
+    } else {
+        val waitMs = random(1000, 2500)
+        AkiLog.d(LogTag.CONTENT, "Irrelevant video -> fast skip ${waitMs}ms")
+        wait(waitMs)
+    }
+}
+
+/**
+ * Thực hiện bấm nút Follow nếu video thuộc mục tiêu và chưa từng follow trước đó.
+ * Ngăn chặn việc bấm lặp lại gây toggle hủy Follow.
+ */
+private fun ActionBuilder.followOnce(state: VideoState) {
+    if (!state.hasFollowed) {
+        find(id(TiktokId.FOLLOW_BUTTON))?.let { followButton ->
+            AkiLog.d(LogTag.ACTION, "Tapping follow button for target video")
+            tap(followButton)
+            state.hasFollowed = true
+        }
+    }
+}
+
+/**
+ * Mở sheet chia sẻ và nhấn chọn chức năng mong muốn (ví dụ Đăng lại hoặc Sao chép link).
+ * Dùng waitUntil để chờ popup hiện ra an toàn thay vì delay cố định.
+ */
+private suspend fun ActionBuilder.shareAndPick(targetText: String): Boolean {
+    val shareButton = find(id(TiktokId.SHARE_BUTTON)) ?: return false
+    tap(shareButton)
+    val item = waitUntil(text(targetText), maxMs = 3000L)
+    return if (item != null) {
+        tap(item)
+        wait(random(1000, 1500))
+        true
+    } else {
+        pressBack()
+        wait(random(500, 1000))
+        false
+    }
+}
+
+/**
+ * Cuộn lên xem video kế tiếp trong feed.
+ * Không thực hiện scan UI ở đây để tránh đọc lặp lại mô tả video (được xử lý ở đầu vòng lặp kế tiếp).
+ */
+private suspend fun ActionBuilder.swipeToNext(session: WatchVideoSession) {
+    swipeUp()
+    wait(random(1000, 1500))
+    session.current = null
+}
+
 /**
  * Lướt xem video TikTok và tự động thực hiện các hành động tương tác (like, comment, favorite, repost, copy link) 
  * dựa trên tỉ lệ ngẫu nhiên được cấu hình bởi [AutoRate].
  *
- * Hàm thực hiện lặp vô hạn (loop) cho đến khi gặp hành động [RateType.EXIT], tại đó sẽ gọi callback [onExit].
- * Các bước chính bên trong vòng lặp:
- * 1. Đọc mô tả video (`TiktokId.VIDEO_DESC`). Nếu mô tả không chứa từ khóa nào trong [captionKeyword], 
- *    hàm sẽ kích hoạt cơ chế `swipeBias` và lướt qua video khác nhanh hơn.
- * 2. Tìm dòng chữ "Quảng bá đề xuất" (`TiktokText.RECOMMENDED_PROMOTION`). Nếu tìm thấy, thực hiện cuộn lên (swipeUp) 
- *    và kết thúc hành động để tránh tương tác với quảng cáo.
- * 3. Lựa chọn hành động tương tác dựa trên xác suất cấu hình trong [AutoRate]:
- *    - `RateType.SWIPE`: Lướt lên xem video tiếp theo.
- *    - `RateType.LIKE`: Bấm nút Thích nếu chưa được chọn.
- *    - `RateType.FAVORITE`: Bấm nút Yêu thích nếu chưa được chọn.
- *    - `RateType.COMMENT`: Nếu mô tả video chứa hashtag "#ttnhr", bấm nút bình luận, nhập nội dung bình luận 
- *      ngẫu nhiên (sử dụng [generateComment]), bấm gửi rồi quay lại.
- *    - `RateType.RE_POST`: Chia sẻ bài viết dưới dạng Đăng lại.
- *    - `RateType.COPY_LINK`: Sao chép liên kết của video hiện tại.
- *    - `RateType.EXIT`: Kết thúc hành động lướt xem video và gọi callback [onExit].
+ * Quy trình xử lý trên mỗi video:
+ * 1. Guard feed & bỏ qua quảng cáo: Kiểm tra feed video và lướt qua video quảng cáo đề xuất ngay lập tức.
+ * 2. Dwell time: Xem video theo thời gian quy định (lâu nếu trúng từ khóa, nhanh nếu không trúng).
+ * 3. Follow: Tự động Follow 1 lần duy nhất nếu video thuộc diện mục tiêu seeding/tuyển dụng.
+ * 4. Đa tương tác độc lập: Một video có thể có nhiều tương tác (Like, Favorite, Repost, CopyLink, Comment)
+ *    hoặc không có tương tác nào, dựa theo tỉ lệ phần trăm xác suất độc lập cấu hình trong [rate].
+ * 5. Chuyển tiếp video:
+ *    - Thử xác suất [RateType.EXIT]: nếu trúng thì kết thúc phiên xem.
+ *    - Nếu không EXIT: Luôn luôn thực hiện vuốt lên (`swipeUp`) sang video tiếp theo.
+ *    - Nếu phát hiện video trùng lặp (đã chạm đáy danh sách): dừng ngay lập tức và gọi [onEndOfVideos] (fallback [onExit]).
  *
  * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`), chứa thông tin phiên chạy.
  * @param rate Đối tượng cấu hình xác suất/tần suất các hành động tự động (`AutoRate`), mặc định là một instance mới.
  * @param id Định danh hành động, mặc định là "Watch Video".
- * @param maxEndRepeats Số lần lặp lại mô tả video liên tiếp sau khi swipe để xác định đã lướt hết video (mặc định là 3).
- * @param onEndOfVideos Callback hành động được gọi khi đã lướt hết video. Nếu null, sẽ fallback gọi [onExit].
+ * @param maxEndRepeats Giữ để tương thích chữ ký cũ (logic mới sẽ dừng ngay lập tức khi phát hiện lặp).
+ * @param isSeeding Nếu true, coi mọi video đều là video mục tiêu cần quan tâm follow/comment.
+ * @param onEndOfVideos Callback hành động được gọi khi đã lướt hết video. Nếu null, fallback gọi [onExit].
+ * @param session Trạng thái phiên xem video xuyên suốt các vòng lặp hoặc re-detect của ActionLoop.
  * @param onExit Callback hành động dạng suspend được gọi khi quyết định thoát xem video.
  */
 fun watchVideo(
     context: SceneExecutionContext,
     rate: AutoRate = AutoRate(),
     id: String = "Watch Video",
-    maxEndRepeats: Int = 3,
     isSeeding: Boolean = false,
+    watchDurationSeconds: IntRange = context.sceneConfig.watchVideoSeconds,
     onEndOfVideos: Action? = null,
+    session: WatchVideoSession = WatchVideoSession(),
     onExit: Action
 ) = defineAction(id, context) {
-    var loopCount = 1
-    var lastDesc: String? = null
-    var sameDescCount = 0
-
     loop {
-        var hasDoAction = false
-
-        // 1. Kiểm tra quảng cáo: nếu là video quảng bá đề xuất, lướt qua và thoát để ActionLoop re-detect
-        on(text(TiktokText.RECOMMENDED_PROMOTION)) { promo ->
-            if (promo != null) {
-                swipeUp()
-                hasDoAction = true
-                endAction()
-            }
-        }
-
-        // 2. Đọc mô tả video và đánh giá từ khóa
-        val desc = find(id(TiktokId.VIDEO_DESC))
-        val descText = desc?.text
-        if (!descText.isNullOrBlank()) {
-            lastDesc = descText
-        }
-
-        val beTTNHR = descText?.contains("#ttnhr", ignoreCase = true) == true ||
-                descText?.contains("#vieclamttn", ignoreCase = true) == true || isSeeding
-
-        if (beTTNHR) {
-            find(id("com.ss.android.ugc.trill:id/i0f"))?.let { followButton ->
-                tap(followButton)
-            }
-        }
-
-        descText?.let { text ->
-            AkiLog.d(LogTag.CONTENT, "desc: ${text.take(80)}")
-            val lowerDesc = text.lowercase()
-            if (captionKeyword.none { kw -> lowerDesc.contains(kw) }) {
-                AkiLog.d(LogTag.CONTENT, "keyword miss → swipeBias")
-                rate.swipeBias()
-            } else {
-                AkiLog.d(LogTag.CONTENT, "keyword hit ✓")
-                val maxWait = maxOf(2500, 30000 / loopCount)
-                wait(random(1990, maxWait))
-            }
-        }
-
-        // 3. Thực thi hành động tương tác theo tỷ lệ xác suất
-        choose(
-            rate[RateType.SWIPE] to {
-                rate.reset()
-                loopCount = 1
-
-                val beforeDesc = descText ?: lastDesc
-                swipeUp()
-                val nextDescObj = waitUntil(id(TiktokId.VIDEO_DESC), maxMs = 2500L)
-                val afterDesc = nextDescObj?.text
-
-                AkiLog.d(LogTag.CONTENT, "Swipe check: before='${beforeDesc?.take(40)}', after='${afterDesc?.take(40)}'")
-
-                if (!beforeDesc.isNullOrBlank() && !afterDesc.isNullOrBlank() && afterDesc == beforeDesc) {
-                    sameDescCount++
-                    AkiLog.w(LogTag.CONTENT, "VIDEO_DESC repeated after swipe ($sameDescCount/$maxEndRepeats): ${afterDesc.take(60)}")
-                    if (sameDescCount >= maxEndRepeats) {
-                        AkiLog.i(LogTag.ACTION, "Đã lướt hết video (VIDEO_DESC lặp $sameDescCount lần). Gọi callback onEndOfVideos.")
-                        (onEndOfVideos ?: onExit).invoke(this)
-                        hasDoAction = true
-                        endAction()
-                    }
-                    rate.swipeBias()
-                } else if (!afterDesc.isNullOrBlank() && afterDesc != beforeDesc) {
-                    sameDescCount = 0
-                    lastDesc = afterDesc
-                }
-
-                hasDoAction = true
-            },
-            rate[RateType.LIKE] to {
-                find(id(TiktokId.LIKE_BUTTON))?.let {
-                    rate.consume(RateType.LIKE)
-                    if (!it.isSelected) {
-                        tap(it)
-                        wait(random(min = 1000, max = 3000))
-                    }
-                    hasDoAction = true
-                }
-            },
-            rate[RateType.FAVORITE] to {
-                find(id(TiktokId.FAVORITE_BUTTON))?.let {
-                    rate.consume(RateType.FAVORITE)
-                    if (!it.isSelected) {
-                        tap(it)
-                        wait(random(min = 1000, max = 3000))
-                    }
-                    hasDoAction = true
-                }
-            },
-            rate[RateType.COMMENT] to {
-                rate.consume(RateType.COMMENT)
-                if (beTTNHR) {
-                    find(id(TiktokId.COMMENT_BUTTON))?.let { commentButton ->
-                        tap(commentButton)
-                        wait(random(100, 1500))
-                        hasDoAction = true
-                        endAction()
-                    }
-                }
-            },
-            rate[RateType.RE_POST] to {
-                find(id(TiktokId.SHARE_BUTTON))?.let {
-                    rate.consume(RateType.RE_POST)
-                    tap(it)
-                    wait(random(1000, 1500))
-                    find(text(TiktokText.REPOST)).let { repost ->
-                        if (repost == null) {
-                            pressBack()
-                        } else {
-                            tap(repost)
-                            wait(random(1000, 1500))
-                        }
-                    }
-                    hasDoAction = true
-                }
-            },
-            rate[RateType.COPY_LINK] to {
-                find(id(TiktokId.SHARE_BUTTON))?.let {
-                    rate.consume(RateType.COPY_LINK)
-                    tap(it)
-                    wait(random(1000, 1500))
-                    find(text(TiktokText.COPY_LINK)).let { copyLink ->
-                        if (copyLink == null) {
-                            pressBack()
-                        } else {
-                            tap(copyLink)
-                            wait(random(1000, 1500))
-                        }
-                    }
-                    hasDoAction = true
-                }
-            },
-            rate[RateType.EXIT] to {
-                this.onExit()
-                rate.reset()
-                endAction()
-            }
-        )
-
-        if (!hasDoAction) {
+        // 1. Kiểm tra màn hình còn ở feed video không
+        if (!isOnVideoFeed()) {
+            AkiLog.w(LogTag.ACTION, "watchVideo: Not on video feed, ending action for re-detection")
             endAction()
         }
-        loopCount++
+
+        // 2. Kiểm tra quảng cáo: nếu là video quảng bá đề xuất, lướt qua ngay
+        on(text(TiktokText.RECOMMENDED_PROMOTION)) { promo ->
+            if (promo != null) {
+                AkiLog.d(LogTag.CONTENT, "Ad detected (${TiktokText.RECOMMENDED_PROMOTION}) -> swipeUp")
+                swipeUp()
+                wait(random(500, 1000))
+                session.current = null
+                endAction()
+            }
+        }
+
+        // 3. Khởi tạo trạng thái cho video hiện tại & kiểm tra trùng lặp (hết danh sách video)
+        val desc = find(id(TiktokId.VIDEO_DESC))?.text?.trim()
+
+        // Đối với video không có desc mà không phải isSeeding: đồng nghĩa với không đúng chủ đề
+        if (desc.isNullOrEmpty() && !isSeeding) {
+            session.videoCount++
+            AkiLog.d(LogTag.CONTENT, "Video #${session.videoCount} has no desc (not seeding) -> Off-topic, fast skip")
+            val skipMs = random(1000, 2000)
+            wait(skipMs)
+            swipeToNext(session)
+            return@loop
+        }
+
+        val fp = readVideoFingerprint(desc)
+
+        // Nếu trùng lặp với video trước đó -> Chắc chắn đã chạm đáy danh sách video
+        if (fp != null && session.lastFingerprint != null && fp == session.lastFingerprint) {
+            AkiLog.i(LogTag.CONTENT, "Duplicate video confirmed ($fp) -> Ending watchVideo immediately")
+            if (onEndOfVideos != null) onEndOfVideos() else onExit()
+            endAction()
+        }
+        session.lastFingerprint = fp
+
+        val isTarget = isTargetVideo(desc, isSeeding)
+        val isHit = isKeywordHit(desc)
+        session.videoCount++
+        val state = VideoState(
+            fingerprint = fp,
+            isTarget = isTarget,
+            isKeywordHit = isHit
+        )
+        session.current = state
+        AkiLog.d(LogTag.CONTENT, "Video #${session.videoCount} desc: ${desc?.take(80) ?: "none"} (target=$isTarget, hit=$isHit)")
+
+        // 4. Follow 1 lần duy nhất nếu là video mục tiêu
+        if (state.isTarget) {
+            followOnce(state)
+        }
+
+        // 5. Chờ xem video (Dwell time)
+        val isEngaged = state.isTarget || state.isKeywordHit
+        dwellVideo(isEngaged, watchDurationSeconds)
+        state.hasDwelled = true
+
+        // 6. Thực hiện tương tác (Một video có thể có nhiều hành động tương tác hoặc không)
+        if (state.isKeywordHit || state.isTarget) {
+            // Like
+            sometimes(rate[RateType.LIKE].coerceIn(0, 100)) {
+                find(id(TiktokId.LIKE_BUTTON))?.let {
+                    if (!it.isSelected) {
+                        AkiLog.d(LogTag.ACTION, "Tapping LIKE")
+                        tap(it)
+                        state.performed.add(RateType.LIKE)
+                        wait(random(1000, 3000))
+                    }
+                }
+            }
+
+            // Favorite
+            sometimes(rate[RateType.FAVORITE].coerceIn(0, 100)) {
+                find(id(TiktokId.FAVORITE_BUTTON))?.let {
+                    if (!it.isSelected) {
+                        AkiLog.d(LogTag.ACTION, "Tapping FAVORITE")
+                        tap(it)
+                        state.performed.add(RateType.FAVORITE)
+                        wait(random(1000, 3000))
+                    }
+                }
+            }
+
+            // Repost
+            sometimes(rate[RateType.RE_POST].coerceIn(0, 100)) {
+                AkiLog.d(LogTag.ACTION, "Sharing RE_POST")
+                if (shareAndPick(TiktokText.REPOST)) {
+                    state.performed.add(RateType.RE_POST)
+                }
+            }
+
+            // Copy Link
+            sometimes(rate[RateType.COPY_LINK].coerceIn(0, 100)) {
+                AkiLog.d(LogTag.ACTION, "Sharing COPY_LINK")
+                if (shareAndPick(TiktokText.COPY_LINK)) {
+                    state.performed.add(RateType.COPY_LINK)
+                }
+            }
+
+            // Comment (nếu là video mục tiêu)
+            if (state.isTarget) {
+                sometimes(rate[RateType.COMMENT].coerceIn(0, 100)) {
+                    find(id(TiktokId.COMMENT_BUTTON))?.let { commentButton ->
+                        AkiLog.d(LogTag.ACTION, "Opening COMMENT")
+                        tap(commentButton)
+                        wait(random(100, 1500))
+                        state.performed.add(RateType.COMMENT)
+                        endAction() // Chuyển quyền xử lý cho CommentView
+                    }
+                }
+            }
+        }
+
+        // 7. Quyết định: Thoát hay Vuốt sang video tiếp theo
+        sometimes(rate[RateType.EXIT].coerceIn(0, 100)) {
+            AkiLog.d(LogTag.ACTION, "Rate EXIT triggered -> ending watchVideo")
+            this.onExit()
+            rate.reset()
+            endAction()
+        }
+
+        // Nếu không EXIT -> BẮT BUỘC SWIPE SANG VIDEO TIẾP THEO
+        AkiLog.d(LogTag.ACTION, "Swiping to next video")
+        swipeToNext(session)
     }
 }
 

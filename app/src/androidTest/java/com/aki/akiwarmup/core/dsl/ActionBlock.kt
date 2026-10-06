@@ -104,13 +104,24 @@ class ActionBuilder(val context: SceneExecutionContext) {
         AkiLog.d(LogTag.ACTION, "swipeUp(humanized=$humanized)")
         val width = device.displayWidth
         val height = device.displayHeight
-        val from = Point(width / 2 + random.nextInt(50) + 25, (height * ((random.nextInt(6, 8)) / 10f )).toInt())
-        val to = Point(width / 2 + random.nextInt(50) + 25, (height * (random.nextInt(2,4) / 10f)).toInt())
+
+        // Vùng an toàn trục X: căn giữa màn hình (48% - 52% width), tránh nút tương tác bên phải và avatar/caption bên trái
+        val startX = (width * (0.48f + random.nextFloat() * 0.04f)).toInt()
+        // Giữ chuyển động gần như thẳng đứng, jitter rất nhỏ (-8..8px) để tránh kích hoạt cử chỉ lướt ngang (mở profile/camera)
+        val endX = startX + random.nextInt(-8, 9)
+
+        // Trục Y: Bắt đầu từ vùng dưới trung tâm (70% - 74% height) kéo lên (14% - 18% height)
+        // Quãng đường vuốt đạt ~56% chiều cao màn hình, bảo đảm vượt qua ngưỡng lật trang ViewPager2
+        val startY = (height * (0.70f + random.nextFloat() * 0.04f)).toInt()
+        val endY = (height * (0.14f + random.nextFloat() * 0.04f)).toInt()
+
+        val from = Point(startX, startY)
+        val to = Point(endX, endY)
         
         if (humanized) {
             humanEngine.humanSwipe(device, from, to)
         } else {
-            device.swipe(from.x, from.y, to.x, to.y, 10)
+            device.swipe(from.x, from.y, to.x, to.y, 16)
         }
     }
 

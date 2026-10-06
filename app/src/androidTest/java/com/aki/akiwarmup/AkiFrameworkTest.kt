@@ -328,7 +328,7 @@ class AkiFrameworkTest {
                 include(TiktokBaseBehaviors)
                 include(TiktokCommentBehaviors)
                 
-                val rawKeyword = context.args.getString("keyword", "sdfwsdf")?.split("|")
+                val rawKeyword = context.args.getString("keyword", "vieclam.hr61")?.split("|")
                 if (rawKeyword == null) {
                     context.stop("Wrong Keyword")
                 }
@@ -366,7 +366,7 @@ class AkiFrameworkTest {
                 }
 
                 onVideoView(context) {
-                    watchVideo(context, AutoRate().withRate(RateType.COMMENT, 80), isSeeding = true, onEndOfVideos = {
+                    watchVideo(context, AutoRate.seedingViral(), isSeeding = true, onEndOfVideos = {
                         pressHome()
                         stop("Xong")
                     }) {
