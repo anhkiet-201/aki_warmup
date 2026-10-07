@@ -106,7 +106,7 @@ fun onShareReelView(context: SceneExecutionContext, block: ScreenBuilder.() -> U
         detect {
             all(
                 desc("Chia sẻ ngay"),
-                desc("Ai có thể xem nội dung này?")
+                desc("Cài đặt thước phim")
             )
         }
         apply(block)
