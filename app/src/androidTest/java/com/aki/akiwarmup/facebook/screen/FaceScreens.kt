@@ -73,7 +73,6 @@ fun onVideoEditorView(context: SceneExecutionContext, block: ScreenBuilder.() ->
         detect {
             all(
                 text("Âm thanh"),
-                text("Chỉnh sửa"),
                 text("Hiệu ứng"),
                 text("Văn bản")
             )

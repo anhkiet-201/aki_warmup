@@ -161,7 +161,8 @@ class AkiFrameworkFace {
 
                 onShareReelView(context) {
                     val caption = context.args.getString("caption", "")
-                    shareReelWithCaption(context, caption)
+                    val location = context.args.getString("location")
+                    shareReelWithCaption(context, caption, location)
                 }
             }
         }

@@ -235,11 +235,27 @@ fun selectMusicTrack(
  */
 fun shareReelWithCaption(
     context: SceneExecutionContext,
-    caption: String
+    caption: String,
+    location: String? = null
 ) = defineAction("Share Reel", context) {
     find(clazz("android.widget.AutoCompleteTextView"))?.let { inputField ->
         if (caption.isNotEmpty()) {
-            humanType(inputField, caption)
+            inputField.text = caption
+        }
+        wait(random(1500, 3000))
+        if (location != null) {
+            find(text("Vị trí"))?.let {
+                tap(it)
+                wait(random(1500, 3000))
+                find(clazz("android.widget.EditText"))?.let { searchField ->
+                    searchField.text = location
+                    wait(random(1500, 3000))
+                    waitUntil(clazz("androidx.recyclerview.widget.RecyclerView"))?.let { rcv ->
+                        rcv.children.getOrNull(2)?.click()
+                        wait(random(1500, 3000))
+                    }
+                }
+            }
         }
         find(desc("Chia sẻ ngay"))?.let { shareButton ->
             tap(shareButton)
