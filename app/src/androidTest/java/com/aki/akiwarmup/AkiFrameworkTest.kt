@@ -51,6 +51,8 @@ import com.aki.akiwarmup.tiktok.scene.TiktokBaseBehaviors
 import com.aki.akiwarmup.tiktok.scene.TiktokCommentBehaviors
 import com.aki.akiwarmup.tiktok.scene.TiktokDeleteVideoBehaviors
 import com.aki.akiwarmup.tiktok.scene.tiktokSceneDefine
+import com.aki.akiwarmup.tiktok.screen.TiktokId
+import com.aki.akiwarmup.tiktok.screen.TiktokText
 import com.aki.akiwarmup.tiktok.screen.onAddInfoView
 import com.aki.akiwarmup.tiktok.screen.onChooseTemplate
 import com.aki.akiwarmup.tiktok.screen.onCreateImageFromTextView
@@ -296,28 +298,28 @@ class AkiFrameworkTest {
     /**
      * Kịch bản Seeding (Tương tác mồi) tài khoản dựa trên từ khóa chỉ định.
      * 
-     * Kịch bản này dùng để tìm kiếm một từ khóa/username cụ thể, đi vào trang cá nhân của họ và thực hiện tương tác (like, comment, favorite) 
+     * Kịch bản này dùng để tìm kiếm một từ khóa/username cụ thể, đi vào trang cá nhân của họ và thực hiện tương tác (like, comment, favorite, repost) 
      * trên các video của họ dựa trên tỷ lệ xác suất tùy biến.
      * 
-     * Luồng kịch bản chi tiết:
-     * 1. Kiểm tra đối số đầu vào: Lấy từ khóa `keyword` từ đối số ngữ cảnh (`context.args.getString("keyword")`). Nếu không có, dừng kịch bản.
+     * **Các đối số truyền vào qua `context.args`:**
+     * - `keyword`: Chuỗi định dạng `"username"` hoặc `"username|numOfVideos"` (mặc định: `"vieclam.hr61"`).
+     * 
+     * **Luồng kịch bản chi tiết:**
+     * 1. Kiểm tra và phân tách đối số đầu vào: Lấy `keyword` và `numOfVideos` từ `context.args.getString("keyword")`. Nếu rỗng hoặc không hợp lệ, dừng kịch bản ngay lập tức.
      * 2. Khởi chạy ứng dụng TikTok (`launchApp`).
      * 3. Xử lý màn hình Trang chủ (`onHome`):
-     *    - Lướt xem video ngẫu nhiên theo tỷ lệ seeding cấu hình sẵn (`watchVideo`).
-     *    - Khi hoàn tất, bấm vào biểu tượng Tìm kiếm để chuyển sang trang tìm kiếm.
+     *    - Lướt xem video ngẫu nhiên theo tỷ lệ cấu hình sẵn (`watchVideo`).
+     *    - Khi hoàn tất, bấm vào biểu tượng Tìm kiếm (`TiktokId.HOME_SEARCH_BUTTON`) để chuyển sang trang tìm kiếm.
      * 4. Xử lý màn hình Tìm kiếm (`onSearch`):
      *    - Nhập từ khóa `keyword` và bấm tìm kiếm (`typeSearchKeyword`).
      * 5. Xử lý màn hình Kết quả tìm kiếm (`onSearchResult`):
-     *    - Bấm chuyển qua tab Người dùng, tìm kiếm user trùng khớp với `keyword` (`selectUser`). Nếu không tìm thấy, bấm Home và dừng kịch bản.
+     *    - Tìm kiếm user trùng khớp với `keyword` trên tab hiện tại hoặc chuyển qua tab Người dùng (`selectUser`), thực hiện Follow (nếu chưa follow) và mở trang cá nhân. Nếu không tìm thấy, bấm Home và dừng kịch bản.
      * 6. Xử lý màn hình Trang cá nhân (`onProfile`):
-     *    - Tìm lưới danh sách video, chọn video đầu tiên (`onChooseVideo`) và tap vào để bắt đầu phát video.
+     *    - Tìm danh sách video hiển thị trên lưới (`onChooseVideo`), chọn video mục tiêu an toàn (tránh lỗi vượt quá chỉ mục) và tap vào để bắt đầu phát video.
      * 7. Xử lý màn hình Trình phát video (`onVideoView`):
-     *    - Chạy hành động xem video (`watchVideo`) kèm theo tỷ lệ tương tác seeding.
-     *    - Khi kết thúc, nhấn Home và kết thúc kịch bản kiểm thử.
-     * 8. Xử lý các màn hình cảnh báo không xác định (`onUnknowView`):
-     *    - Tự động đóng các pop-up/dialog hướng dẫn (`onUnknowViewAction`).
-     * 9. Cơ chế phục hồi lỗi (`handleUnknowScreen`):
-     *    - Nếu gặp liên tiếp quá 8 màn hình lỗi không xác định, nhấn Home và kết thúc kịch bản với lý do lỗi ứng dụng.
+     *    - Chạy hành động xem video (`watchVideo`) kèm theo tỷ lệ tương tác seeding (`AutoRate.seedingViral()`), hỗ trợ tiếp tục lướt sau khi đóng bảng bình luận và dừng khi đạt giới hạn hoặc hết danh sách video.
+     * 8. Xử lý các màn hình cảnh báo/bình luận (`TiktokBaseBehaviors`, `TiktokCommentBehaviors`):
+     *    - Tự động xử lý luồng nhập bình luận và đóng các pop-up/dialog không xác định.
      */
     @Test
     fun seeding() = runScene {
@@ -327,19 +329,31 @@ class AkiFrameworkTest {
             tiktokSceneDefine("Seeding", context) {
                 include(TiktokBaseBehaviors)
                 include(TiktokCommentBehaviors)
-                
-                val rawKeyword = context.args.getString("keyword", "vieclam.hr61")?.split("|")
-                if (rawKeyword == null) {
+
+                val rawArg = context.args.getString("keyword", "vieclam.hr61")?.trim()
+                if (rawArg.isNullOrEmpty()) {
                     context.stop("Wrong Keyword")
+                    return@tiktokSceneDefine
                 }
-                val keyword = rawKeyword!!.first()
-                val numOfVideos = rawKeyword.last().toIntOrNull() ?: 0
+                val parts = rawArg.split("|")
+                val keyword = parts.first().trim()
+                if (keyword.isEmpty()) {
+                    context.stop("Wrong Keyword")
+                    return@tiktokSceneDefine
+                }
+                val numOfVideos = if (parts.size > 1) {
+                    parts.last().trim().toIntOrNull()?.coerceAtLeast(0) ?: 0
+                } else {
+                    0
+                }
 
                 launchApp()
 
                 onHome(context) {
                     watchVideo(context, rate) {
-                        find("com.ss.android.ugc.trill:id/jb1")?.let {
+                        val searchBtn = find(id(TiktokId.HOME_SEARCH_BUTTON))
+                            ?: find(desc(TiktokText.SEARCH))
+                        searchBtn?.let {
                             tap(it)
                             wait(300)
                         }
@@ -350,14 +364,6 @@ class AkiFrameworkTest {
                     typeSearchKeyword(context, keyword)
                 }
 
-                onProfile(context) {
-                    onChooseVideo(context, {
-                        stop("No Videos")
-                    }) { videos ->
-                        tap(videos[numOfVideos])
-                    }
-                }
-
                 onSearchResult(context) {
                     selectUser(context, keyword) {
                         pressHome()
@@ -365,11 +371,27 @@ class AkiFrameworkTest {
                     }
                 }
 
+                onProfile(context) {
+                    onChooseVideo(context, {
+                        stop("No Videos")
+                    }) { videos ->
+                        val targetVideo = videos.getOrElse(numOfVideos) { videos.first() }
+                        tap(targetVideo)
+                        wait(random(1000, 2000))
+                    }
+                }
+
                 onVideoView(context) {
-                    watchVideo(context, AutoRate.seedingViral(), isSeeding = true, onEndOfVideos = {
-                        pressHome()
-                        stop("Xong")
-                    }) {
+                    watchVideo(
+                        context = context,
+                        rate = AutoRate.seedingViral(),
+                        isSeeding = true,
+                        maxVideos = numOfVideos,
+                        onEndOfVideos = {
+                            pressHome()
+                            stop("Xong")
+                        }
+                    ) {
                         pressHome()
                         stop("Hoàn thành seeding: $keyword")
                     }

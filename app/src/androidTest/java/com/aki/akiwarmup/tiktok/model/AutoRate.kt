@@ -62,20 +62,20 @@ class AutoRate(
     companion object {
         /**
          * Cấu hình tỷ lệ tối ưu cho kịch bản seeding đẩy video lên xu hướng (viral).
-         * - LIKE: 75%
+         * - LIKE: 90% (đảm bảo tỷ lệ thả tim cao ổn định trên các video mục tiêu)
          * - FAVORITE: 50%
          * - COPY_LINK: 40% (tín hiệu phân phối lan truyền mạnh)
          * - RE_POST: 35% (tín hiệu viral cao nhất trên TikTok)
-         * - COMMENT: 25% (tạo tương tác thảo luận tự nhiên)
+         * - COMMENT: 20% (tạo tương tác thảo luận tự nhiên, tối đa 1 comment/video)
          * - EXIT: 0% (seeding toàn bộ danh sách video mục tiêu)
          */
         fun seedingViral(): AutoRate = AutoRate(
             mapOf(
-                RateType.LIKE to 75,
+                RateType.LIKE to 90,
                 RateType.FAVORITE to 50,
                 RateType.COPY_LINK to 40,
                 RateType.RE_POST to 35,
-                RateType.COMMENT to 25,
+                RateType.COMMENT to 20,
                 RateType.EXIT to 0
             )
         )

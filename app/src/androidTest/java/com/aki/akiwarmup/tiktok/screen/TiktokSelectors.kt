@@ -175,9 +175,42 @@ object TiktokId {
 
     /** Nút công cụ AI trên màn hình chỉnh sửa/xem trước video */
     const val AI_BUTTON = "com.ss.android.ugc.trill:id/dgw"
+
+    /** Nút biểu tượng Tìm kiếm (kính lúp) ở góc trên bên phải màn hình Trang chủ */
+    const val HOME_SEARCH_BUTTON = "com.ss.android.ugc.trill:id/jb1"
+
+    /** Nút Follow / Đã follow bên cạnh tài khoản trong danh sách kết quả tìm kiếm */
+    const val FOLLOW_USER_BUTTON = "com.ss.android.ugc.trill:id/see"
+
+    /** Nhãn trạng thái "Bạn đã đăng lại" trên màn hình phát video */
+    const val REPOSTED_BADGE = "com.ss.android.ugc.trill:id/zpb"
+
+    /** Ô chứa item video đơn lẻ trong GridView của trang cá nhân (Profile) */
+    const val PROFILE_VIDEO_CELL = "com.ss.android.ugc.trill:id/efq"
+
+    /** Container Button của nút Thích (Like) luôn hiển thị kể cả khi cây Accessibility bị nén */
+    const val LIKE_BUTTON_CONTAINER = "com.ss.android.ugc.trill:id/fhu"
+
+    /** Container Button của nút Bình luận (Comment) bên phải màn hình video */
+    const val COMMENT_BUTTON_CONTAINER = "com.ss.android.ugc.trill:id/e4l"
+
+    /** Container Button của nút Yêu thích (Favorite) bên phải màn hình video */
+    const val FAVORITE_BUTTON_CONTAINER = "com.ss.android.ugc.trill:id/hah"
+
+    /** Nút Gửi bình luận (Button) hiển thị trực tiếp trên thanh công cụ bàn phím Add Comment */
+    const val POST_COMMENT_BTN_ID = "com.ss.android.ugc.trill:id/cj9"
+
+    /** Nút Đóng (X) góc phải trên của bảng danh sách bình luận (Comment Sheet) */
+    const val CLOSE_COMMENT_BUTTON = "com.ss.android.ugc.trill:id/be3"
 }
 
 object TiktokDesc {
     /** Nút gửi bình luận (Post comment button) */
     const val POST_COMMENT_BUTTON = "@2131953937"
+
+    /** Tiền tố content-desc của container nút Like khi video CHƯA được thả tim ("Thích video. X lượt thích") */
+    const val LIKE_UNSELECTED_PREFIX = "Thích video"
+
+    /** Nhãn content-desc của nút Đóng bảng bình luận */
+    const val CLOSE_SHEET = "Đóng"
 }
