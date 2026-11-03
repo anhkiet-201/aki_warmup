@@ -29,6 +29,8 @@ data class LogEntry(
 class SessionLogger {
     private val entries = mutableListOf<LogEntry>()
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
+    @Volatile
+    private var finalized = false
 
     /**
      * Ghi nhận kết quả của một hành động kiểm thử vào danh sách và in ra logcat.
@@ -48,7 +50,9 @@ class SessionLogger {
             success = result.isSuccess,
             error = errorDetail
         )
-        entries.add(entry)
+        synchronized(entries) {
+            entries.add(entry)
+        }
 
         if (result.isSuccess) {
             AkiLog.i(LogTag.SESSION, "ACTION: [$screenId] -> [$actionId] | SUCCESS")
@@ -86,14 +90,18 @@ class SessionLogger {
      * @return Chuỗi JSON chứa danh sách các [LogEntry].
      */
     fun getFullReport(): String {
-        return gson.toJson(entries)
+        val snapshot = synchronized(entries) { entries.toList() }
+        return gson.toJson(snapshot)
     }
 
     /**
      * Hoàn tất phiên kiểm thử, xuất toàn bộ báo cáo chi tiết (JSON) ra logcat với các thẻ đánh dấu đặc biệt
      * (`SESSION_COMPLETE_REPORT_START` và `SESSION_COMPLETE_REPORT_END`) giúp các công cụ phân tích log bên ngoài dễ dàng trích xuất.
      */
+    @Synchronized
     fun finalize() {
+        if (finalized) return
+        finalized = true
         val report = getFullReport()
         // Special tag to denote the end of session and the full report
         AkiLog.i(LogTag.SESSION, "SESSION_COMPLETE_REPORT_START")

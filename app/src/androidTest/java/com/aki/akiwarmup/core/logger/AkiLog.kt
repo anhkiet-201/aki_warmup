@@ -55,9 +55,15 @@ object AkiLog {
      * Quản lý bởi [ActionLoop] qua [resetScope]/[enterScope]/[exitScope].
      * Không cần thread-safe vì test runner chạy single-thread.
      */
+    @Volatile
     private var depth = 0
 
-    private fun pad() = "  ".repeat(depth)
+    private val PADS = Array(16) { "  ".repeat(it) }
+
+    private fun pad(): String {
+        val d = depth.coerceAtLeast(0)
+        return if (d < PADS.size) PADS[d] else "  ".repeat(d)
+    }
 
     /** Đặt lại indent về 0 — gọi đầu mỗi loop iteration trong ActionLoop. */
     internal fun resetScope() { depth = 0 }

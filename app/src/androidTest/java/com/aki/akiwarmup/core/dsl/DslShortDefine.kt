@@ -59,10 +59,13 @@ fun defineScene(id: String, context: AkiContext, block: SceneBuilder.() -> Unit)
 }
 
 fun UiObject2?.toName(): String {
-    return this?.text
-        ?: this?.contentDescription
-        ?: this?.hint
-        ?: this?.className
-        ?: this?.resourceName
-        ?: "null"
+    if (this == null) return "null"
+    return runCatching {
+        this.text
+            ?: this.contentDescription
+            ?: this.hint
+            ?: this.resourceName
+            ?: this.className
+            ?: "node"
+    }.getOrDefault("stale")
 }

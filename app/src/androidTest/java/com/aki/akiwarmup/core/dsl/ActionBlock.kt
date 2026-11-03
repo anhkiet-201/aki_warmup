@@ -1,7 +1,6 @@
 package com.aki.akiwarmup.core.dsl
 
 import android.graphics.Point
-import android.os.Message
 import com.aki.akiwarmup.core.logger.AkiLog
 import com.aki.akiwarmup.core.logger.LogTag
 import androidx.test.uiautomator.UiObject2
@@ -46,8 +45,9 @@ class ActionBuilder(val context: SceneExecutionContext) {
         AkiLog.d(LogTag.ACTION, "waitUntil($selector, max=${maxMs}ms)")
         val start = System.currentTimeMillis()
         while (System.currentTimeMillis() - start < maxMs && !context.isStopped()) {
-            if (selector.exists(device)) {
-                return find(selector)
+            val found = selector.find(device)
+            if (found != null) {
+                return found
             }
             delay(intervalMs)
         }
@@ -85,9 +85,13 @@ class ActionBuilder(val context: SceneExecutionContext) {
         val humanStr = if (humanized) "" else " raw"
         AkiLog.d(LogTag.ACTION, "tap($label$humanStr)")
         target?.let {
-            val center = it.visibleCenter
-            val point = if (humanized) humanEngine.getScatterPoint(center, 10) else center
-            device.click(point.x, point.y)
+            runCatching {
+                val center = it.visibleCenter
+                val point = if (humanized) humanEngine.getScatterPoint(center, 10) else center
+                device.click(point.x, point.y)
+            }.onFailure { e ->
+                AkiLog.w(LogTag.ACTION, "tap($label) failed (stale/invalid node): ${e.message}")
+            }
         }
     }
 
@@ -228,8 +232,11 @@ class ActionBuilder(val context: SceneExecutionContext) {
         AkiLog.d(LogTag.LOOP, "loop started")
         while (!context.isStopped() && condition()) {
             AkiLog.enterScope()
-            this.block()
-            AkiLog.exitScope()
+            try {
+                this.block()
+            } finally {
+                AkiLog.exitScope()
+            }
         }
         AkiLog.d(LogTag.LOOP, "loop finished")
     }
@@ -249,7 +256,7 @@ class ActionBuilder(val context: SceneExecutionContext) {
     /**
      * Lấy số ngẫu nhiên từ 1 đến [max]
      */
-    fun random(max: Int): Int = if (max > 0) random.nextInt(1, max + 1) else 1
+    fun random(max: Int): Int = if (max > 1) random.nextInt(1, max + 1) else 1
 
     /**
      * Lấy số ngẫu nhiên trong khoảng [min] đến [max]
@@ -260,5 +267,5 @@ class ActionBuilder(val context: SceneExecutionContext) {
      * Lấy số ngẫu nhiên Long trong khoảng [min] đến [max].
      */
     fun random(min: Long = 1L, max: Long): Long =
-        if (max > min) (min..max).random() else min
+        if (max > min) random.nextLong(min, max + 1L) else min
 }

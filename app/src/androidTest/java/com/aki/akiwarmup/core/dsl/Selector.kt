@@ -39,40 +39,108 @@ class SimpleSelector : Selector {
     // Lưu các con/cháu bắt buộc
     var descendant: Selector? = null
 
+    private var cachedTextPattern: Pair<String, Pattern>? = null
+
+    companion object {
+        private val ANY_PKG_PATTERN: Pattern = Pattern.compile(".*")
+    }
+
+    private fun resolveTextPattern(): Pattern? {
+        val patternStr = textMatches ?: return null
+        val cached = cachedTextPattern
+        if (cached != null && cached.first == patternStr) {
+            return cached.second
+        }
+        return Pattern.compile(patternStr).also {
+            cachedTextPattern = patternStr to it
+        }
+    }
+
+    internal fun tryMerge(other: SimpleSelector): SimpleSelector? {
+        if (this.resourceId != null && other.resourceId != null && this.resourceId != other.resourceId) return null
+        if (this.text != null && other.text != null && this.text != other.text) return null
+        if (this.textContains != null && other.textContains != null && this.textContains != other.textContains) return null
+        if (this.textMatches != null && other.textMatches != null && this.textMatches != other.textMatches) return null
+        if (this.desc != null && other.desc != null && this.desc != other.desc) return null
+        if (this.descContains != null && other.descContains != null && this.descContains != other.descContains) return null
+        if (this.className != null && other.className != null && this.className != other.className) return null
+        if (this.pkg != null && other.pkg != null && this.pkg != other.pkg) return null
+        if (this.clickable != null && other.clickable != null && this.clickable != other.clickable) return null
+        if (this.enabled != null && other.enabled != null && this.enabled != other.enabled) return null
+        if (this.depth != null && other.depth != null && this.depth != other.depth) return null
+        if (this.descendant != null && other.descendant != null) return null
+
+        // Không gộp nếu cả hai cùng định nghĩa tiêu chí text khác loại (VD: text và textContains) vì BySelector chỉ cho phép 1 tiêu chí text
+        val thisHasText = text != null || textContains != null || textMatches != null
+        val otherHasText = other.text != null || other.textContains != null || other.textMatches != null
+        if (thisHasText && otherHasText && (text != other.text || textContains != other.textContains || textMatches != other.textMatches)) {
+            return null
+        }
+
+        val thisHasDesc = desc != null || descContains != null
+        val otherHasDesc = other.desc != null || other.descContains != null
+        if (thisHasDesc && otherHasDesc && (desc != other.desc || descContains != other.descContains)) {
+            return null
+        }
+
+        return SimpleSelector().also { merged ->
+            merged.resourceId = this.resourceId ?: other.resourceId
+            merged.text = this.text ?: other.text
+            merged.textContains = this.textContains ?: other.textContains
+            merged.textMatches = this.textMatches ?: other.textMatches
+            merged.desc = this.desc ?: other.desc
+            merged.descContains = this.descContains ?: other.descContains
+            merged.className = this.className ?: other.className
+            merged.pkg = this.pkg ?: other.pkg
+            merged.clickable = this.clickable ?: other.clickable
+            merged.enabled = this.enabled ?: other.enabled
+            merged.depth = this.depth ?: other.depth
+            merged.descendant = this.descendant ?: other.descendant
+        }
+    }
+
     fun toBySelector(): BySelector {
+        val textPattern = resolveTextPattern()
+
         // Xác định field nào được dùng để khởi tạo BySelector.
         // Quan trọng: KHÔNG được gọi setter cho field này thêm lần nữa,
         // UIAutomator sẽ throw IllegalStateException: "already defined".
-        val initField = when {
-            resourceId != null -> "resourceId"
-            text != null       -> "text"
-            desc != null       -> "desc"
-            className != null  -> "className"
-            else               -> "none"
+        val initField: String
+        val s: BySelector = when {
+            resourceId != null   -> { initField = "resourceId"; By.res(resourceId!!) }
+            text != null         -> { initField = "text"; By.text(text!!) }
+            textContains != null -> { initField = "textContains"; By.textContains(textContains!!) }
+            textPattern != null  -> { initField = "textMatches"; By.text(textPattern) }
+            desc != null         -> { initField = "desc"; By.desc(desc!!) }
+            descContains != null -> { initField = "descContains"; By.descContains(descContains!!) }
+            className != null    -> { initField = "className"; By.clazz(className!!) }
+            pkg != null          -> { initField = "pkg"; By.pkg(pkg!!) }
+            clickable != null    -> { initField = "clickable"; By.clickable(clickable!!) }
+            enabled != null      -> { initField = "enabled"; By.enabled(enabled!!) }
+            depth != null        -> { initField = "depth"; By.depth(depth!!) }
+            else                 -> { initField = "none"; By.pkg(ANY_PKG_PATTERN) }
         }
 
-        val s: BySelector = when (initField) {
-            "resourceId" -> By.res(resourceId!!)
-            "text"       -> By.text(text!!)
-            "desc"       -> By.desc(desc!!)
-            "className"  -> By.clazz(className!!)
-            else         -> By.pkg(Pattern.compile(".*"))
-        }
-
-        // Áp các tiêu chí phụ — bỏ qua field đã dùng khởi tạo
+        // Áp các tiêu chí phụ — bỏ qua field đã dùng khởi tạo và tránh xung đột nhóm text/desc
         if (initField != "resourceId") resourceId?.let { s.res(it) }
-        if (initField != "text") {
-            text?.let { s.text(it) }
-            textMatches?.let { s.text(Pattern.compile(it)) }
+        if (initField != "text" && initField != "textContains" && initField != "textMatches") {
+            when {
+                text != null         -> s.text(text!!)
+                textContains != null -> s.textContains(textContains!!)
+                textPattern != null  -> s.text(textPattern)
+            }
         }
-        textContains?.let { s.textContains(it) }
-        if (initField != "desc") desc?.let { s.desc(it) }
-        descContains?.let { s.descContains(it) }
+        if (initField != "desc" && initField != "descContains") {
+            when {
+                desc != null         -> s.desc(desc!!)
+                descContains != null -> s.descContains(descContains!!)
+            }
+        }
         if (initField != "className") className?.let { s.clazz(it) }
-        pkg?.let { s.pkg(it) }
-        clickable?.let { s.clickable(it) }
-        enabled?.let { s.enabled(it) }
-        depth?.let { s.depth(it) }
+        if (initField != "pkg") pkg?.let { s.pkg(it) }
+        if (initField != "clickable") clickable?.let { s.clickable(it) }
+        if (initField != "enabled") enabled?.let { s.enabled(it) }
+        if (initField != "depth") depth?.let { s.depth(it) }
 
         descendant?.let {
             if (it is SimpleSelector) {
@@ -86,7 +154,7 @@ class SimpleSelector : Selector {
     override fun find(device: UiDevice): UiObject2? {
         val sel = toBySelector()
         val obj = device.findObject(sel)
-        AkiLog.d(LogTag.DETECT, "find(${obj?.toName()}) → ${if (obj != null) "Found" else "Not Found"}")
+        AkiLog.d(LogTag.DETECT, "find($this) → ${if (obj != null) "Found" else "Not Found"}")
         return obj
     }
     override fun findAll(device: UiDevice): List<UiObject2> {
@@ -98,7 +166,7 @@ class SimpleSelector : Selector {
     override fun find(parent: UiObject2): UiObject2? {
         val sel = toBySelector()
         val obj = parent.findObject(sel)
-        AkiLog.d(LogTag.DETECT, "findChild(${this}) → ${if (obj != null) "Found" else "Not Found"}")
+        AkiLog.d(LogTag.DETECT, "findChild($this) → ${if (obj != null) "Found" else "Not Found"}")
         return obj
     }
     override fun findAll(parent: UiObject2): List<UiObject2> {
@@ -115,9 +183,17 @@ class SimpleSelector : Selector {
         // Strip package prefix: "com.ss.android.ugc.trill:id/ubv" → "#ubv"
         resourceId?.let { parts.add("#${it.substringAfterLast('/')}") }
         text?.let { parts.add("\"${it.take(30)}\"") }
+        textContains?.let { parts.add("~\"${it.take(30)}\"") }
+        textMatches?.let { parts.add("/${it.take(30)}/") }
         desc?.let { parts.add("desc:${it.take(20)}") }
+        descContains?.let { parts.add("desc~:${it.take(20)}") }
+        className?.let { parts.add(".${it.substringAfterLast('.')}") }
         pkg?.let { parts.add("pkg:$it") }
-        return parts.joinToString("|")
+        clickable?.let { parts.add("clickable:$it") }
+        enabled?.let { parts.add("enabled:$it") }
+        depth?.let { parts.add("depth:$it") }
+        descendant?.let { parts.add("has($it)") }
+        return if (parts.isEmpty()) "*" else parts.joinToString("|")
     }
 
     // Fluent API
@@ -167,27 +243,60 @@ class OrSelector(val left: Selector, val right: Selector) : Selector {
  * Hỗ trợ toán tử AND phức hợp (khi không thể merge vào SimpleSelector).
  */
 class AndSelector(val left: Selector, val right: Selector) : Selector {
+    private val mergedSimple: SimpleSelector? =
+        if (left is SimpleSelector && right is SimpleSelector) left.tryMerge(right) else null
+
     override fun find(device: UiDevice): UiObject2? {
-        if (!exists(device)) return null
-        return if (left !is NotSelector) left.find(device) ?: right.find(device) else right.find(device)
+        mergedSimple?.find(device)?.let { return it }
+        if (left is NotSelector) {
+            return if (left.exists(device)) right.find(device) else null
+        }
+        if (right is NotSelector) {
+            return if (right.exists(device)) left.find(device) else null
+        }
+        val leftObj = left.find(device) ?: return null
+        return if (right.exists(device)) leftObj else null
     }
 
     override fun findAll(device: UiDevice): List<UiObject2> {
-        if (!exists(device)) return emptyList()
-        val leftResults = if (left is NotSelector) emptyList() else left.findAll(device)
-        val rightResults = if (right is NotSelector) emptyList() else right.findAll(device)
+        mergedSimple?.findAll(device)?.takeIf { it.isNotEmpty() }?.let { return it }
+        if (left is NotSelector) {
+            return if (left.exists(device)) right.findAll(device) else emptyList()
+        }
+        if (right is NotSelector) {
+            return if (right.exists(device)) left.findAll(device) else emptyList()
+        }
+        val leftResults = left.findAll(device)
+        if (leftResults.isEmpty()) return emptyList()
+        val rightResults = right.findAll(device)
+        if (rightResults.isEmpty()) return emptyList()
         return (leftResults + rightResults).distinct()
     }
 
     override fun find(parent: UiObject2): UiObject2? {
-        if (!exists(parent)) return null
-        return if (left !is NotSelector) left.find(parent) ?: right.find(parent) else right.find(parent)
+        mergedSimple?.find(parent)?.let { return it }
+        if (left is NotSelector) {
+            return if (left.exists(parent)) right.find(parent) else null
+        }
+        if (right is NotSelector) {
+            return if (right.exists(parent)) left.find(parent) else null
+        }
+        val leftObj = left.find(parent) ?: return null
+        return if (right.exists(parent)) leftObj else null
     }
 
     override fun findAll(parent: UiObject2): List<UiObject2> {
-        if (!exists(parent)) return emptyList()
-        val leftResults = if (left is NotSelector) emptyList() else left.findAll(parent)
-        val rightResults = if (right is NotSelector) emptyList() else right.findAll(parent)
+        mergedSimple?.findAll(parent)?.takeIf { it.isNotEmpty() }?.let { return it }
+        if (left is NotSelector) {
+            return if (left.exists(parent)) right.findAll(parent) else emptyList()
+        }
+        if (right is NotSelector) {
+            return if (right.exists(parent)) left.findAll(parent) else emptyList()
+        }
+        val leftResults = left.findAll(parent)
+        if (leftResults.isEmpty()) return emptyList()
+        val rightResults = right.findAll(parent)
+        if (rightResults.isEmpty()) return emptyList()
         return (leftResults + rightResults).distinct()
     }
 
@@ -208,9 +317,7 @@ class NotSelector(val selector: Selector): Selector {
 
     override fun find(parent: UiObject2): UiObject2? = null
 
-    override fun findAll(parent: UiObject2): List<UiObject2> {
-        TODO("Not yet implemented")
-    }
+    override fun findAll(parent: UiObject2): List<UiObject2> = emptyList()
 
     override fun exists(device: UiDevice): Boolean = !selector.exists(device)
     override fun exists(parent: UiObject2): Boolean = !selector.exists(parent)
@@ -240,8 +347,19 @@ class NestedSelector(val parentSelector: Selector, val childSelector: Selector) 
         return parentSelector.findAll(parent).flatMap { childSelector.findAll(it) }.distinct()
     }
 
-    override fun exists(device: UiDevice): Boolean =
-        parentSelector.exists(device) && parentSelector.child(childSelector).exists(device)
+    override fun exists(device: UiDevice): Boolean {
+        if (parentSelector is SimpleSelector && childSelector is SimpleSelector) {
+            return device.hasObject(parentSelector.toBySelector().hasDescendant(childSelector.toBySelector()))
+        }
+        return find(device) != null
+    }
+
+    override fun exists(parent: UiObject2): Boolean {
+        if (parentSelector is SimpleSelector && childSelector is SimpleSelector) {
+            return parent.hasObject(parentSelector.toBySelector().hasDescendant(childSelector.toBySelector()))
+        }
+        return find(parent) != null
+    }
 
     override fun toString(): String = "$parentSelector -> $childSelector"
 }

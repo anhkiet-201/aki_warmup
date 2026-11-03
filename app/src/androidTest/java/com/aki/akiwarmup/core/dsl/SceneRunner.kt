@@ -21,6 +21,7 @@ class SceneRunner(
 
 
     init {
+        context.stopSignal = { logger.finalize() }
         // Tối ưu hóa UI Automator cho các ứng dụng video (không đợi idle quá lâu)
         androidx.test.uiautomator.Configurator.getInstance().apply {
             waitForIdleTimeout = 2000L

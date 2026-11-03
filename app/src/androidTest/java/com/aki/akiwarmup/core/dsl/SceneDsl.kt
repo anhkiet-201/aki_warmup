@@ -26,6 +26,8 @@ class SceneBuilder(val name: String, val akiContext: AkiContext) {
             followRate = config.followRate
             searchRate = config.searchRate
             keywords = config.keywords
+            detectTimeoutMs = config.detectTimeoutMs
+            actionTimeoutMs = config.actionTimeoutMs
         }
     }
 

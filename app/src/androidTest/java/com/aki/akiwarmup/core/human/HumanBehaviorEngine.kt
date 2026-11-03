@@ -66,33 +66,45 @@ class HumanBehaviorEngine(private val random: Random = Random()) {
     }
 
     suspend fun humanType(field: UiObject2, text: String) {
-        field.click()
+        runCatching { field.click() }
         gaussianDelay(100, 30)
-        
+
+        val isLongText = text.length > 20
         var i = 0
         while (i < text.length) {
-            // Gõ theo cụm 1-3 ký tự để tăng tốc độ tối đa
-            val chunkSize = if (random.nextFloat() < 0.4) (1..3).random() else 1
+            // Gõ theo cụm ký tự thích ứng (văn bản dài gõ cụm lớn hơn để giảm nghẽn IPC setText)
+            val chunkSize = if (isLongText) {
+                random.nextInt(4) + 3 // 3..6 ký tự
+            } else if (random.nextFloat() < 0.4f) {
+                random.nextInt(3) + 1 // 1..3 ký tự
+            } else {
+                1
+            }
             val nextIndex = (i + chunkSize).coerceAtMost(text.length)
-            
-            field.text = text.substring(0, nextIndex)
+
+            val updated = runCatching {
+                field.text = text.substring(0, nextIndex)
+                true
+            }.getOrDefault(false)
+            if (!updated) break
             i = nextIndex
-            
+
             // Delay cực ngắn giữa các cụm
             delay(random.nextInt(10) + 10L)
-            
+
             // Tỉ lệ lỗi cực thấp (1%)
-            if (random.nextFloat() < 0.03) {
-                val wrongChar = ('a'..'z').random()
-                field.text = text.substring(0, i) + wrongChar
+            if (i < text.length && random.nextFloat() < 0.01f) {
+                val wrongChar = ('a'.code + random.nextInt(26)).toChar()
+                runCatching { field.text = text.substring(0, i) + wrongChar }
                 delay(30)
-                field.text = text.substring(0, i)
+                runCatching { field.text = text.substring(0, i) }
                 delay(50)
             }
         }
     }
     
     fun getScatterPoint(center: Point, scatterPx: Int): Point {
+        if (scatterPx <= 0) return center
         return Point(
             center.x + random.nextInt(scatterPx * 2) - scatterPx,
             center.y + random.nextInt(scatterPx * 2) - scatterPx

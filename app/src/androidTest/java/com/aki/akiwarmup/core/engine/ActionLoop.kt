@@ -40,9 +40,9 @@ class ActionLoop(
                 handleUnknownScreen(context.consecutiveUnknownScreens)
                 scene.unknownScreenHandler?.invoke()
 
-                // Nếu bị kẹt quá lâu mà không có screen nào, dừng để tránh loop vô tận
-                if (scene.context.consecutiveUnknownScreens > 20 && scene.screens.isEmpty()) {
-                    stop("No screens defined and stuck too long")
+                // Nếu bị kẹt quá lâu mà không khớp screen nào, dừng để tránh loop vô tận
+                if (scene.context.consecutiveUnknownScreens > 20) {
+                    stop("Stuck on unknown screen too long")
                 }
                 continue
             }
@@ -63,20 +63,22 @@ class ActionLoop(
             AkiLog.enterScope()          // depth 2: body của action
 
             val actionStart = System.currentTimeMillis()
-            val result = runCatching {
-                action.block.invoke()
+            val finalResult = try {
+                val result = runCatching {
+                    action.block.invoke()
+                }
+                // Xử lý EndActionException như là kết quả thành công
+                if (result.exceptionOrNull() is com.aki.akiwarmup.core.dsl.EndActionException) {
+                    AkiLog.d(LogTag.ACTION, "endAction()")
+                    Result.success(Unit)
+                } else {
+                    result
+                }
+            } finally {
+                AkiLog.exitScope()       // depth 1
+                AkiLog.exitScope()       // depth 0
             }
             val actionDuration = System.currentTimeMillis() - actionStart
-
-            // Xử lý EndActionException như là kết quả thành công
-            val finalResult = if (result.exceptionOrNull() is com.aki.akiwarmup.core.dsl.EndActionException) {
-                AkiLog.d(LogTag.ACTION, "endAction()")
-                Result.success(Unit)
-            } else {
-                result
-            }
-            AkiLog.exitScope()           // depth 1
-            AkiLog.exitScope()           // depth 0
 
             logger.log(currentScreen.id, action.id, finalResult)
             if (actionDuration < 500) {
@@ -111,19 +113,15 @@ class ActionLoop(
         }
     }
 
-    private fun restartTargetApp() {
+    private suspend fun restartTargetApp() {
         val pkg = context.sceneConfig.targetPackage
         if (pkg.isNotEmpty()) {
             scene.context.restartCount++
             scene.context.consecutiveRestarts++
             device.executeShellCommand("am force-stop $pkg")
-            delaySync(1000)
+            delay(1000)
             device.executeShellCommand("monkey -p $pkg -c android.intent.category.LAUNCHER 1")
-            delaySync(3000)
+            delay(3000)
         }
-    }
-
-    private fun delaySync(ms: Long) {
-        try { Thread.sleep(ms) } catch (e: Exception) {}
     }
 }

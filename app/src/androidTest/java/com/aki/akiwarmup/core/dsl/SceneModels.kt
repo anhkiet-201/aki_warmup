@@ -67,6 +67,7 @@ open class AkiContext(
 ) {
     val storage: AkiStorage by lazy { AkiStorage(androidContext) }
 
+    @Volatile
     var stopped: Boolean = false
     var isStopped: () -> Boolean = { stopped }
 
@@ -86,14 +87,14 @@ open class AkiContext(
     fun stop(reason: String = "", resultCode: Int = 0) {
         stopped = true
         val reasonStr = reason.ifEmpty { "Stopped" }
-        
+
+        stopSignal(reason)
+
         val bundle = android.os.Bundle().apply {
             putString("reason", reasonStr)
         }
 
         instrumentation.finish(resultCode, bundle)
-        
-        stopSignal(reason)
     }
 }
 
