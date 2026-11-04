@@ -121,19 +121,19 @@ fun onTiktokSharePost(context: SceneExecutionContext, block: ScreenBuilder.() ->
  */
 fun onVideoPreview(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
     defineScreen("Video Preview", context) {
-        detect { has(desc("Mẫu") and desc("Văn bản")) or has(id(TiktokId.ADD_SOUND_TEXT))}
+        detect { has(desc("Mẫu") and desc("Văn bản"))}
         apply(block)
     }
 
 fun onChooseTemplate(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
     defineScreen("Choose Template", context) {
-        detect { has(text("Chọn mẫu") and text("Tiếp"))}
+        detect { has(text("Chọn mẫu") and text("Tiếp"))}   
         apply(block)
     }
 
 /**
  * Định nghĩa sheet chọn nhạc nền (Select Music Sheet) trong quy trình tải lên video.
- *
+ *  
  * Màn hình được phát hiện bằng cách tìm sự hiện diện của danh sách đề xuất âm thanh (`TiktokId.MUSIC_LIST`).
  *
  * @param context Ngữ cảnh thực thi hành động (`SceneExecutionContext`).
