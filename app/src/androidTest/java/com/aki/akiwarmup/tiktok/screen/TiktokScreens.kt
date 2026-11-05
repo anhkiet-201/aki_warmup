@@ -214,7 +214,7 @@ fun onRepostPopup(
 fun onDeletePopup(
     context: SceneExecutionContext, block: ScreenBuilder.() -> Unit
 ) = defineScreen("Delete Popup", context) {
-    detect { has(id("com.ss.android.ugc.trill:id/xd")) }
+    detect { has(text("Xóa") and text("Đăng lại")) }
     apply(block)
 }
 
