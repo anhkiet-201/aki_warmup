@@ -371,11 +371,28 @@ class AkiFrameworkTest {
                     }
                 }
 
+                var hasSelectedVideo = false
+
                 onProfile(context) {
+                    if (hasSelectedVideo) {
+                        action("End Profile Seeding") {
+                            AkiLog.i(LogTag.ACTION, "Already selected and watched profile videos, ending seeding")
+                            pressHome()
+                            stop("Hoàn thành seeding (đã lướt hết video trên Profile): $keyword")
+                        }
+                        return@onProfile
+                    }
+
                     onChooseVideo(context, {
                         stop("No Videos")
                     }) { videos ->
-                        val targetVideo = videos.getOrElse(numOfVideos) { videos.first() }
+                        if (hasSelectedVideo) {
+                            pressHome()
+                            stop("Hoàn thành seeding (đã lướt hết video trên Profile): $keyword")
+                            return@onChooseVideo
+                        }
+                        hasSelectedVideo = true
+                        val targetVideo = videos.first()
                         tap(targetVideo)
                         wait(random(1000, 2000))
                     }

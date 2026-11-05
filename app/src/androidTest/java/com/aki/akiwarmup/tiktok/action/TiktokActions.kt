@@ -263,6 +263,32 @@ private fun ActionBuilder.readVideoFingerprint(existingDesc: String?, isSeeding:
             return "no_desc_$authorOrDate"
         }
     }
+
+    // Fallback 1: Thử lấy contentDescription của nút Like hoặc Like container
+    val likeDesc = find(id(TiktokId.LIKE_BUTTON))?.contentDescription?.toString()?.trim()
+        ?: find(id(TiktokId.LIKE_BUTTON_CONTAINER))?.contentDescription?.toString()?.trim()
+    if (!likeDesc.isNullOrEmpty()) {
+        return "like_$likeDesc"
+    }
+
+    // Fallback 2: Thử lấy contentDescription của nút Comment hoặc Share
+    val commentOrShareDesc = find(id(TiktokId.COMMENT_BUTTON_CONTAINER))?.contentDescription?.toString()?.trim()
+        ?: find(id(TiktokId.COMMENT_BUTTON))?.contentDescription?.toString()?.trim()
+        ?: find(id(TiktokId.SHARE_BUTTON))?.contentDescription?.toString()?.trim()
+    if (!commentOrShareDesc.isNullOrEmpty()) {
+        return "btn_$commentOrShareDesc"
+    }
+
+    // Fallback 3: Ghép text của các TextView hiển thị trên màn hình
+    val anyText = findAll(clazz("android.widget.TextView"))
+        .mapNotNull { it.text?.trim() }
+        .filter { it.isNotEmpty() }
+        .take(5)
+        .joinToString("|")
+    if (anyText.isNotEmpty()) {
+        return "text_$anyText"
+    }
+
     return null
 }
 
@@ -390,6 +416,10 @@ fun watchVideo(
         // 1. Kiểm tra màn hình còn ở feed video không
         if (!isOnVideoFeed()) {
             AkiLog.w(LogTag.ACTION, "watchVideo: Not on video feed, ending action for re-detection")
+            if (isSeeding && session.videoCount > 0 && !session.pendingCommentReturn) {
+                AkiLog.i(LogTag.ACTION, "watchVideo (seeding): feed ended or exited after ${session.videoCount} videos -> finishing")
+                if (onEndOfVideos != null) onEndOfVideos() else onExit()
+            }
             endAction()
         }
 
