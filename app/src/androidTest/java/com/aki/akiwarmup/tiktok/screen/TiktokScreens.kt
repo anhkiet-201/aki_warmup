@@ -184,7 +184,7 @@ fun onProfile(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
  */
 fun onShare(context: SceneExecutionContext, block: ScreenBuilder.() -> Unit) =
     defineScreen("Share", context) {
-        detect { has(id("com.ss.android.ugc.trill:id/znd")) }
+        detect { has(text("Gửi đến")) }
         apply(block)
     }
 
