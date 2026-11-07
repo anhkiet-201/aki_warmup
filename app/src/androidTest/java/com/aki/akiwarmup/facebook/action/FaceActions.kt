@@ -247,6 +247,10 @@ fun shareReelWithCaption(
             find(text("Vị trí"))?.let {
                 tap(it)
                 wait(random(1500, 3000))
+                find(text("Cho phép Facebook truy cập vị trí của bạn?"))?.let {
+                    find(text("Cho Phép"))?.let { allow -> tap(allow) }
+                    wait(random(1500, 3000))
+                }
                 find(clazz("android.widget.EditText"))?.let { searchField ->
                     searchField.text = location
                     wait(random(1500, 3000))
