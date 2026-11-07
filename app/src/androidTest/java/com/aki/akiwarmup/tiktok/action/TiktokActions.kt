@@ -29,12 +29,17 @@ import java.util.WeakHashMap
 
 typealias Action = suspend ActionBuilder.() -> Unit
 
-val captionKeyword = listOf(
-    // Tuyển dụng & việc làm chung
+// ============================================================================
+// BỘ TỪ KHÓA TIKTOK WARMUP
+// ============================================================================
+
+/**
+ * 1. Từ khóa việc làm & tuyển dụng chung (không phụ thuộc địa phương).
+ */
+val commonEmploymentKeywords = listOf(
     "việc làm",
     "viec lam",
     "vieclam",
-    "vieclamdongnai",
     "tìm việc",
     "tim viec",
     "timviec",
@@ -64,8 +69,13 @@ val captionKeyword = listOf(
     "kcn",
     "khu công nghiệp",
     "khu cong nghiep",
-    "khucongnghiep",
-    // Chế độ đãi ngộ
+    "khucongnghiep"
+)
+
+/**
+ * 2. Từ khóa chế độ đãi ngộ & thu hút người lao động.
+ */
+val commonBenefitKeywords = listOf(
     "lương 3 ngày",
     "luong 3 ngay",
     "luong3ngay",
@@ -83,8 +93,13 @@ val captionKeyword = listOf(
     "tangca",
     "thu nhập",
     "thu nhap",
-    "thunhap",
-    // Ngành nghề
+    "thunhap"
+)
+
+/**
+ * 3. Từ khóa ngành nghề sản xuất chủ lực.
+ */
+val commonIndustryKeywords = listOf(
     "điện tử",
     "dien tu",
     "dientu",
@@ -101,10 +116,134 @@ val captionKeyword = listOf(
     "bao bì",
     "bao bi",
     "baobi",
-    // Địa bàn & Khu công nghiệp Đồng Nai
+    "cơ khí",
+    "co khi",
+    "cokhi",
+    "nhựa",
+    "nhua"
+)
+
+/**
+ * 4. Địa bàn & Khu công nghiệp Bình Dương (có dấu, không dấu, viết liền).
+ */
+val binhDuongLocationKeywords = listOf(
+    // Tỉnh & Thành phố / Huyện
+    "bình dương",
+    "binh duong",
+    "binhduong",
+    "vieclambinhduong",
+    "thủ dầu một",
+    "thu dau mot",
+    "thudaumot",
+    "tdm",
+    "thuận an",
+    "thuan an",
+    "thuanan",
+    "dĩ an",
+    "di an",
+    "dian",
+    "tân uyên",
+    "tan uyen",
+    "tanuyen",
+    "bến cát",
+    "ben cat",
+    "bencat",
+    "bàu bàng",
+    "bau bang",
+    "baubang",
+    "bắc tân uyên",
+    "bac tan uyen",
+    "bactanuyen",
+    "phú giáo",
+    "phu giao",
+    "phugiao",
+    "dầu tiếng",
+    "dau tieng",
+    "dautieng",
+
+    // KCN VSIP (1, 2, 2A, 3)
+    "vsip",
+    "kcn vsip",
+    "vsip 1",
+    "vsip 2",
+    "vsip 2a",
+    "vsip 3",
+    "vsip1",
+    "vsip2",
+    "vsip3",
+    "việt nam singapore",
+    "viet nam singapore",
+
+    // KCN Sóng Thần (1, 2, 3)
+    "sóng thần",
+    "song than",
+    "songthan",
+    "sóng thần 1",
+    "song than 1",
+    "songthan1",
+    "sóng thần 2",
+    "song than 2",
+    "songthan2",
+
+    // KCN Mỹ Phước (1, 2, 3, 4)
+    "mỹ phước",
+    "my phuoc",
+    "myphuoc",
+    "mỹ phước 1",
+    "my phuoc 1",
+    "myphuoc1",
+    "mỹ phước 2",
+    "my phuoc 2",
+    "myphuoc2",
+    "mỹ phước 3",
+    "my phuoc 3",
+    "myphuoc3",
+
+    // KCN Nam Tân Uyên & Đất Cuốc
+    "nam tân uyên",
+    "nam tan uyen",
+    "namtanuyen",
+    "đất cuốc",
+    "dat cuoc",
+    "datcuoc",
+
+    // KCN Tân Đông Hiệp, Đồng An, Rạch Bắp, Việt Hương, Kim Huy, Đại Đăng, Mapletree...
+    "tân đông hiệp",
+    "tan dong hiep",
+    "tandonghiep",
+    "đồng an",
+    "dong an",
+    "dongan",
+    "rạch bắp",
+    "rach bap",
+    "rachbap",
+    "việt hương",
+    "viet huong",
+    "viethuong",
+    "kim huy",
+    "kimhuy",
+    "đại đăng",
+    "dai dang",
+    "daidang",
+    "mapletree",
+    "tân bình bình dương",
+    "kcn tân bình",
+    "bình chuẩn",
+    "binh chuan",
+    "binhchuan",
+    "an tây",
+    "an tay",
+    "antay"
+)
+
+/**
+ * 5. Địa bàn & Khu công nghiệp Đồng Nai (Bảo lưu dự phòng).
+ */
+val dongNaiLocationKeywords = listOf(
     "đồng nai",
     "dong nai",
     "dongnai",
+    "vieclamdongnai",
     "biên hòa",
     "bien hoa",
     "bienhoa",
@@ -146,7 +285,82 @@ val captionKeyword = listOf(
     "giangdien"
 )
 
-val keyWorlds = listOf(
+/**
+ * Bộ câu tìm kiếm tự nhiên TikTok cho khu vực Bình Dương.
+ */
+val binhDuongSearchKeywords = listOf(
+    // 1. Nhóm lương 3 ngày 1 lần / lương tuần / thời vụ tại Bình Dương
+    "những công ty lương 3 ngày 1 lần tại bình dương",
+    "công ty lương 3 ngày bình dương",
+    "việc làm lương 3 ngày 1 lần bình dương",
+    "việc làm lương 3 ngày bình dương",
+    "tuyển dụng công ty lương 3 ngày bình dương",
+    "công ty nhận lương 3 ngày tại bình dương",
+    "việc làm thời vụ lương 3 ngày bình dương",
+    "việc làm lương tuần bến cát bình dương",
+    "việc làm lương 3 ngày thuận an",
+
+    // 2. KCN VSIP 1, 2, 3 (Thuận An, Tân Uyên, Bến Cát)
+    "việc làm kcn vsip 1 thuận an",
+    "tuyển dụng kcn vsip 1 bình dương",
+    "công ty điện tử kcn vsip 1",
+    "việc làm kcn vsip 2 tân uyên",
+    "công ty kcn vsip 2 mở rộng",
+    "tuyển dụng kcn vsip bình dương",
+    "việc làm thời vụ kcn vsip",
+    "công ty điện tử kcn vsip 2",
+
+    // 3. KCN Sóng Thần & Dĩ An
+    "việc làm kcn sóng thần dĩ an",
+    "tuyển dụng kcn sóng thần 1 2",
+    "công ty giày da kcn sóng thần",
+    "việc làm thời vụ kcn sóng thần",
+    "công ty kcn sóng thần bình dương",
+    "tuyển dụng việc làm dĩ an bình dương",
+
+    // 4. KCN Mỹ Phước 1, 2, 3 & Bến Cát
+    "việc làm kcn mỹ phước 1 2 3",
+    "tuyển dụng kcn mỹ phước bến cát",
+    "công ty điện tử mỹ phước 3",
+    "công ty gỗ mỹ phước bến cát",
+    "việc làm thời vụ bến cát bình dương",
+    "tuyển dụng lao động phổ thông bến cát",
+
+    // 5. KCN Bàu Bàng
+    "việc làm kcn bàu bàng bình dương",
+    "tuyển dụng kcn bàu bàng",
+    "công ty may mặc kcn bàu bàng",
+    "việc làm thời vụ bàu bàng bình dương",
+    "công nhân kcn bàu bàng",
+
+    // 6. KCN Nam Tân Uyên & Đất Cuốc
+    "việc làm kcn nam tân uyên",
+    "tuyển dụng kcn nam tân uyên bình dương",
+    "công ty gỗ kcn nam tân uyên",
+    "việc làm kcn đất cuốc bắc tân uyên",
+    "tuyển dụng tân uyên bình dương",
+
+    // 7. KCN Đồng An, Việt Hương, Đại Đăng
+    "việc làm kcn đồng an thuận an",
+    "tuyển dụng kcn việt hương bình dương",
+    "công ty kcn đại đăng thủ dầu một",
+
+    // 8. Từ khóa tổng hợp Bình Dương
+    "việc làm bình dương",
+    "việc làm thời vụ bình dương",
+    "tìm việc làm ở bình dương",
+    "tuyển dụng công nhân bình dương",
+    "làm công ty ở bình dương",
+    "việc làm thủ dầu một bình dương",
+    "việc làm thuận an bình dương",
+    "việc làm dĩ an",
+    "việc làm tân uyên"
+)
+
+/**
+ * Bộ câu tìm kiếm tự nhiên TikTok cho khu vực Đồng Nai (Bảo lưu dự phòng).
+ */
+val dongNaiSearchKeywords = listOf(
     // 7 từ khóa gốc
     "những công ty lương 3 ngày 1 lần tại đồng nai",
     "công ty điện tử kcn sông mây",
@@ -193,6 +407,25 @@ val keyWorlds = listOf(
     "tuyển dụng công nhân đồng nai",
     "làm công ty ở đồng nai"
 )
+
+// ============================================================================
+// PUBLIC KEYWORD INTERFACES (Cấu hình kích hoạt hiện tại: BÌNH DƯƠNG)
+// ============================================================================
+
+/**
+ * Danh sách từ khóa quét caption mô tả video để nhận diện video tuyển dụng mục tiêu.
+ * Kết hợp từ khóa chung (việc làm, chế độ, ngành nghề) và địa bàn Bình Dương.
+ */
+val captionKeyword: List<String> = commonEmploymentKeywords +
+    commonBenefitKeywords +
+    commonIndustryKeywords +
+    binhDuongLocationKeywords
+
+/**
+ * Danh sách cụm từ tìm kiếm tự nhiên mồi thuật toán TikTok.
+ * Mặc định sử dụng bộ tìm kiếm khu vực Bình Dương.
+ */
+val keyWorlds: List<String> = binhDuongSearchKeywords
 
 private val targetHashtags = listOf("#ttnhr", "#vieclamttn")
 
