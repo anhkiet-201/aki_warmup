@@ -10,6 +10,7 @@ import com.aki.akiwarmup.core.dsl.clazz
 import com.aki.akiwarmup.core.dsl.defineAction
 import com.aki.akiwarmup.core.dsl.desc
 import com.aki.akiwarmup.core.dsl.descContains
+import com.aki.akiwarmup.core.dsl.id
 import com.aki.akiwarmup.core.dsl.text
 import com.aki.akiwarmup.core.logger.AkiLog
 import com.aki.akiwarmup.core.logger.LogTag
@@ -250,6 +251,10 @@ fun shareReelWithCaption(
                 find(text("Cho phép Facebook truy cập vị trí của bạn?"))?.let {
                     find(text("Cho Phép"))?.let { allow -> tap(allow) }
                     wait(random(1500, 3000))
+                    find(id("com.android.permissioncontroller:id/permission_message"))?.let {
+                        find(id("com.android.permissioncontroller:id/permission_allow_foreground_only_button"))?.click()
+                        wait(random(3000, 5000))
+                    }
                 }
                 find(clazz("android.widget.EditText"))?.let { searchField ->
                     searchField.text = location
